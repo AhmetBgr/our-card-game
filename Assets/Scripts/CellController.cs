@@ -2,19 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MinionController : MonoBehaviour
+public class CellController : MonoBehaviour
 {
-    public CardModal modal;
-
-    public MinionView view;
-    public CardTEst card;
+    public SelectableEntity selectable;
 
     // Start is called before the first frame update
     void Start()
     {
-        modal.UpdateModal(card);
-
-        view.UpdateView(modal);
+        
     }
 
     // Update is called once per frame
@@ -24,6 +19,7 @@ public class MinionController : MonoBehaviour
     }
     private void OnMouseDown()
     {
-        ActionHolder.selectedMinion = this;
+        ActionHolder.selectedcell = transform;
+        //selectable.SetSelectable(false);
     }
 }

@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CellController : MonoBehaviour
+public class SelectionHandler : MonoBehaviour
 {
+    [SerializeField] private ISelectable selectable;
     // Start is called before the first frame update
     void Start()
     {
@@ -14,9 +15,5 @@ public class CellController : MonoBehaviour
     void Update()
     {
         
-    }
-    private void OnMouseDown()
-    {
-        ActionHolder.selectedcell = transform;
     }
 }

@@ -1,15 +1,22 @@
 using System;
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public enum MinionType
 {
     Any,Beast
 
 }
+public enum SelectionType
+{
+    Any, Minion, Card, Cell
+
+}
+
+
 [CreateAssetMenu(fileName = "ActionHolder", menuName = "New ActionHolder")]
 
 public class ActionHolder : ScriptableObject
@@ -17,24 +24,43 @@ public class ActionHolder : ScriptableObject
     public static Transform selectedcell = null;
     public static MinionController selectedMinion = null;
 
-    public void startSELECTCELL()
+    public static event Action<SelectableParameters> OnSelect;
+
+    public void SelectCell(int rowIndex = 2)
     {
-        IEnumerator cor = SELECTCELL();
+        IEnumerator cor = _SelectCell(rowIndex);
         GameManager.Instance.Addtoactions(cor);
         Debug.LogWarning("selectcell added to actions");
 
     }
-    public IEnumerator SELECTCELL()
+    public IEnumerator _SelectCell(int rowIndex)
     {
+        var grid = GridManager.Instance.GetGrid();
+
+        foreach (var cell in grid)
+        {
+
+            cell.cellObj.GetComponent<CellController>()
+                .selectable.SetSelectable(cell.index.y == rowIndex && cell.obj == null);
+
+        }
+
         while (selectedcell == null)
         {
             //Debug.Log("selecting cell");
 
             yield return null;
         }
+
+        foreach (var cell in grid)
+        {
+
+            cell.cellObj.GetComponent<CellController>()
+                .selectable.SetSelectable(false);
+
+        }
+
         Debug.Log("selected cell");
-
-
     }
     public void summonminion(CardTEst card)
     {
@@ -133,12 +159,27 @@ public class ActionHolder : ScriptableObject
     }
     public IEnumerator _SelectMinion()
     {
+        var grid = GridManager.Instance.GetGrid();
+
+        foreach (var cell in grid)
+        {
+            cell.obj?.GetComponent<MinionController>()
+                .selectable.SetSelectable(true);
+        }
+
         while (selectedMinion == null)
         {
             //Debug.Log("selecting minion");
 
             yield return null;
         }
+
+        foreach (var cell in grid)
+        {
+            cell.obj?.GetComponent<MinionController>()
+                .selectable.SetSelectable(false);
+        }
+
         Debug.Log("selected minion");
 
 
@@ -153,7 +194,7 @@ public class ActionHolder : ScriptableObject
     {
         while (selectedMinion == null)
         {
-            //Debug.Log("selecting minion");
+            Debug.Log("selecting minion");
 
             yield return null;
         }
