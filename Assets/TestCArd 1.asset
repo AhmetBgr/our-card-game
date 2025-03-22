@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: TestCArd 1
   m_EditorClassIdentifier: 
   art: {fileID: 21300000, guid: ec5575761b1006c44bc1b3bf59a7c5a6, type: 3}
-  name: Mighty Warrior
+  name: Mighty Sorcerer
   desc: 
-  attack: 3
-  health: 2
+  attack: 1
+  health: 3
   cost: 1
-  range: 1
-  defHealth: 2
+  range: -1
+  defHealth: 3
   effectValues: 
   OnPlay:
     m_PersistentCalls:

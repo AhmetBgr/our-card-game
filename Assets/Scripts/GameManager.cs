@@ -3,59 +3,142 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public enum GameState { Setup, StartGame, PlayerTurn, OpponentTurn, EndGame }
+
 public class GameManager : Singleton<GameManager>
 {
     public GameObject minionprefab;
-
+    public bool isPlayingCard = false;
     public IEnumerator curaction;
     private Queue<IEnumerator> actionQueue = new Queue<IEnumerator>();
 
-    // Start is called before the first frame update
+    public GameState currentState;
+    public int maxMana = 0;
+    private int _curPlayerMana;
+    public int curPlayerMana
+    {
+        get { return _curPlayerMana; }
+        set
+        {
+            int oldValue = _curPlayerMana;
+            _curPlayerMana = value;
+
+            OnPlayerManaChanged?.Invoke(value, oldValue);
+        }
+    }
+    public bool isPlayerTurn;
+    public int playerHealth = 30;
+    public int opponentHealth = 30;
+
+    public static event Action<GameState> OnTurnSwitch;
+    public static event Action<int, int> OnPlayerManaChanged;
+
+
     void Start()
     {
-        
+        StartCoroutine(GameLoop());
     }
 
-    // Update is called once per frame
-    void Update()
+    IEnumerator GameLoop()
     {
-        
+        yield return StartCoroutine(SetupGame());
+
+        while (currentState != GameState.EndGame)
+        {
+            if (isPlayerTurn)
+            {
+                maxMana++;
+                yield return StartCoroutine(PlayerTurn());
+            }
+            else
+            {
+                yield return StartCoroutine(OpponentTurn());
+            }
+        }
     }
 
-    public void TestAc2(CardTEst card)
+    IEnumerator SetupGame()
     {
+        currentState = GameState.Setup;
+        Debug.Log("Setting up game...");
 
+        yield return new WaitForSeconds(2f);
+
+        isPlayerTurn = true;
+        currentState = GameState.StartGame;
+        Debug.Log("Game Started!");
+
+        yield return null;
     }
 
-    public void startcor(IEnumerator cor)
+    IEnumerator PlayerTurn()
     {
-        curaction = cor;
-        
-        StartCoroutine(cor);
-    }
+        currentState = GameState.PlayerTurn;
+        curPlayerMana = maxMana;
+        Debug.Log("Player's Turn");
+        OnTurnSwitch?.Invoke(currentState);
 
-    public IEnumerator startaction( Action oncomplete= null)
-    {
-        while (curaction != null)
+        while (isPlayerTurn)
         {
             yield return null;
         }
-        oncomplete?.Invoke();
-        yield break;
+
+        yield return new WaitForSeconds(1f);
+    }
+
+    public void EndPlayerTurn()
+    {
+        if (currentState != GameState.PlayerTurn) return;
+
+        isPlayerTurn = false;
+        Debug.Log("Player Ends Turn");
+
+        StartCoroutine(OpponentTurn());
+    }
+
+    IEnumerator OpponentTurn()
+    {
+        currentState = GameState.OpponentTurn;
+        Debug.Log("Opponent's Turn");
+        OnTurnSwitch?.Invoke(currentState);
+
+        yield return new WaitForSeconds(2f);
+
+        Debug.Log("Opponent has played.");
+        isPlayerTurn = true;
+
+        yield return null;
+    }
+
+    public void CheckWinCondition()
+    {
+        if (playerHealth <= 0)
+        {
+            Debug.Log("Player Loses!");
+            currentState = GameState.EndGame;
+        }
+        else if (opponentHealth <= 0)
+        {
+            Debug.Log("Player Wins!");
+            currentState = GameState.EndGame;
+        }
     }
     public void Addtoactions(IEnumerator action)
     {
-
         actionQueue.Enqueue(action);
     }
-    public void removefromactions(IEnumerator action)
+    public void RemoveFromActions(IEnumerator action)
     {
-
         actionQueue.Enqueue(action);
     }
 
-    public void playcard(CardController card)
+    public void PlayCard(CardController card)
     {
+        if (currentState != GameState.PlayerTurn || isPlayingCard || card.modal.cost > curPlayerMana) return;
+
+        curPlayerMana -= card.modal.cost;
+        isPlayingCard = true;
         actionQueue.Clear();
         ActionHolder.selectedcell = null;
         ActionHolder.selectedMinion = null;
@@ -72,7 +155,7 @@ public class GameManager : Singleton<GameManager>
         }
 
         Destroy(card.gameObject);
-
+        isPlayingCard = false;
         Debug.Log("All actions completed.");
     }
     public void SummonMinion(CardTEst card, Vector3 pos)

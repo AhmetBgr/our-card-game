@@ -22,5 +22,6 @@ public class CardModal : MonoBehaviour
         health = card.health;
         range = card.range;
         art = card.art;
+        cost = card.cost;
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-public class CardController : MonoBehaviour , IPointerEnterHandler,IPointerExitHandler, IPointerDownHandler
+public class CardController : MonoBehaviour// , IPointerEnterHandler,IPointerExitHandler, IPointerDownHandler
 {
     public CardModal modal;
     public CardView view;
@@ -24,18 +24,18 @@ public class CardController : MonoBehaviour , IPointerEnterHandler,IPointerExitH
     {
         
     }
-    public void OnPointerDown(PointerEventData eventData)
+    public void OnPointerDown()
     {
-        GameManager.Instance.playcard(this);
+        GameManager.Instance.PlayCard(this);
     }
-    public void OnPointerEnter(PointerEventData eventData)
+    public void OnPointerEnter()
     {
         HandManager.Instance.AddToTopView(transform);
         transform.localPosition += Vector3.up *220;
         transform.localScale = Vector3.one * 1.4f;
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    public void OnPointerExit()
     {
         HandManager.Instance.AddToHand(transform, curslot);
         transform.localPosition = Vector3.zero;
