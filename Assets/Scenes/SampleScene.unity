@@ -2410,6 +2410,8 @@ MonoBehaviour:
   minionprefab: {fileID: 4113462982911207717, guid: ef15430328ff6844aa8c828df4d7c542,
     type: 3}
   isPlayingCard: 0
+  playerMinions: []
+  opponentMinions: []
   currentState: 0
   maxMana: 0
   isPlayerTurn: 0
@@ -5777,6 +5779,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Minion
+      objectReference: {fileID: 0}
+    - target: {fileID: 4113462982911207717, guid: ef15430328ff6844aa8c828df4d7c542,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4990867834113611566, guid: ef15430328ff6844aa8c828df4d7c542,
         type: 3}

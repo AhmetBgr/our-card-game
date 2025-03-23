@@ -165,16 +165,16 @@ public class GridManager : MonoBehaviour
     {
         Vector3 gridCenterOffset = new Vector3((GridWidth - 1) * cellSize / 2.0f, (GridHeight - 1) * cellSize / 2.0f, 0);
 
-        int x = Mathf.RoundToInt(MathF.Abs(pos.x));
-        int y = Mathf.RoundToInt(Mathf.Abs(pos.y));
-
-        if (x >= 0 && x < GridWidth && y >= 0 && y < GridHeight)
+        int x = Mathf.RoundToInt(pos.x);
+        int y = -Mathf.RoundToInt(pos.y);
+        return new Vector2Int(x, y);
+        /*if (x >= 0 && x < GridWidth && y >= 0 && y < GridHeight)
         {
             return new Vector2Int(x, y);
         }
 
         Debug.LogWarning("Position is out of grid bounds.");
-        return new Vector2Int(-1, -1); // Return an invalid value if out of bounds
+        return new Vector2Int(-1, -1); // Return an invalid value if out of bounds*/
     }
 
     public void SetCell(int x, int y, Vector3 pos, GameObject obj = null, GameObject floorObj = null, GameObject spacelessObj = null)
@@ -260,6 +260,8 @@ public class GridManager : MonoBehaviour
         // Check if the index is outside the bounds of the grid
         if (index.x < 0 || index.x >= GridWidth || index.y < 0 || index.y >= GridHeight)
         {
+            Debug.LogWarning("index was outside of grid: " + index);
+            Debug.Log("index: " + index + ", grid width: " + GridWidth + ", height: " + GridHeight);
             return true; // The index is outside the grid
         }
 

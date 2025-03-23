@@ -1,6 +1,7 @@
 using System; 
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 
@@ -12,6 +13,10 @@ public class GameManager : Singleton<GameManager>
     public bool isPlayingCard = false;
     public IEnumerator curaction;
     private Queue<IEnumerator> actionQueue = new Queue<IEnumerator>();
+
+    public List<MinionController> playerMinions = new List<MinionController>();
+    public List<MinionController> opponentMinions = new List<MinionController>();
+
 
     public GameState currentState;
     public int maxMana = 0;
@@ -53,6 +58,80 @@ public class GameManager : Singleton<GameManager>
             }
             else
             {
+                for (int x = 0; x < GridManager.Instance.GridWidth; x++)
+                {
+                    for (int y = 0; y < GridManager.Instance.GridHeight; y++)
+                    {
+                        Cell cell = GridManager.Instance.GetCell(new Vector2Int(x,y));
+
+                        MinionController minion;
+
+                        if(cell.obj != null && cell.obj.TryGetComponent(out minion))
+                        {
+                            Vector3Int pos = Vector3Int.RoundToInt(minion.transform.position) + Vector3Int.up;
+                            if (minion.CanMove(pos))
+                            {
+                                minion.Move(pos);
+                                yield return new WaitForSeconds(0.26f);
+
+                                GridManager.Instance.InvokeGridChanged();
+                            }
+                            else
+                            {
+                                minion.FailedMove(Vector3.up);
+                            }
+                        }
+                    }
+                }
+
+                /*foreach (var minion in playerMinions)
+                {
+                    minion.PlanMove(Vector3Int.up);
+                }
+                */
+                /*foreach (var minion in playerMinions)
+                {
+                    Vector3Int pos = Vector3Int.RoundToInt(minion.transform.position) + Vector3Int.up;
+                   
+                    if (minion.CanMove(pos))
+                    {
+
+                        Debug.Log("can move");
+                        minion.Move(pos);
+                        yield return new WaitForSeconds(0.26f);
+
+                        GridManager.Instance.InvokeGridChanged();
+
+                    }
+                    else
+                    {
+                        Debug.Log("cant move");
+
+                        minion.FailedMove(Vector3Int.up);
+                    }
+                }*/
+                /*foreach (var minion in playerMinions)
+                {
+                    Vector3Int pos = Vector3Int.RoundToInt(minion.transform.position) + Vector3Int.up;
+                    if (minion.isMovementValidated && minion.plannedMoveDir != Vector3Int.zero)
+                    {
+
+                        Debug.Log("can move");
+                        minion.Move(pos);
+
+                    }
+                    else
+                    {
+                        Debug.Log("cant move");
+
+                        //minion.FailedMove(Vector3Int.up);
+                    }
+                }*/
+
+                yield return new WaitForSeconds(0.5f);
+
+                GridManager.Instance.InvokeGridChanged();
+
                 yield return StartCoroutine(OpponentTurn());
             }
         }
@@ -95,6 +174,8 @@ public class GameManager : Singleton<GameManager>
         Debug.Log("Player Ends Turn");
 
         StartCoroutine(OpponentTurn());
+
+
     }
 
     IEnumerator OpponentTurn()
@@ -162,5 +243,16 @@ public class GameManager : Singleton<GameManager>
     {
         MinionController minion = Instantiate(minionprefab, pos, Quaternion.identity).GetComponent<MinionController>();
         minion.card = card;
+
+        if (isPlayerTurn)
+        {
+            playerMinions.Add(minion);
+            minion.isPlayerMinion = true;   
+
+        }
+        else
+        {
+            opponentMinions.Add(minion);
+        }
     }
 }
