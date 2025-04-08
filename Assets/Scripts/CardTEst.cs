@@ -5,7 +5,6 @@ using System;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
-
 [CreateAssetMenu(fileName = "TestCArd", menuName = "New Test Card")]
 public class CardTEst : ScriptableObject
 {
@@ -17,7 +16,8 @@ public class CardTEst : ScriptableObject
     public int cost;
     public int range;
 
-    public int defHealth;
+    [HideInInspector] public int defHealth;
+    //[HideInInspector] public MinionController ownerMinion;
 
 
     public List<int> effectValues;
@@ -25,21 +25,16 @@ public class CardTEst : ScriptableObject
     public UnityEvent OnPlay;
     public UnityEvent OnDeath;
     public UnityEvent OnTurnStart;
-    public UnityEvent OnTurnEnd;
+    public UnityEvent OnOwnerTurnEnd;
     public UnityEvent OnSpellPlayed;
     public UnityEvent OnMinionPlayed;
     public UnityEvent OnThisMoved;
     public UnityEvent OnAnyMoved;
+    public UnityEvent OnOwnerDrawedCard;
+    
 
-    // Start is called before the first frame update
     void OnEnable()
     {
         defHealth = health;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

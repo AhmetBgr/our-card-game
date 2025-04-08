@@ -14,9 +14,18 @@ public class SelectableEntity : MonoBehaviour
 
     void Start()
     {
-        
+        GameManager.OnTurnEnd += ResetSelectable;
+    }
+    private void OnDestroy()
+    {
+        GameManager.OnTurnEnd -= ResetSelectable;
+
     }
 
+    private void ResetSelectable(GameState state)
+    {
+        SetSelectable(false);   
+    }
     public void SetSelectable(SelectableParameters parameters)
     {
 
@@ -25,7 +34,11 @@ public class SelectableEntity : MonoBehaviour
     public void SetSelectable(bool value)
     {
         iSselectable = value;   
-        highlight.enabled = value;
+        if(highlight != null)
+        {
+            highlight.enabled = value;
+
+        }
         col.enabled = value;
     }
 }

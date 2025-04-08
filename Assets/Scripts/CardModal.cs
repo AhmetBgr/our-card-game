@@ -13,6 +13,7 @@ public class CardModal : MonoBehaviour
     public int range;
 
     public int defHealth;
+    public bool isPlayerMinion = true;
 
     public void UpdateModal(CardTEst card)
     {
@@ -20,8 +21,10 @@ public class CardModal : MonoBehaviour
         desc = card.desc;
         attack = card.attack;
         health = card.health;
+        defHealth = card.defHealth; 
         range = card.range;
         art = card.art;
         cost = card.cost;
+        //isPlayerMinion = GameManager.Instance.isPlayerTurn;
     }
 }

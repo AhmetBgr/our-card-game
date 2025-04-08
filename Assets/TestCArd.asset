@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   art: {fileID: 21300000, guid: 8003da6e5821fbd4fbd14cf1b2c4ec15, type: 3}
   name: Sleepy Sergeant
-  desc: 'Battlecry: Give a minion +2 Attack this turn.'
+  desc: 'Battlecry: Give a minion +2'
   attack: 1
   health: 1
   cost: 1

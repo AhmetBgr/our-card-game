@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HandManager : Singleton<HandManager>
+public class HandManager : MonoBehaviour
 {
+    public Transform canvas;
+
     public Transform hand;
     public Transform topview;
 
@@ -22,15 +24,39 @@ public class HandManager : Singleton<HandManager>
 
     public void AddToTopView(Transform card)
     {
-        card.transform.SetParent(transform);
+        card.transform.SetParent(canvas);
     }
     public void AddToHand(Transform card, Transform slot)
     {
+
         card.transform.SetParent(slot);
+        card.localPosition = Vector3.zero;
+        card.localScale = Vector3.one;
+
+        slot.gameObject.SetActive(true);
+
     }
-    public Transform gethandslot()
+    public void RemoveFromHand(CardController card)
     {
-        foreach (Transform item in topview)
+        Transform slot = card.curslot; 
+        Destroy(card.gameObject);
+        if(slot != null )
+        {
+            slot.gameObject.SetActive(false);
+        }
+    }
+    public IEnumerator RemoveFromHand2(Transform card)
+    {
+        //Transform slot = card.parent;
+        Destroy(card.gameObject);
+        //slot.gameObject.SetActive(false);
+
+        yield return null;
+
+    }
+    public Transform GetEmptyHandSlot()
+    {
+        foreach (Transform item in hand)
         {
             if (item.childCount == 0)
                 return item;

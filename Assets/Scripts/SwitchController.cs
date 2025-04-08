@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 public class SwitchController : MonoBehaviour
 {
     public Animator animator;
-    private float longPressDur = 0.35f;
+    private float longPressDur = 0.15f;
     private float _holdStartTime;
     private bool _isHolding = false;
     private Coroutine _longPressCoroutine;
@@ -17,22 +17,22 @@ public class SwitchController : MonoBehaviour
 
     private void OnEnable()
     {
-        GameManager.OnTurnSwitch += PlaySwitchAnim;
+        //GameManager.OnTurnSwitch += PlaySwitchAnim;
     }
 
     private void OnDisable()
     {
-        GameManager.OnTurnSwitch -= PlaySwitchAnim;
+        //GameManager.OnTurnSwitch -= PlaySwitchAnim;
 
     }
 
-    private void PlaySwitchAnim(GameState gameState)
+    public void PlaySwitchAnim(bool isPlayerTurn)
     {
-        if(gameState == GameState.PlayerTurn)
+        if(isPlayerTurn)
         {
             animator.Play("PlayerSwitchAnim");
         }
-        else if(gameState == GameState.OpponentTurn)
+        else
         {
             animator.Play("OpponentSwitchAnim");
 
@@ -62,7 +62,7 @@ public class SwitchController : MonoBehaviour
 
         if (_isHolding)
         {
-            GameManager.Instance.EndPlayerTurn();
+            StartCoroutine(GameManager.Instance.EndPlayerTurn());
             //PointerLongPress?.Invoke();
         }
     }
