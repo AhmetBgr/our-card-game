@@ -32,7 +32,7 @@ public class HandManager : MonoBehaviour
                 item.gameObject.SetActive(false);
         }
     }
-    public void ShowInfoCard(CardTEst card)
+    public void ShowInfoCard(CardSO card)
     {
         infoCard.gameObject.SetActive(true);
         infoCard.card = card;

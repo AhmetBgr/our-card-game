@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ShowInfo : MonoBehaviour
 {
-    public CardTEst card;
+    public CardSO card;
     // Start is called before the first frame update
     void Start()
     {

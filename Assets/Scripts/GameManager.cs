@@ -588,7 +588,7 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log("All actions completed.");
     }
 
-    public void SummonMinion(CardTEst card, Vector3 pos)
+    public void SummonMinion(CardSO card, Vector3 pos)
     {
         MinionController minion = Instantiate(minionprefab, pos, Quaternion.identity).GetComponent<MinionController>();
         minion.card = card;

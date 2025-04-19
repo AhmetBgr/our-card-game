@@ -21,6 +21,7 @@ MonoBehaviour:
   health: 4
   cost: 4
   range: 2
+  type: 0
   defHealth: 4
   effectValues: 
   OnPlay:
@@ -43,7 +44,8 @@ MonoBehaviour:
         m_MethodName: summonminion
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 11400000}
+          m_ObjectArgument: {fileID: 11400000, guid: aec9d658979efc045a0fdcfae0f9df39,
+            type: 2}
           m_ObjectArgumentAssemblyTypeName: CardTEst, Assembly-CSharp
           m_IntArgument: 2
           m_FloatArgument: 0

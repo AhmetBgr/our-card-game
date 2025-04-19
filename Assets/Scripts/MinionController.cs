@@ -14,7 +14,7 @@ public class MinionController : MonoBehaviour
     public ShowInfo showInfo;
 
     public MinionView view;
-    public CardTEst card;
+    public CardSO card;
     public GridEntity gridEntity;
     public Animator animator;
 

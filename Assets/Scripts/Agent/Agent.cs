@@ -7,7 +7,7 @@ public class Agent : MonoBehaviour
 {
     public List<IEnumerator> availableActions = new List<IEnumerator>();
 
-    public List<CardTEst> deck = new List<CardTEst>();
+    public List<CardSO> deck = new List<CardSO>();
     public List<CardController> hand = new List<CardController>();
     public List<MinionController> minions = new List<MinionController>();
     public MinionController hero;
@@ -91,7 +91,7 @@ public class Agent : MonoBehaviour
 
         if(deck.Count == 0 | hand.Count >= 7) return;
 
-        CardTEst card = deck[Random.Range(0, deck.Count)];
+        CardSO card = deck[Random.Range(0, deck.Count)];
         deck.Remove(card);
         CardController cardObj = Instantiate(cardPrefab);
         cardObj.card = card;

@@ -26,15 +26,15 @@ public class ActionHolder : ScriptableObject
     public static MinionController selectedMinion = null;
     public static Agent selectedAgent = null;
     public static MinionController thisMinion = null;
-    public static CardTEst thisCard = null;
+    public static CardSO thisCard = null;
 
 
 
     public static Queue<IEnumerator> curActionsList = new Queue<IEnumerator>();
 
     public static event Action<SelectableParameters> OnSelect;
-    public static event Action<List<Transform>, CardTEst> OnWaitingCellSelect;
-    public static event Action<List<MinionController>, CardTEst> OnWaitingMinionSelect;
+    public static event Action<List<Transform>, CardSO> OnWaitingCellSelect;
+    public static event Action<List<MinionController>, CardSO> OnWaitingMinionSelect;
 
     #region SELECTION
 
@@ -407,7 +407,7 @@ public class ActionHolder : ScriptableObject
 
     #endregion
 
-    public void summonminion(CardTEst card)
+    public void summonminion(CardSO card)
     {
         //Debug.LogWarning("before summon ");
 
@@ -419,7 +419,7 @@ public class ActionHolder : ScriptableObject
 
         //Debug.LogWarning("summon added to actions");
     }
-    public IEnumerator _summonminion(CardTEst card)
+    public IEnumerator _summonminion(CardSO card)
     {
         yield return null;
 

@@ -15,7 +15,7 @@ public class CardModal : MonoBehaviour
     public int defHealth;
     public bool isPlayerMinion = true;
 
-    public void UpdateModal(CardTEst card)
+    public void UpdateModal(CardSO card)
     {
         art = new Sprite[2];
         name = card.name;

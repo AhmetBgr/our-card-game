@@ -92,7 +92,7 @@ public class OpponentRando : Agent
 
 
     }
-    public void SelectMinion(List<MinionController> minions, CardTEst card)
+    public void SelectMinion(List<MinionController> minions, CardSO card)
     {
 
         //List<MinionController> friendlyMinions = new List<MinionController>();  
@@ -104,11 +104,11 @@ public class OpponentRando : Agent
         }
         var filteredList  = new List<MinionController>();
 
-        if (card.type == CardTEst.Type.Debuff)
+        if (card.type == CardSO.Type.Debuff)
         {
             filteredList = minions.Where(x => x.modal.isPlayerMinion).ToList();
         }
-        else if (card.type == CardTEst.Type.Buff)
+        else if (card.type == CardSO.Type.Buff)
         {
             filteredList = minions.Where(x => !x.modal.isPlayerMinion).ToList();
         }
@@ -119,7 +119,7 @@ public class OpponentRando : Agent
 
         ActionHolder.selectedMinion = filteredList[UnityEngine.Random.Range(0, filteredList.Count)];
     }
-    public void SelectCell(List<Transform> cells, CardTEst card)
+    public void SelectCell(List<Transform> cells, CardSO card)
     {
         if(cells.Count == 0)
         {

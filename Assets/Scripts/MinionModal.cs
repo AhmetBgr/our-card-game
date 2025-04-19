@@ -29,14 +29,14 @@ public class MinionModal
     public UnityEvent OnAnyMoved;
     public UnityEvent OnOwnerDrawedCard;
 
-    public MinionModal(CardTEst card, MinionController owner)
+    public MinionModal(CardSO card, MinionController owner)
     {
         UpdateModal(card, owner);
 
         //isPlayerMinion = GameManager.Instance.isPlayerTurn;
     }
 
-    public void UpdateModal(CardTEst card, MinionController owner)
+    public void UpdateModal(CardSO card, MinionController owner)
     {
         name = card.name;
         desc = card.desc;

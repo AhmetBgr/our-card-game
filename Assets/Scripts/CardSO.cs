@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
 [CreateAssetMenu(fileName = "TestCArd", menuName = "New Test Card")]
-public class CardTEst : ScriptableObject
+public class CardSO : ScriptableObject
 {
     public Sprite[] art;
 

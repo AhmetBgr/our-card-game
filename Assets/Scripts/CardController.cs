@@ -11,7 +11,7 @@ public class CardController : MonoBehaviour// , IPointerEnterHandler,IPointerExi
     public CardModal modal;
     public CardView view;
 
-    public CardTEst card;
+    public CardSO card;
     public Transform curslot;
     public DraggableItem draggableItem;
     public bool canPeek = true;
