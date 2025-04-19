@@ -8,6 +8,13 @@ using TMPro;
 public class CardView : MonoBehaviour
 {
     [SerializeField] private Image art;
+    [SerializeField] private Image frame;
+
+    [SerializeField] private Sprite minionFrame;
+    [SerializeField] private Sprite spellFrame;
+
+
+
     [SerializeField] private GameObject[] minionTypeIconObjects;
 
     //[SerializeField] private Image _iconRenderer;
@@ -23,11 +30,14 @@ public class CardView : MonoBehaviour
     {
         if (card == null) return;
         UpdateTexts(card);
-        art.sprite = card.art;
+
+        art.sprite = card.art[0];
+
 
         costText.transform.parent.gameObject.SetActive(card.isPlayerMinion);
         cardBack.SetActive(!card.isPlayerMinion);
 
+        frame.sprite = card.attack ==0 && card.health ==0 ? spellFrame : minionFrame;
 
         minionTypeIconObjects[0].transform.parent.gameObject.SetActive(card.isPlayerMinion);
 

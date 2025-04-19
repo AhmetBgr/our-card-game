@@ -12,15 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Arcane Scout
   m_EditorClassIdentifier: 
-  art: {fileID: 0}
+  art:
+  - {fileID: 0}
+  - {fileID: 0}
   name: Arcane Scout
   desc: 'On summon: Draw a card.'
   attack: 1
   health: 1
-  cost: 1
+  cost: 2
   range: 2
   defHealth: 1
-  ownerMinion: {fileID: 0}
   effectValues: 
   OnPlay:
     m_PersistentCalls:
@@ -79,7 +80,7 @@ MonoBehaviour:
   OnTurnStart:
     m_PersistentCalls:
       m_Calls: []
-  OnTurnEnd:
+  OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls: []
   OnSpellPlayed:
@@ -92,5 +93,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnAnyMoved:
+    m_PersistentCalls:
+      m_Calls: []
+  OnOwnerDrawedCard:
     m_PersistentCalls:
       m_Calls: []

@@ -26,7 +26,7 @@ public class MinionView : MonoBehaviour
         UpdateHealthText(modal.health);
         UpdateFrame(modal);
 
-        art.sprite = modal.art;
+        art.sprite = modal.art[1];
         enemyInline.gameObject.SetActive(!modal.isPlayerMinion);
     }
 

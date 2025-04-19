@@ -54,7 +54,7 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
         if (_instance == this)
         {
-            _applicationIsQuitting = true;
+            //_applicationIsQuitting = true;
         }
     }
 }

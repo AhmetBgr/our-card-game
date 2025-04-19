@@ -12,14 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Arcane Sentinel
   m_EditorClassIdentifier: 
-  art: {fileID: 0}
+  art:
+  - {fileID: 0}
+  - {fileID: 0}
   name: Arcane Sentinel
   desc: 'Whenever you draw a card: Attack random enemy minion in range.'
   attack: 1
-  health: 1
-  cost: 2
+  health: 3
+  cost: 3
   range: 2
-  defHealth: 1
+  defHealth: 3
   effectValues: 
   OnPlay:
     m_PersistentCalls:

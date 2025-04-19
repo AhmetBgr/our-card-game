@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using UnityEngine.Events;
+using static UnityEngine.GraphicsBuffer;
+using System.ComponentModel;
 public class MinionController : MonoBehaviour
 {
     public SelectableEntity selectable;
     public CardModal modal;
     //public MinionModal modal;
+    public ShowInfo showInfo;
 
     public MinionView view;
     public CardTEst card;
@@ -47,6 +50,9 @@ public class MinionController : MonoBehaviour
     {
         modal.UpdateModal(card);
         view.UpdateView(modal);
+
+        if(showInfo != null) 
+            showInfo.card = card;
     }
 
     private void OnTurnSwitch(GameState curState)
@@ -56,6 +62,7 @@ public class MinionController : MonoBehaviour
         isMovementValidated = false;
 
     }
+
     protected virtual void OnMouseDown()
     {
         if (GameManager.Instance.player.curState == Player.State.SelectingMinion)
@@ -87,11 +94,27 @@ public class MinionController : MonoBehaviour
         if (isAttackedThisTurn || age < 1)
         {
             canAttack = false;
-            return;
         }
+        else{
+            List<MinionController> targets = new List<MinionController>();
+            targets.AddRange(GameManager.Instance.opponent.minions);
+            targets.Add(GameManager.Instance.opponent.hero);
+            bool targetExists = false;
 
-        canAttack = true;
-        selectable.SetSelectable(true);
+            foreach (var minion in targets)
+            {
+                if ((minion.transform.position - transform.position).magnitude < modal.range + 1)
+                {
+                    targetExists = true;
+                    break;
+                }
+            }
+
+            canAttack = targetExists;
+
+        }
+        showInfo.gameObject.SetActive(!canAttack);
+        selectable.SetSelectable(canAttack);
 
     }
     public virtual bool CanAttack(Agent opponent)
@@ -131,11 +154,11 @@ public class MinionController : MonoBehaviour
             if ((minion.transform.position - transform.position).magnitude < modal.range + 1)
             {
                 Debug.Log(" minion is selectable selectable");
-
                 minion.attackingMinion = this;
                 minion.selectable.SetSelectable(true);
             }
         }
+
         Debug.Log("selectiable minion count: " + selectableminions.Count);
 
         OnSelectingMinionForAttack?.Invoke(selectableminions);
@@ -157,7 +180,7 @@ public class MinionController : MonoBehaviour
         selectedMinion.TakeDamage(modal.attack);
         selectedMinion.transform.DOPunchPosition(dir * 0.03f, 0.15f, vibrato: 5).SetDelay(0.75f);
         float distance = (selectedMinion.transform.position - transform.position).magnitude;    
-        if(selectedMinion.modal.health > 0 && distance < 2)
+        if(distance < 2) //selectedMinion.modal.health > 0 && 
         {
             TakeDamage(selectedMinion.modal.attack);
         }

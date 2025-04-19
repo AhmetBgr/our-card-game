@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 
@@ -22,7 +21,7 @@ public class OpponentRando : Agent
                 targets.Add(GameManager.Instance.player.hero);
                 foreach (var minion in targets)
                 {
-                    if ((minion.transform.position - item.transform.position).magnitude < 2f)
+                    if ((minion.transform.position - item.transform.position).magnitude < item.modal.range + 1)
                     {
                         selectableTargets.Add(minion);
                     }
@@ -93,7 +92,7 @@ public class OpponentRando : Agent
 
 
     }
-    public void SelectMinion(List<MinionController> minions)
+    public void SelectMinion(List<MinionController> minions, CardTEst card)
     {
 
         //List<MinionController> friendlyMinions = new List<MinionController>();  
@@ -102,11 +101,25 @@ public class OpponentRando : Agent
         if (minions.Count == 0)
         {
             StopAllCoroutines();
-
         }
-        ActionHolder.selectedMinion = minions[UnityEngine.Random.Range(0, minions.Count)];
+        var filteredList  = new List<MinionController>();
+
+        if (card.type == CardTEst.Type.Debuff)
+        {
+            filteredList = minions.Where(x => x.modal.isPlayerMinion).ToList();
+        }
+        else if (card.type == CardTEst.Type.Buff)
+        {
+            filteredList = minions.Where(x => !x.modal.isPlayerMinion).ToList();
+        }
+        else
+        {
+            filteredList = minions;
+        }
+
+        ActionHolder.selectedMinion = filteredList[UnityEngine.Random.Range(0, filteredList.Count)];
     }
-    public void SelectCell(List<UnityEngine.Transform> cells)
+    public void SelectCell(List<Transform> cells, CardTEst card)
     {
         if(cells.Count == 0)
         {

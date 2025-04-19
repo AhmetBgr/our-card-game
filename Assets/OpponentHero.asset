@@ -12,13 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: OpponentHero
   m_EditorClassIdentifier: 
-  art: {fileID: 0}
+  art:
+  - {fileID: 0}
+  - {fileID: 0}
   name: Opponent Hero
   desc: 
   attack: 3
   health: 30
   cost: 0
   range: 0
+  type: 0
   defHealth: 30
   effectValues: 
   OnPlay:
@@ -54,7 +57,7 @@ MonoBehaviour:
   OnTurnStart:
     m_PersistentCalls:
       m_Calls: []
-  OnTurnEnd:
+  OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls: []
   OnSpellPlayed:
@@ -67,5 +70,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnAnyMoved:
+    m_PersistentCalls:
+      m_Calls: []
+  OnOwnerDrawedCard:
     m_PersistentCalls:
       m_Calls: []

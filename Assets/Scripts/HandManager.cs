@@ -9,6 +9,9 @@ public class HandManager : MonoBehaviour
     public Transform hand;
     public Transform topview;
 
+    public CardController infoCard;
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -21,7 +24,27 @@ public class HandManager : MonoBehaviour
     {
         
     }
+    public void UpdateSlots()
+    {
+        foreach (Transform item in transform)
+        {
+            if(item.childCount == 0)
+                item.gameObject.SetActive(false);
+        }
+    }
+    public void ShowInfoCard(CardTEst card)
+    {
+        infoCard.gameObject.SetActive(true);
+        infoCard.card = card;
+        infoCard.modal.UpdateModal(card);
+        infoCard.modal.isPlayerMinion = true;
 
+        infoCard.view.UpdateView(infoCard.modal);
+    }
+    public void HideInfoCard()
+    {
+        infoCard.gameObject.SetActive(false);
+    }
     public void AddToTopView(Transform card)
     {
         card.transform.SetParent(canvas);
@@ -58,7 +81,7 @@ public class HandManager : MonoBehaviour
     {
         foreach (Transform item in hand)
         {
-            if (item.childCount == 0)
+            if (item.childCount == 0 && !item.gameObject.activeSelf)
                 return item;
         }
 

@@ -12,6 +12,8 @@ public class Agent : MonoBehaviour
     public List<MinionController> minions = new List<MinionController>();
     public MinionController hero;
     public HandManager handManager;
+    public CardHandLayout cardHandLayout;
+
     public CardController cardPrefab;
 
     protected int _availibleMana;
@@ -67,13 +69,14 @@ public class Agent : MonoBehaviour
 
     public void UpdateHand()
     {
-        for (int i = hand.Count -1; i >= 0; i--)
+        /*for (int i = hand.Count -1; i >= 0; i--)
         {
             if(hand[i] == null)
             {
-                hand.RemoveAt(i);
+                //hand.RemoveAt(i);
+                cardHandLayout.RemoveCard(hand[i].transform);
             }
-        }
+        }*/
     }
     public void UpdateMinions(MinionController minion)
     {
@@ -83,7 +86,10 @@ public class Agent : MonoBehaviour
     }
     public void DrawCard(bool isPlayerCard)
     {
-        if(deck.Count == 0) return;
+        UpdateHand();
+        //handManager.UpdateSlots();
+
+        if(deck.Count == 0 | hand.Count >= 7) return;
 
         CardTEst card = deck[Random.Range(0, deck.Count)];
         deck.Remove(card);
@@ -93,8 +99,8 @@ public class Agent : MonoBehaviour
         cardObj.modal.UpdateModal(card);
         cardObj.view.UpdateView(cardObj.modal);
         hand.Add(cardObj);
-        handManager.AddToHand(cardObj.transform, handManager.GetEmptyHandSlot());
-
+        //handManager.AddToHand(cardObj.transform, handManager.GetEmptyHandSlot());
+        cardHandLayout.AddCard(cardObj.transform);
         StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Principal;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -14,11 +15,15 @@ public class SelectableEntity : MonoBehaviour
 
     void Start()
     {
+        GameManager.Instance.selectables.Add(this);
         GameManager.OnTurnEnd += ResetSelectable;
     }
+
+    
     private void OnDestroy()
     {
         GameManager.OnTurnEnd -= ResetSelectable;
+        GameManager.Instance.selectables.Remove(this);
 
     }
 

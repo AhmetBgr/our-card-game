@@ -8,15 +8,17 @@ using UnityEngine.Events;
 [CreateAssetMenu(fileName = "TestCArd", menuName = "New Test Card")]
 public class CardTEst : ScriptableObject
 {
-    public Sprite art;
+    public Sprite[] art;
+
     public new string name;
     [TextAreaAttribute] public string desc;
     public int attack;
     public int health;
     public int cost;
     public int range;
-
+    public Type type;
     [HideInInspector] public int defHealth;
+
     //[HideInInspector] public MinionController ownerMinion;
 
 
@@ -36,5 +38,10 @@ public class CardTEst : ScriptableObject
     void OnEnable()
     {
         defHealth = health;
+    }
+
+    public enum Type
+    {
+        None, Buff, Debuff
     }
 }

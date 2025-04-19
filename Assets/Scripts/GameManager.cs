@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public enum GameState { Setup, StartGame, PlayerTurn, OpponentTurn, EndGame }
 
@@ -16,6 +18,11 @@ public class GameManager : Singleton<GameManager>
 
     public bool isPlayingCard = false;
     public IEnumerator curaction;
+
+    public TextMeshProUGUI[] playerCornerDamageTexts;
+    public TextMeshProUGUI[] opponentCornerDamageTexts;
+
+    public List<SelectableEntity> selectables = new List<SelectableEntity>();
     private Queue<IEnumerator> actionQueue = new Queue<IEnumerator>();
     private Queue<IEnumerator> onTurnEndActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onCardDrawActions = new Queue<IEnumerator>();
@@ -28,6 +35,7 @@ public class GameManager : Singleton<GameManager>
     public bool isTesting = false;
     public bool isTestingFailed = false;
     public static event Action<GameState> OnTurnEnd;
+    public static event Action<GameState> OnTurnStarted;
 
     void Start()
     {
@@ -96,31 +104,30 @@ public class GameManager : Singleton<GameManager>
         yield return new WaitForSeconds(0.5f);
 
         player.DrawCard(true);
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.5f);
 
         opponent.DrawCard(false);
-        yield return new WaitForSeconds(0.25f);
-
+        yield return new WaitForSeconds(0.5f);
 
         player.DrawCard(true);
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.5f);
 
         opponent.DrawCard(false);
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.5f);
 
         player.DrawCard(true);
+        yield return new WaitForSeconds(0.5f);
+
+        opponent.DrawCard(false);
+        yield return new WaitForSeconds(0.5f);
+
+        /*player.DrawCard(true);
         yield return new WaitForSeconds(0.25f);
 
         opponent.DrawCard(false);
         yield return new WaitForSeconds(0.25f);
 
-        player.DrawCard(true);
-        yield return new WaitForSeconds(0.25f);
-
-        opponent.DrawCard(false);
-        yield return new WaitForSeconds(0.25f);
-
-
+        */
         isPlayerTurn = true;
 
         currentState = GameState.StartGame;
@@ -134,9 +141,10 @@ public class GameManager : Singleton<GameManager>
     {
         currentState = GameState.PlayerTurn;
         player.availibleMana = maxMana;
-        player.curState = Player.State.Waiting; 
+        player.curState = Player.State.Waiting;
         //Debug.Log("Player's Turn");
-
+        player.DrawCard(true);
+        StartCoroutine(InvokeOnTurnStarted());
         yield return StartCoroutine(player.PlayTurn()); 
 
         yield return new WaitForSeconds(0.5f);
@@ -145,10 +153,62 @@ public class GameManager : Singleton<GameManager>
     {
         OnTurnEnd?.Invoke(currentState);
 
-
-
         yield break;
     }
+    public IEnumerator InvokeOnTurnStarted()
+    {
+        OnTurnStarted?.Invoke(currentState);
+        int opponentCornerDamage = (opponent.hero.modal.defHealth - opponent.hero.modal.health) / 10 + 1;
+        int playerCornerCornerDamage = (player.hero.modal.defHealth - player.hero.modal.health) / 10 + 1;
+
+        if (currentState == GameState.PlayerTurn)
+        {
+            List<MinionController> minionsToDamage = new List<MinionController>();
+
+            foreach (var minion in opponent.minions)
+            {
+                Vector2Int index = minion.gridEntity.GetGridIndex();
+                if (index.x % 2 == 0 && index.y % 2 == 0 && index.y == 2)
+                {
+                    Debug.Log("minion shoudl take damage");
+                    minionsToDamage.Add(minion);
+                    //minion.TakeDamage((opponent.hero.modal.health - opponent.hero.modal.health) / 10 + 1);
+                }
+            }
+            foreach (var minion in minionsToDamage)
+            {
+                minion.TakeDamage(playerCornerCornerDamage);
+            }
+        }
+        else
+        {
+            List<MinionController> minionsToDamage = new List<MinionController>();
+            foreach (var minion in player.minions)
+            {
+                Vector2Int index = minion.gridEntity.GetGridIndex();
+                if (index.x % 2 == 0 && index.y % 2 == 0 && index.y == 0)
+                {
+                    minionsToDamage.Add(minion);
+
+                }
+            }
+
+            foreach (var minion in minionsToDamage)
+            {
+                minion.TakeDamage(opponentCornerDamage);
+            }
+        }
+        foreach (var item in playerCornerDamageTexts)
+        {
+            item.text = "-"+playerCornerCornerDamage.ToString();
+        }
+        foreach (var item in opponentCornerDamageTexts)
+        {
+            item.text = "-"+opponentCornerDamage.ToString();
+        }
+        yield break;
+    }
+
     public IEnumerator InvokeOnCardDrawActions()
     {
         for (int x = 0; x < GridManager.Instance.GridWidth; x++)
@@ -165,6 +225,10 @@ public class GameManager : Singleton<GameManager>
                     ActionHolder.selectedcell = null;
                     ActionHolder.selectedMinion = null;
                     ActionHolder.thisMinion = minion;
+                    ActionHolder.thisCard = minion.card;
+                    ActionHolder.selectedMinions.Clear();
+                    ActionHolder.selectedMinions.Add(minion);
+                    ActionHolder.selectedCells.Clear();
                     ActionHolder.selectedAgent = player;
                     ActionHolder.curActionsList = onCardDrawActions;
 
@@ -174,6 +238,8 @@ public class GameManager : Singleton<GameManager>
                 }
             }
         }
+
+        SetPlayerMinionsReadyToAttack();
     }
 
     public IEnumerator EndPlayerTurn()
@@ -194,6 +260,11 @@ public class GameManager : Singleton<GameManager>
                     ActionHolder.selectedcell = null;
                     ActionHolder.selectedMinion = null;
                     ActionHolder.thisMinion = minion;
+                    ActionHolder.thisCard = minion.card;
+
+                    ActionHolder.selectedMinions.Clear();
+                    ActionHolder.selectedMinions.Add(minion);
+                    ActionHolder.selectedCells.Clear();
                     ActionHolder.selectedAgent = player;
                     ActionHolder.curActionsList = onTurnEndActions;
 
@@ -255,6 +326,10 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log("Opponent's Turn");
         opponent.availibleMana = maxMana;
 
+        opponent.DrawCard(false);
+
+        StartCoroutine(InvokeOnTurnStarted());
+
         yield return StartCoroutine(opponent.PlayTurn());
 
         for (int x = GridManager.Instance.GridWidth-1; x >= 0; x--)
@@ -271,6 +346,11 @@ public class GameManager : Singleton<GameManager>
                     ActionHolder.selectedcell = null;
                     ActionHolder.selectedMinion = null;
                     ActionHolder.thisMinion = minion;
+                    ActionHolder.thisCard = minion.card;
+
+                    ActionHolder.selectedMinions.Clear();
+                    ActionHolder.selectedMinions.Add(minion);
+                    ActionHolder.selectedCells.Clear();
                     ActionHolder.selectedAgent = opponent;
                     ActionHolder.curActionsList = onTurnEndActions;
 
@@ -317,7 +397,6 @@ public class GameManager : Singleton<GameManager>
             }
         }
 
-
         yield return new WaitForSeconds(0.5f);
 
         //Debug.Log("Opponent has played.");
@@ -331,10 +410,16 @@ public class GameManager : Singleton<GameManager>
     public void SetPlayerMinionsReadyToAttack()
     {
 
+        if (!isPlayerTurn) return;
+
+        Debug.Log("should set palyer minions ready to attack");
+
+        player.curState = Player.State.Waiting;
         // Set player minions Ready to attack
         foreach (var item in player.minions)
         {
             item.SetReadyToAttack();
+            item.selectable.SetSelectable(item.canAttack);
         }
 
     }
@@ -368,6 +453,8 @@ public class GameManager : Singleton<GameManager>
 
         if ((currentState != GameState.PlayerTurn || isPlayingCard || card.modal.cost > agent.availibleMana) && !isTesting) yield break;
 
+        ClearSelectables();
+
         isTesting = false;
         isTestingFailed = false;
         agent.availibleMana -= card.modal.cost;
@@ -377,27 +464,22 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.selectedMinion = null;
         ActionHolder.selectedAgent = null;
         //ActionHolder.thisMinion = null;
+        ActionHolder.thisCard = card.card;
 
+        ActionHolder.selectedMinions.Clear();
+        ActionHolder.selectedCells.Clear();
         ActionHolder.curActionsList = actionQueue;
         card.card.OnPlay.Invoke();
 
-        //Debug.LogWarning("playing card");
+        Debug.LogWarning("playing card");
 
         yield return StartCoroutine(ExecuteActions(card));
 
-        //Debug.LogWarning("played card");
+
+        Debug.LogWarning("played card");
 
 
-        if (isPlayerTurn)
-        {
-            //Debug.LogWarning("setting player minions ready to attack");
 
-            // Set player minions Ready to attack
-            foreach (var item in player.minions)
-            {
-                item.SetReadyToAttack();
-            }
-        }
     }
 
     public void TestCard(CardController card)
@@ -407,6 +489,10 @@ public class GameManager : Singleton<GameManager>
         actionQueue.Clear();
         ActionHolder.selectedcell = null;
         ActionHolder.selectedMinion = null;
+        ActionHolder.thisCard = card.card;
+
+        ActionHolder.selectedMinions.Clear();
+        ActionHolder.selectedCells.Clear();
         //ActionHolder.thisMinion = null;
         ActionHolder.selectedAgent = null;
         ActionHolder.curActionsList = actionQueue;
@@ -435,19 +521,19 @@ public class GameManager : Singleton<GameManager>
     {
         isTesting = false;
 
-        //Debug.Log("executeing card actions");
+        Debug.Log("executeing card actions");
         while (actionQueue.Count > 0)
         {
-            //Debug.Log("executeing action");
+            Debug.Log("executeing action");
             IEnumerator action = actionQueue.Dequeue();
             yield return StartCoroutine(action);
         }
-        //Debug.Log("execution complete");
+        Debug.Log("execution complete");
         isTesting = false;
 
         if (isTesting) 
         {
-            //Debug.Log("is testing true");
+            Debug.Log("is testing true");
 
             yield break;
         } 
@@ -458,18 +544,36 @@ public class GameManager : Singleton<GameManager>
         {
             //Debug.Log("execution complete3");
 
-            player.handManager.RemoveFromHand(card);
+            //player.handManager.RemoveFromHand(card);
+            if(card != null)
+                player.cardHandLayout.RemoveCard(card.transform);
         }
         else
         {
             //Debug.Log("execution complete4");
 
-            opponent.handManager.RemoveFromHand(card);
+            //opponent.handManager.RemoveFromHand(card);
+            if (card != null)
+                opponent.cardHandLayout.RemoveCard(card.transform);
+
             //opponent.UpdateHand();
         }
 
         isPlayingCard = false;
-        //Debug.Log("All actions completed.");
+        ClearSelectables();
+
+        if (isPlayerTurn)
+        {
+            //Debug.LogWarning("setting player minions ready to attack");
+            player.UpdateHand();
+            SetPlayerMinionsReadyToAttack();
+
+        }
+        else
+        {
+            opponent.UpdateHand();
+        }
+            Debug.Log("All actions completed.");
     }
 
     public IEnumerator ExecuteActions(Queue<IEnumerator> actionsList)
@@ -492,6 +596,7 @@ public class GameManager : Singleton<GameManager>
         minion.modal.UpdateModal(minion.card);
         minion.view.UpdateView(minion.modal);
         ActionHolder.thisMinion = minion;
+        ActionHolder.thisCard = minion.card;
 
         if (isPlayerTurn)
         {
@@ -508,6 +613,13 @@ public class GameManager : Singleton<GameManager>
 
         }
 
+    }
+    private void ClearSelectables()
+    {
+        foreach (var selectable in selectables)
+        {
+            selectable.SetSelectable(false);
+        }
     }
 }
 

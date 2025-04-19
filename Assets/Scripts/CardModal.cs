@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CardModal : MonoBehaviour
 {
-    public Sprite art;
+    public Sprite[] art;
     public new string name;
     [TextAreaAttribute] public string desc;
     public int attack;
@@ -17,6 +17,7 @@ public class CardModal : MonoBehaviour
 
     public void UpdateModal(CardTEst card)
     {
+        art = new Sprite[2];
         name = card.name;
         desc = card.desc;
         attack = card.attack;

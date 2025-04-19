@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Omer
   m_EditorClassIdentifier: 
-  art: {fileID: 0}
+  art:
+  - {fileID: 0}
+  - {fileID: 0}
   name: Omer
   desc: 'On Summon: Deal 1 damage to every enemy minions in range'
   attack: 2

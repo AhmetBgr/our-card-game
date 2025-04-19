@@ -39,7 +39,7 @@ public class ManaBarController : MonoBehaviour
         for (int i = 0; i < maxBarTextObjects.Length; i++)
         {
             maxBarTextObjects[i].gameObject.SetActive(i == value || i == GameManager.Instance.maxMana);
-            maxBarTextObjects[i].color = i == GameManager.Instance.maxMana ? maxManaColor : Color.white;
+            maxBarTextObjects[i].color = i == GameManager.Instance.maxMana ?  Color.white : maxManaColor;
         }
     }
 

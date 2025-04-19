@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
-using static UnityEditor.PlayerSettings;
-using static UnityEditor.Progress;
 public class HeroController : MinionController
 {
     protected override void OnMouseDown()
