@@ -11,13 +11,5 @@ public class ShowInfo : MonoBehaviour
         
     }
 
-    protected virtual void OnMouseEnter()
-    {
-        GameManager.Instance.player.handManager.ShowInfoCard(card);
-    }
 
-    protected virtual void OnMouseExit()
-    {
-        GameManager.Instance.player.handManager.HideInfoCard();
-    }
 }

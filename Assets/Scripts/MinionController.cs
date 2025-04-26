@@ -3,15 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
-using UnityEngine.Events;
-using static UnityEngine.GraphicsBuffer;
-using System.ComponentModel;
+
 public class MinionController : MonoBehaviour
 {
     public SelectableEntity selectable;
     public CardModal modal;
     //public MinionModal modal;
-    public ShowInfo showInfo;
+    //public ShowInfo showInfo;
 
     public MinionView view;
     public CardSO card;
@@ -51,8 +49,8 @@ public class MinionController : MonoBehaviour
         modal.UpdateModal(card);
         view.UpdateView(modal);
 
-        if(showInfo != null) 
-            showInfo.card = card;
+        /*if(showInfo != null) 
+            showInfo.card = card;*/
     }
 
     private void OnTurnSwitch(GameState curState)
@@ -65,6 +63,7 @@ public class MinionController : MonoBehaviour
 
     protected virtual void OnMouseDown()
     {
+        /*
         if (GameManager.Instance.player.curState == Player.State.SelectingMinion)
         {
             ActionHolder.selectedMinion = this;
@@ -81,12 +80,23 @@ public class MinionController : MonoBehaviour
             }
             GameManager.Instance.player.curState = Player.State.SelectingMinionForAttack;
             StartAttack(GameManager.Instance.opponent);
-        }
+        }*/
+
+        // Show range
+
+    }
+    protected void OnMouseEnter()
+    {
+        GameManager.Instance.player.handManager.ShowInfoCard(card);
+        Debug.Log("shouldshow range");
+        MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range);
     }
 
-    public void OnSelect()
+    protected void OnMouseExit()
     {
-        ActionHolder.selectedMinion = this;
+        GameManager.Instance.player.handManager.HideInfoCard();
+        MinionRangeHandler.Instance.HideRange();
+
     }
 
     public virtual void SetReadyToAttack()
@@ -113,7 +123,7 @@ public class MinionController : MonoBehaviour
             canAttack = targetExists;
 
         }
-        showInfo.gameObject.SetActive(!canAttack);
+        //showInfo.gameObject.SetActive(!canAttack);
         selectable.SetSelectable(canAttack);
 
     }
