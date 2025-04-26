@@ -10,20 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: Rust Shot
+  m_Name: Life Pole
   m_EditorClassIdentifier: 
   art:
   - {fileID: 0}
   - {fileID: 0}
-  name: 'Rust Shot '
-  desc: 'Deal 3 damage to a minion
+  frame: {fileID: 0}
+  name: 'Life Pole '
+  desc: 'Give +3 Health to all minions in selected collumn.
 
 '
   attack: 0
   health: 0
-  cost: 2
+  cost: 3
   range: 0
-  type: 2
+  type: 1
+  upgradedVersion: {fileID: 0}
+  isUpgraded: 0
   defHealth: 0
   effectValues: 
   OnPlay:
@@ -31,12 +34,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectMinion
-        m_Mode: 3
+        m_MethodName: SelectAllMinionsAsSelectedCell
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -48,7 +51,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: -3
+          m_IntArgument: 3
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

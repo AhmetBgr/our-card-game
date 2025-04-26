@@ -4,9 +4,11 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class PlayArea : MonoBehaviour, IDropHandler
+public class PlayArea : Singleton<PlayArea>, IDropHandler
 {
     public Transform cardPos;
+    public Transform opponentCardPos;
+
     public virtual void OnDrop(PointerEventData eventData)
     {
         CardController droppedItem = eventData.pointerDrag.GetComponent<CardController>();
@@ -25,7 +27,7 @@ public class PlayArea : MonoBehaviour, IDropHandler
             canPlay = result;
             Debug.Log("canplay result: " + result);
         }));
-        GameManager.Instance.player.cardHandLayout.RemoveCard(GameManager.Instance.player.cardHandLayout.cardplaceholder, false);
+        GameManager.Instance.player.cardHandLayout.RemoveCard(GameManager.Instance.player.cardHandLayout.cardplaceholder);
         GameManager.Instance.player.cardHandLayout.cardplaceholder.SetParent(transform.parent.parent);
         if (canPlay && !GameManager.Instance.isPlayingCard)
         {
@@ -33,14 +35,11 @@ public class PlayArea : MonoBehaviour, IDropHandler
             droppedItem.isPeeking = false;
             droppedItem.canPeek = false;
 
-
             droppedItem.draggableItem.ParentAfterDrag = transform;
             droppedItem.transform.DOMove(cardPos.position, 0.25f);
             droppedItem.transform.DOScale(Vector3.one, 0.25f);
 
             StartCoroutine(GameManager.Instance.PlayCard(droppedItem, GameManager.Instance.player));
-
-
         }
         else
         {

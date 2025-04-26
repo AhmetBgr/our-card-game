@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using DG.Tweening;
 using UnityEngine;
 
 public class OpponentRando : Agent
@@ -51,6 +53,35 @@ public class OpponentRando : Agent
     }
     public IEnumerator Play(CardController card)
     {
+        /*cardHandLayout.RemoveCard(card.transform);
+        //Destroy(card.gameObject);
+
+        card.transform.SetParent(cardHandLayout.transform.parent);
+        card.transform.SetSiblingIndex(cardHandLayout.transform.parent.childCount - 1);
+        card.transform.localRotation = Quaternion.identity;
+
+        card.transform.DOScale(Vector3.one * 1.5f, 0.5f);
+        card.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
+        {
+            card.modal.isPlayerMinion = true;
+            card.view.UpdateView(card.modal);
+            card.transform.DORotate(Vector3.up * 0, 0.15f);
+        });
+        card.transform.DOMove(PlayArea.Instance.opponentCardPos.position, 0.5f).OnComplete(() =>
+        {
+            card.transform.DOScale(0f, 0.25f).SetDelay(1f).OnComplete(() =>
+            {
+                if (card.modal.upgradedVerdion != null)
+                {
+                    SpawnCardToDeck(card.modal.upgradedVerdion, true);
+                }
+                Destroy(card.gameObject);
+            });
+        });
+        yield return new WaitForSeconds(5);
+
+        card.modal.isPlayerMinion = false;*/
+
         yield return StartCoroutine(GameManager.Instance.PlayCard(card, this));
 
     }
@@ -86,7 +117,7 @@ public class OpponentRando : Agent
             ActionHolder.OnWaitingMinionSelect -= SelectMinion;
 
             yield return new WaitForSeconds(1);
-
+           
         }
 
 

@@ -12,13 +12,13 @@ public class CardView : MonoBehaviour
 
     [SerializeField] private Sprite minionFrame;
     [SerializeField] private Sprite spellFrame;
-
-
+    [SerializeField] private Image upgradedFrame;
 
     [SerializeField] private GameObject[] minionTypeIconObjects;
 
     //[SerializeField] private Image _iconRenderer;
     [SerializeField] private GameObject cardBack;
+    [SerializeField] private Image cardBackImage;
 
     [SerializeField] private TextMeshProUGUI nametext;
     [SerializeField] private TextMeshProUGUI desctext;
@@ -33,11 +33,10 @@ public class CardView : MonoBehaviour
 
         art.sprite = card.art[0];
 
-
         costText.transform.parent.gameObject.SetActive(card.isPlayerMinion);
         cardBack.SetActive(!card.isPlayerMinion);
 
-        frame.sprite = card.attack ==0 && card.health ==0 ? spellFrame : minionFrame;
+        frame.sprite = card.frame; //card.attack ==0 && card.health ==0 ? spellFrame : minionFrame;
 
         minionTypeIconObjects[0].transform.parent.gameObject.SetActive(card.isPlayerMinion);
 

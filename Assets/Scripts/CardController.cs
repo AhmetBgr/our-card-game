@@ -91,7 +91,7 @@ public class CardController : MonoBehaviour// , IPointerEnterHandler,IPointerExi
         canPeek = false;
         isPeeking = true;
         CardHandLayout cardHandLayout = GameManager.Instance.player.cardHandLayout;
-        indexinhand = cardHandLayout.RemoveCard(transform, false);
+        indexinhand = cardHandLayout.RemoveCard(transform);
         cardHandLayout.AddCard(GameManager.Instance.player.cardHandLayout.cardplaceholder, indexinhand);
 
         transform.SetParent(cardHandLayout.transform.parent);
@@ -112,7 +112,7 @@ public class CardController : MonoBehaviour// , IPointerEnterHandler,IPointerExi
         //transform.localPosition = Vector3.zero;
         transform.localScale = Vector3.one;
         Debug.Log("index in hand: " + indexinhand);
-        GameManager.Instance.player.cardHandLayout.RemoveCard(GameManager.Instance.player.cardHandLayout.cardplaceholder, false);
+        GameManager.Instance.player.cardHandLayout.RemoveCard(GameManager.Instance.player.cardHandLayout.cardplaceholder);
         GameManager.Instance.player.cardHandLayout.cardplaceholder.SetParent(transform.parent.parent);
         GameManager.Instance.player.cardHandLayout.AddCard(transform, indexinhand);
 

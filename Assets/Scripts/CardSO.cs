@@ -9,6 +9,8 @@ using UnityEngine.Events;
 public class CardSO : ScriptableObject
 {
     public Sprite[] art;
+    public Sprite frame;
+
 
     public new string name;
     [TextAreaAttribute] public string desc;
@@ -17,6 +19,11 @@ public class CardSO : ScriptableObject
     public int cost;
     public int range;
     public Type type;
+
+    public CardSO upgradedVersion;
+
+    public bool isUpgraded = false;
+
     [HideInInspector] public int defHealth;
 
     //[HideInInspector] public MinionController ownerMinion;

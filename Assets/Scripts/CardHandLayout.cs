@@ -82,17 +82,12 @@ public class CardHandLayout : MonoBehaviour
         //card.position = deckPosition.position;
     }
 
-    public int RemoveCard(Transform card, bool destroy = true)
+    public int RemoveCard(Transform card)
     {
 
         int index = cards.IndexOf(card);    
         cards.Remove(card);
 
-        if (destroy)
-        {
-            Destroy(card.gameObject);
-            return index;
-        }
         return index;
     }
 

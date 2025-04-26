@@ -15,6 +15,7 @@ MonoBehaviour:
   art:
   - {fileID: 0}
   - {fileID: 0}
+  frame: {fileID: 0}
   name: 'Death Pole '
   desc: 'deal 3 damage to all minions in selected collumn
 
@@ -24,6 +25,8 @@ MonoBehaviour:
   cost: 3
   range: 0
   type: 2
+  upgradedVersion: {fileID: 0}
+  isUpgraded: 0
   defHealth: 0
   effectValues: 
   OnPlay:
