@@ -15,6 +15,8 @@ public class Agent : MonoBehaviour
     public MinionController hero;
     public HandManager handManager;
     public CardHandLayout cardHandLayout;
+    public DeckViewHandler deckViewHandler;
+
 
     public CardController cardPrefab;
     public Transform cardPlayPos;
@@ -27,9 +29,24 @@ public class Agent : MonoBehaviour
         get { return _availibleMana; }
         set { _availibleMana = value; }
     }
+    private void Awake()
+    {
+        // Shuffle Deck
+        for (int i = deck.Count - 1; i > 0; i--)
+        {
+            int randomIndex = Random.Range(0, i + 1); // UnityEngine.Random
+            var temp = deck[i];
+            deck[i] = deck[randomIndex];
+            deck[randomIndex] = temp;
+        }
 
+        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
+
+    }
     private void Start()
     {
+
+
         MinionController.OnDied += UpdateMinions;
     }
 
@@ -95,8 +112,8 @@ public class Agent : MonoBehaviour
 
         if(deck.Count == 0 | hand.Count >= 7) return;
 
-        CardSO card = deck[Random.Range(0, deck.Count)];
-        deck.Remove(card);
+        CardSO card = deck[deck.Count-1]; //Random.Range(0, deck.Count)
+        deck.RemoveAt(deck.Count - 1);
         CardController cardObj = Instantiate(cardPrefab);
         cardObj.gameObject.name = card.name;
         cardObj.card = card;
@@ -107,11 +124,13 @@ public class Agent : MonoBehaviour
         //handManager.AddToHand(cardObj.transform, handManager.GetEmptyHandSlot());
         cardHandLayout.AddCard(cardObj.transform);
         StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
+
+        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
     }
 
     public void SpawnCardToDeck(CardSO card, bool isPlayerCard)
     {
-        deck.Insert(Random.Range(0, Mathf.Max(0, deck.Count - 2)), card);
+        deck.Insert(Random.Range(0, Mathf.Max(0, deck.Count - 1)), card);
 
         CardController cardObj = Instantiate(cardPrefab);
         cardObj.transform.SetParent(cardHandLayout.transform.parent);
@@ -144,5 +163,7 @@ public class Agent : MonoBehaviour
         {
             Destroy(cardObj.gameObject);
         });
+
+        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
     }
 }

@@ -9,6 +9,7 @@ public class ManaBarController : MonoBehaviour
     public Animator animator;
     public Color maxManaColor;
     public Transform gear;
+    private Tween gearRotateTween;
 
     void Start()
     {
@@ -16,6 +17,9 @@ public class ManaBarController : MonoBehaviour
         
         //animator.Play("ManaBarAnimReversed", 0 , 1f);
         Player.OnPlayerManaChanged += PlayCorrectAnimation;
+
+        gearRotateTween = gear.DORotate(Vector3.forward * 360, 5f, RotateMode.FastBeyond360).SetEase(Ease.Linear).SetLoops(-1);
+        gearRotateTween.timeScale = 0;
     }
 
     private void OnDestroy()
@@ -30,7 +34,7 @@ public class ManaBarController : MonoBehaviour
         if(value == GameManager.Instance.maxMana | value == GameManager.Instance.player.availibleMana)
         {
             animator.speed = 0f;
-            gear.DOKill();
+            //gear.DOKill();
             //animator.StopPlayback();
         }
 
@@ -45,24 +49,27 @@ public class ManaBarController : MonoBehaviour
 
     private void PlayCorrectAnimation(int newValue, int oldValue)
     {
-        //Debug.Log("old: " + oldValue + ", new: " +  newValue);   
+        //Debug.Log("old: " + oldValue + ", new: " +  newValue);
+        //Debug.Log("max mana: " + GameManager.Instance.maxMana);
+
+        gearRotateTween.timeScale = ((float)newValue) / 1f;
+
 
         if (newValue > oldValue)
         {
             animator.speed = 1f;
             animator.Play("ManaBarAnim", 0 , (float)oldValue / 10); //, 0, animator.GetCurrentAnimatorClipInfo(0)[0].clip
             //Debug.Log("here" + (float)oldValue / 10);
-            gear.DOKill();
-            gear.DORotate(Vector3.forward*360, 0.1f, RotateMode.FastBeyond360).SetLoops(-1);
+            //gear.DOKill();
+            //gear.DORotate(Vector3.forward*360, 0.1f, RotateMode.FastBeyond360).SetLoops(-1);
 
         }
         else if (newValue < oldValue) {
             //Debug.Log("here2: " + (float) newValue / 10);
             animator.speed = 1f;
             animator.Play("ManaBarAnimReversed", 0,  (float)(10-oldValue+0.5f) / 10);
-            gear.DOKill();
-
-            gear.DORotate(Vector3.forward * -360, 0.1f, RotateMode.FastBeyond360).SetLoops(-1);
+            //gear.DOKill();
+            //gear.DORotate(Vector3.forward * -360, 0.1f, RotateMode.FastBeyond360).SetLoops(-1);
 
 
         }

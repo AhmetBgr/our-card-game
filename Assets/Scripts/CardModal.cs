@@ -5,7 +5,8 @@ using UnityEngine.EventSystems;
 
 public class CardModal : MonoBehaviour
 {
-    public Sprite[] art;
+    public Sprite minionArt;
+    public Sprite cardArt;
     public Sprite frame;
 
     public new string name;
@@ -20,7 +21,9 @@ public class CardModal : MonoBehaviour
     public CardSO upgradedVerdion;
     public void UpdateModal(CardSO card)
     {
-        art = new Sprite[2];
+        minionArt = card.minionArt;
+        cardArt = card.cardArt;
+
         frame = card.frame;
         name = card.name;
         desc = card.desc;
@@ -28,7 +31,6 @@ public class CardModal : MonoBehaviour
         health = card.health;
         defHealth = card.defHealth; 
         range = card.range;
-        art = card.art;
         cost = card.cost;
         upgradedVerdion = card.upgradedVersion;
         //isPlayerMinion = GameManager.Instance.isPlayerTurn;

@@ -35,17 +35,19 @@ public class SwitchController : MonoBehaviour
         else
         {
             animator.Play("OpponentSwitchAnim");
-
         }
     }
 
     public void OnMouseDown() { 
         if(!GameManager.Instance.isPlayerTurn) return;
 
+        animator.Play("OpponentFailedSwitch");
+
         // Start long press coroutine
         _isHolding = true;
         _longPressCoroutine = StartCoroutine(LongPressCheck());
     }
+
     public void OnMouseUp()
     {
         // Stop long press check if released early
@@ -63,6 +65,7 @@ public class SwitchController : MonoBehaviour
         if (_isHolding)
         {
             StartCoroutine(GameManager.Instance.EndPlayerTurn());
+
             //PointerLongPress?.Invoke();
         }
     }

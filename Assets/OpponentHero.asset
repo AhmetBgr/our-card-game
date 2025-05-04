@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: OpponentHero
   m_EditorClassIdentifier: 
-  art:
-  - {fileID: 0}
-  - {fileID: 0}
+  minionArt: {fileID: 21300000, guid: 1c0ce752693613c47a7291b50ba4d932, type: 3}
+  cardArt: {fileID: 21300000, guid: 1c0ce752693613c47a7291b50ba4d932, type: 3}
+  frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
   name: Opponent Hero
   desc: 
   attack: 3
@@ -22,6 +22,8 @@ MonoBehaviour:
   cost: 0
   range: 0
   type: 0
+  upgradedVersion: {fileID: 0}
+  isUpgraded: 0
   defHealth: 30
   effectValues: 
   OnPlay:

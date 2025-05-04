@@ -44,7 +44,7 @@ public class MinionModal
         health = card.health;
         defHealth = card.defHealth;
         range = card.range;
-        art = card.art[1];
+        art = card.minionArt;
         cost = card.cost;
         this.owner = owner;
 

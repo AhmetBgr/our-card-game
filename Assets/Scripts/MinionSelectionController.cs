@@ -12,7 +12,7 @@ public class MinionSelectionController : MonoBehaviour
         
     }
 
-    protected virtual void OnMouseDown()
+    /*protected virtual void OnMouseDown()
     {
 
 
@@ -33,5 +33,5 @@ public class MinionSelectionController : MonoBehaviour
             GameManager.Instance.player.curState = Player.State.SelectingMinionForAttack;
             minionController.StartAttack(GameManager.Instance.opponent);
         }
-    }
+    }*/
 }

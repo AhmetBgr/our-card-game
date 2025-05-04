@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Radiant Touch
   m_EditorClassIdentifier: 
-  art:
-  - {fileID: 0}
-  - {fileID: 0}
-  frame: {fileID: 0}
+  minionArt: {fileID: 0}
+  cardArt: {fileID: -1074366209, guid: 18b4467d5b765e74fa3e121902d99212, type: 3}
+  frame: {fileID: 21300000, guid: cf00fc60285b9d241a572d4327d48259, type: 3}
   name: 'Radiant Touch '
   desc: 'Give a minion +1 / +1. Draw a card
 

@@ -27,14 +27,14 @@ RectTransform:
   m_GameObject: {fileID: 203809929845970216}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.25000003, y: 0.25000003, z: 0.25000003}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 5679568604271436739}
+  m_Father: {fileID: 7068642936392518639}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 6.25, y: -8.749996}
+  m_AnchoredPosition: {x: 8.999991, y: -47.59989}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3683941919314849078
@@ -1309,6 +1309,7 @@ RectTransform:
   - {fileID: 6702896035653733493}
   - {fileID: 4330707931593960551}
   - {fileID: 5679568604271436739}
+  - {fileID: 8064654635241695200}
   m_Father: {fileID: 4972876857623231312}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1491,8 +1492,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6e164bd3f1fd584caa05361a8e55fe0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  art:
-  - {fileID: 0}
+  minionArt: {fileID: 0}
+  cardArt: {fileID: 0}
+  frame: {fileID: 0}
   name: 
   desc: 
   attack: 0
@@ -1501,6 +1503,7 @@ MonoBehaviour:
   range: 0
   defHealth: 0
   isPlayerMinion: 0
+  upgradedVerdion: {fileID: 0}
 --- !u!114 &-9219122176713955577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1517,16 +1520,19 @@ MonoBehaviour:
   frame: {fileID: 7764824571933236349}
   minionFrame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
   spellFrame: {fileID: 21300000, guid: cf00fc60285b9d241a572d4327d48259, type: 3}
+  upgradedFrame: {fileID: 0}
   minionTypeIconObjects:
   - {fileID: 792424545872040543}
   - {fileID: 3013732765908762085}
   - {fileID: 2700381875965597512}
   cardBack: {fileID: 3649904293757725879}
+  cardBackImage: {fileID: 0}
   nametext: {fileID: 2103182747738689643}
   desctext: {fileID: 9017598144446265921}
   attacktext: {fileID: 7684011039739490205}
   healthtext: {fileID: 1376299297874209262}
   costText: {fileID: 8463437439956694059}
+  costTransform: {fileID: 5679568604271436739}
 --- !u!114 &5083467201469550001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1545,6 +1551,7 @@ MonoBehaviour:
   curslot: {fileID: 0}
   draggableItem: {fileID: 7634800039286001232}
   canPeek: 1
+  isPeeking: 0
 --- !u!114 &3303856136721092169
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1620,6 +1627,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Image: {fileID: 2313503055580993989}
   Interactable: 1
+  isdragging: 0
   ParentAfterDrag: {fileID: 0}
 --- !u!1 &8026559297920496987
 GameObject:
@@ -1764,8 +1772,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 1
-  m_Children:
-  - {fileID: 8064654635241695200}
+  m_Children: []
   m_Father: {fileID: 7068642936392518639}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}

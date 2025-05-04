@@ -36,9 +36,14 @@ public class CardController : MonoBehaviour// , IPointerEnterHandler,IPointerExi
     {
         DraggableItem.DragStarted -= DisablePeek;
         DraggableItem.DragEnded -= OnDragEnded;
+
     }
     private void Update()
     {
+        if (!modal.isPlayerMinion) return;
+         
+        view.UpdateGearSpeed(modal);
+
         // cancel dragging
         /*if (Input.GetMouseButton(1) && draggableItem.isdragging)
         {

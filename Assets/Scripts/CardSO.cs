@@ -8,7 +8,9 @@ using UnityEngine.Events;
 [CreateAssetMenu(fileName = "TestCArd", menuName = "New Test Card")]
 public class CardSO : ScriptableObject
 {
-    public Sprite[] art;
+    public Sprite minionArt;
+    public Sprite cardArt;
+
     public Sprite frame;
 
 

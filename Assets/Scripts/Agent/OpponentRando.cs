@@ -116,12 +116,12 @@ public class OpponentRando : Agent
             ActionHolder.OnWaitingCellSelect -= SelectCell;
             ActionHolder.OnWaitingMinionSelect -= SelectMinion;
 
+            if (GameManager.Instance.currentState == GameState.EndGame)
+                break;
+
             yield return new WaitForSeconds(1);
            
         }
-
-
-
     }
     public void SelectMinion(List<MinionController> minions, CardSO card)
     {

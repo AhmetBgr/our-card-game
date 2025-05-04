@@ -6,6 +6,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 
 public enum GameState { Setup, StartGame, PlayerTurn, OpponentTurn, EndGame }
@@ -42,7 +43,12 @@ public class GameManager : Singleton<GameManager>
     {
         StartCoroutine(GameLoop());
     }
+    private void Update()
+    {
+        if (currentState == GameState.EndGame) return;
 
+        CheckWinCondition();
+    }
     IEnumerator GameLoop()
     {
         yield return StartCoroutine(SetupGame());
@@ -51,7 +57,7 @@ public class GameManager : Singleton<GameManager>
         {
             if (isPlayerTurn)
             {
-                maxMana++;
+                maxMana = Mathf.Clamp(maxMana +1, 0, 10);
                 /*for (int i = player.minions.Count - 1; i >= 0; i--)
                 {
                     if (player.minions[i] == null)
@@ -422,21 +428,23 @@ public class GameManager : Singleton<GameManager>
             item.SetReadyToAttack();
             item.selectable.SetSelectable(item.canAttack);
         }
-
     }
 
     public void CheckWinCondition()
     {
-        /*if (playerHealth <= 0)
+        if (player.hero.modal.health <= 0)
         {
             Debug.Log("Player Loses!");
             currentState = GameState.EndGame;
+            PopupManager.Instance.OpenPopup(PopupManager.Instance.defeatPopup, 1f);
         }
-        else if (opponentHealth <= 0)
+        else if (opponent.hero.modal.health <= 0)
         {
             Debug.Log("Player Wins!");
             currentState = GameState.EndGame;
-        }*/
+            PopupManager.Instance.OpenPopup(PopupManager.Instance.victoryPopup, 1f);
+
+        }
     }
     public void Addtoactions(IEnumerator action)
     {
@@ -612,7 +620,7 @@ public class GameManager : Singleton<GameManager>
         {
             opponent.UpdateHand();
         }
-            Debug.Log("All actions completed.");
+        Debug.Log("All actions completed.");
     }
 
     public IEnumerator ExecuteActions(Queue<IEnumerator> actionsList)

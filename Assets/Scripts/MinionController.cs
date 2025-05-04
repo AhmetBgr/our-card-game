@@ -15,7 +15,7 @@ public class MinionController : MonoBehaviour
     public CardSO card;
     public GridEntity gridEntity;
     public Animator animator;
-
+    public MinionAnimationController animationController;
     public Agent owner;
 
     public SelectionType selectionType;
@@ -63,7 +63,9 @@ public class MinionController : MonoBehaviour
 
     protected virtual void OnMouseDown()
     {
-        /*
+        if (GameManager.Instance.currentState == GameState.EndGame)
+            return;
+
         if (GameManager.Instance.player.curState == Player.State.SelectingMinion)
         {
             ActionHolder.selectedMinion = this;
@@ -80,16 +82,26 @@ public class MinionController : MonoBehaviour
             }
             GameManager.Instance.player.curState = Player.State.SelectingMinionForAttack;
             StartAttack(GameManager.Instance.opponent);
-        }*/
-
-        // Show range
+        }
 
     }
     protected void OnMouseEnter()
     {
+        if (GameManager.Instance.currentState == GameState.EndGame)
+            return;
+
         GameManager.Instance.player.handManager.ShowInfoCard(card);
         Debug.Log("shouldshow range");
-        MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range);
+
+        if (GameManager.Instance.player.curState == Player.State.SelectingMinionForAttack)
+        {
+            // show weapon image 
+        }
+        else
+        {
+            MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range);
+
+        }
     }
 
     protected void OnMouseExit()
@@ -193,6 +205,23 @@ public class MinionController : MonoBehaviour
         if(distance < 2) //selectedMinion.modal.health > 0 && 
         {
             TakeDamage(selectedMinion.modal.attack);
+            if (selectedMinion.modal.range < 2)
+            {
+                StartCoroutine(selectedMinion.animationController.PlaySlashAnimation(-dir, 0.5f));
+            }
+            else
+            {
+                StartCoroutine(selectedMinion.animationController.PlayArrowAnimation(-dir, transform.position, 0.65f, animationController.PlayArrowHitAnimation));
+            }
+        }
+
+        if(modal.range < 2)
+        {
+            StartCoroutine(animationController.PlaySlashAnimation(dir, 0.5f));
+        }
+        else 
+        {
+            StartCoroutine(animationController.PlayArrowAnimation(dir, selectedMinion.transform.position, 0.65f, selectedMinion.animationController.PlayArrowHitAnimation));
         }
 
         isAttackedThisTurn = true;
@@ -304,88 +333,4 @@ public class MinionController : MonoBehaviour
 
         return true;
     }
-    /*public void PlanMove(Vector3Int dir)
-    {
-        Vector3Int pos = Vector3Int.RoundToInt(transform.position) + dir;
-        Debug.Log("-1 : " + pos + ", name: " + card.name);
-
-        if (GridManager.Instance.IsOutSideOfGrid(GridManager.Instance.PosToGridIndex(pos)))
-        {
-            Debug.Log("-2: " + GridManager.Instance.PosToGridIndex(pos));
-
-            plannedMoveDir = Vector3Int.zero;
-            return;
-        }
-
-        MinionController otherMinion = null;
-        GridManager.Instance.GetCell(GridManager.Instance.PosToGridIndex(pos)).obj?.TryGetComponent(out otherMinion);
-        Debug.Log("-3");
-
-        if (otherMinion != null && !otherMinion.isPlayerMinion)
-        {
-            Debug.Log("-4");
-
-            plannedMoveDir = Vector3Int.zero;
-            return;
-        }
-        Debug.Log("-5");
-
-        plannedMoveDir = dir;
-    }
-
-    public void ValidateMove()
-    {
-        isMovementValidated = true;
-
-        if (plannedMoveDir == Vector3Int.zero) return;
-
-        Debug.Log("2");
-
-        Vector3Int posToCheck = Vector3Int.RoundToInt(transform.position) + plannedMoveDir;
-
-        GameObject objectAtDest = GridManager.Instance.GetCell(GridManager.Instance.PosToGridIndex(posToCheck)).obj;
-
-        if (objectAtDest == null) return;
-
-        MinionController otherMinion = objectAtDest.GetComponent<MinionController>();
-        Debug.Log("3");
-
-
-        if (otherMinion.plannedMoveDir == -plannedMoveDir) return;
-
-
-        otherMinion.ValidateMove();
-    }
-
-    public bool CanMove()
-    {
-        Debug.Log("1" + ", name: " + card.name);
-        if (isMovementValidated)
-        {
-            Debug.Log("--: " + (plannedMoveDir != Vector3Int.zero));
-
-            return plannedMoveDir != Vector3Int.zero;
-        }
-        
-        isMovementValidated = true;
-
-        if (plannedMoveDir == Vector3Int.zero) return false;
-
-        Debug.Log("2");
-
-        Vector3Int posToCheck = Vector3Int.RoundToInt(transform.position) + plannedMoveDir;
-
-        GameObject objectAtDest = GridManager.Instance.GetCell(GridManager.Instance.PosToGridIndex(posToCheck)).obj;
-
-        if (objectAtDest == null) return true;
-
-        MinionController otherMinion = objectAtDest.GetComponent<MinionController>();
-        Debug.Log("3");
-        
-
-        if (otherMinion.plannedMoveDir == - plannedMoveDir) return false;
-
-        Debug.Log("4");
-        return otherMinion.CanMove();
-    }*/
 }

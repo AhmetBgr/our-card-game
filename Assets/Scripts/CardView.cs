@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
+using Unity.Collections.LowLevel.Unsafe;
 
 public class CardView : MonoBehaviour
 {
@@ -25,15 +27,33 @@ public class CardView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI attacktext;
     [SerializeField] private TextMeshProUGUI healthtext;
     [SerializeField] private TextMeshProUGUI costText;
+    [SerializeField] private Transform costTransform;
+
+    private Tween gearRotateTween;
+
+    private void Start()
+    {
+        gearRotateTween?.Kill();
+        gearRotateTween = costTransform.DOLocalRotate(Vector3.forward * 360, 10f, RotateMode.FastBeyond360).SetEase(Ease.Linear).SetLoops(-1);
+        gearRotateTween.timeScale = 0;
+    }
+
+
+
+    private void OnDestroy()
+    {
+
+    }
 
     public void UpdateView(CardModal card)
     {
         if (card == null) return;
         UpdateTexts(card);
 
-        art.sprite = card.art[0];
+        art.sprite = card.cardArt;
 
-        costText.transform.parent.gameObject.SetActive(card.isPlayerMinion);
+        costTransform.gameObject.SetActive(card.isPlayerMinion);
+        costText.gameObject.SetActive(card.isPlayerMinion);
         cardBack.SetActive(!card.isPlayerMinion);
 
         frame.sprite = card.frame; //card.attack ==0 && card.health ==0 ? spellFrame : minionFrame;
@@ -45,7 +65,12 @@ public class CardView : MonoBehaviour
 
 
     }
+    public void UpdateGearSpeed(CardModal card)
+    {
+        if (gearRotateTween == null) return;
 
+        gearRotateTween.timeScale = (GameManager.Instance.player.availibleMana >= card.cost && GameManager.Instance.currentState != GameState.EndGame) ? ((float)card.cost) / 1f : 0;
+    }
     private void UpdateTexts(CardModal card)
     {
         nametext.text = card.name;

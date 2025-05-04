@@ -46,6 +46,9 @@ public class SelectableEntity : MonoBehaviour
             highlight.enabled = value;
 
         }
+
+        if (col == null) return;  
+
         col.enabled = value;
     }
 }
