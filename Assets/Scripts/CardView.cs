@@ -19,8 +19,10 @@ public class CardView : MonoBehaviour
     [SerializeField] private GameObject[] minionTypeIconObjects;
 
     //[SerializeField] private Image _iconRenderer;
-    [SerializeField] private GameObject cardBack;
-    [SerializeField] private Image cardBackImage;
+    [SerializeField] private Image cardBack;
+    [SerializeField] private Sprite cardBackImage;
+    [SerializeField] private Sprite upgradedCardBackImage;
+
 
     [SerializeField] private TextMeshProUGUI nametext;
     [SerializeField] private TextMeshProUGUI desctext;
@@ -54,8 +56,8 @@ public class CardView : MonoBehaviour
 
         costTransform.gameObject.SetActive(card.isPlayerMinion);
         costText.gameObject.SetActive(card.isPlayerMinion);
-        cardBack.SetActive(!card.isPlayerMinion);
-
+        cardBack.gameObject.SetActive(!card.isPlayerMinion);
+        cardBack.sprite = card.isUpgraded ? upgradedCardBackImage : cardBackImage;
         frame.sprite = card.frame; //card.attack ==0 && card.health ==0 ? spellFrame : minionFrame;
 
         minionTypeIconObjects[0].transform.parent.gameObject.SetActive(card.isPlayerMinion);

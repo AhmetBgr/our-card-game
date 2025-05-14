@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using DG.Tweening;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.PlayerLoop;
@@ -28,6 +29,8 @@ public class GameManager : Singleton<GameManager>
     private Queue<IEnumerator> actionQueue = new Queue<IEnumerator>();
     private Queue<IEnumerator> onTurnEndActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onCardDrawActions = new Queue<IEnumerator>();
+    private Queue<IEnumerator> onMinionDeathActions = new Queue<IEnumerator>();
+
 
     [SerializeField] private Queue<IEnumerator> defaultActionQueue;
 
@@ -42,7 +45,16 @@ public class GameManager : Singleton<GameManager>
     void Start()
     {
         StartCoroutine(GameLoop());
+        MinionController.OnDied += OnMinionDied;
     }
+    private void OnDestroy()
+    {
+        MinionController.OnDied -= OnMinionDied;
+
+    }
+
+
+
     private void Update()
     {
         if (currentState == GameState.EndGame) return;
@@ -668,6 +680,52 @@ public class GameManager : Singleton<GameManager>
             selectable.SetSelectable(false);
         }
     }
+    private IEnumerator InvokeOnMinionDeathActions(MinionController minion)
+    {
+        var tempselectedcell = ActionHolder.selectedcell;
+        var tempselectedMinion = ActionHolder.selectedMinion ;
+        var tempthisMinion = ActionHolder.thisMinion ;
+        var tempthisCard = ActionHolder.thisCard ;
+        var tempselectedMinions = new List<MinionController>();
+        tempselectedMinions.AddRange(ActionHolder.selectedMinions);
+        var tempselectedCells = new List<Transform>();
+        tempselectedCells.AddRange(ActionHolder.selectedCells);
+        var tempselectedAgent = ActionHolder.selectedAgent;
+        Queue<IEnumerator> tempCurActionList = new Queue<IEnumerator>(ActionHolder.curActionsList);
 
+        onMinionDeathActions.Clear();
+        ActionHolder.selectedcell = null;
+        ActionHolder.selectedMinion = null;
+        //ActionHolder.thisMinion = minion;
+        ActionHolder.thisCard = minion.card;
+        ActionHolder.selectedMinions.Clear();
+        //ActionHolder.selectedMinions.Add(minion);
+        ActionHolder.selectedCells.Clear();
+        //ActionHolder.selectedAgent = player;
+        ActionHolder.curActionsList = onMinionDeathActions;
+        minion.card.OnDeath.Invoke();
+
+        Debug.LogWarning("executing on death actions");
+
+        yield return StartCoroutine(ExecuteActions(onMinionDeathActions));
+
+
+        ActionHolder.selectedcell = tempselectedcell;
+        ActionHolder.selectedMinion = tempselectedMinion;
+        ActionHolder.thisMinion = tempthisMinion;
+        ActionHolder.thisCard = tempthisCard;
+        ActionHolder.selectedMinions = new List<MinionController>(tempselectedMinions);
+        ActionHolder.selectedCells = new List<Transform>(tempselectedCells);
+        ActionHolder.selectedAgent = tempselectedAgent;
+        ActionHolder.curActionsList = new Queue<IEnumerator>(tempCurActionList);
+
+        Debug.LogWarning("executed on death actions");
+
+    }
+
+    private void OnMinionDied(MinionController minion)
+    {
+        StartCoroutine(InvokeOnMinionDeathActions(minion));
+    }
 }
 

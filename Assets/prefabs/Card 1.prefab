@@ -1504,6 +1504,7 @@ MonoBehaviour:
   defHealth: 0
   isPlayerMinion: 0
   upgradedVerdion: {fileID: 0}
+  isUpgraded: 0
 --- !u!114 &-9219122176713955577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1525,8 +1526,10 @@ MonoBehaviour:
   - {fileID: 792424545872040543}
   - {fileID: 3013732765908762085}
   - {fileID: 2700381875965597512}
-  cardBack: {fileID: 3649904293757725879}
-  cardBackImage: {fileID: 0}
+  cardBack: {fileID: 7752069470549013224}
+  cardBackImage: {fileID: 21300000, guid: 8eef7efbdb35e16408d624f8c020130f, type: 3}
+  upgradedCardBackImage: {fileID: 21300000, guid: d480fc532fd4a2042b2fd5c6470f0583,
+    type: 3}
   nametext: {fileID: 2103182747738689643}
   desctext: {fileID: 9017598144446265921}
   attacktext: {fileID: 7684011039739490205}

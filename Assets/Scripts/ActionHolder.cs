@@ -637,6 +637,34 @@ public class ActionHolder : ScriptableObject
 
 
     }
+
+    public void SetCanMove(bool value)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        //GameManager.Instance.Addtoactions(_SelectMinion());
+        curActionsList.Enqueue(_SetCanMove(value));
+    }
+
+    public IEnumerator _SetCanMove(bool value)
+    {
+        while (selectedMinion == null)
+        {
+            //Debug.Log("selecting minion");
+            yield return null;
+        }
+        selectedMinion.modal.canMove = value;
+        //Debug.Log("selected minion");
+    }
+
+    public void PushSelectedMinionForward()
+    {
+
+    }
+    public IEnumerator _PushSelectedMinionForward()
+    {
+        yield return null;
+    }
 }
 
 

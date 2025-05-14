@@ -19,6 +19,9 @@ public class CardModal : MonoBehaviour
     public int defHealth;
     public bool isPlayerMinion = true;
     public CardSO upgradedVerdion;
+    public bool isUpgraded = false;
+    public bool canMove = true;
+
     public void UpdateModal(CardSO card)
     {
         minionArt = card.minionArt;
@@ -33,6 +36,7 @@ public class CardModal : MonoBehaviour
         range = card.range;
         cost = card.cost;
         upgradedVerdion = card.upgradedVersion;
+        isUpgraded = card.isUpgraded;
         //isPlayerMinion = GameManager.Instance.isPlayerTurn;
     }
 }

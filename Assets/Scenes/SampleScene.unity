@@ -8573,31 +8573,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   deck:
-  - {fileID: 11400000, guid: fad634d507da0ad4587407bbd0d59b3b, type: 2}
-  - {fileID: 11400000, guid: fad634d507da0ad4587407bbd0d59b3b, type: 2}
-  - {fileID: 11400000, guid: 7c6d5574d844bdb4e813a865eb837a92, type: 2}
-  - {fileID: 11400000, guid: 7c6d5574d844bdb4e813a865eb837a92, type: 2}
-  - {fileID: 11400000, guid: b5887332e38ce124d988da72b0dd3af1, type: 2}
-  - {fileID: 11400000, guid: b5887332e38ce124d988da72b0dd3af1, type: 2}
-  - {fileID: 11400000, guid: aec9d658979efc045a0fdcfae0f9df39, type: 2}
-  - {fileID: 11400000, guid: aec9d658979efc045a0fdcfae0f9df39, type: 2}
-  - {fileID: 11400000, guid: 11ac419feb8edce41a10a8db7426bf4a, type: 2}
-  - {fileID: 11400000, guid: 11ac419feb8edce41a10a8db7426bf4a, type: 2}
-  - {fileID: 11400000, guid: 3866e38974599c944ae40894a7799f99, type: 2}
-  - {fileID: 11400000, guid: 3866e38974599c944ae40894a7799f99, type: 2}
-  - {fileID: 11400000, guid: 956e23a16ec37f8449c93de95b556719, type: 2}
-  - {fileID: 11400000, guid: 956e23a16ec37f8449c93de95b556719, type: 2}
-  - {fileID: 11400000, guid: 4f950df988824f34ba5cd1f90008ef3e, type: 2}
-  - {fileID: 11400000, guid: 4f950df988824f34ba5cd1f90008ef3e, type: 2}
-  - {fileID: 11400000, guid: d1f72174487234545a2b213b64d94ba6, type: 2}
-  - {fileID: 11400000, guid: d1f72174487234545a2b213b64d94ba6, type: 2}
-  - {fileID: 11400000, guid: af207d2db347bbe43bb3b7790209d314, type: 2}
-  - {fileID: 11400000, guid: af207d2db347bbe43bb3b7790209d314, type: 2}
-  - {fileID: 11400000, guid: 54cd2e72173264e4a9980298757f8753, type: 2}
-  - {fileID: 11400000, guid: 54cd2e72173264e4a9980298757f8753, type: 2}
-  - {fileID: 11400000, guid: d108f43a5214df34aa81873ef4952feb, type: 2}
-  - {fileID: 11400000, guid: d108f43a5214df34aa81873ef4952feb, type: 2}
-  - {fileID: 11400000, guid: af207d2db347bbe43bb3b7790209d314, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
+  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
   hand: []
   minions: []
   hero: {fileID: 614705674}
