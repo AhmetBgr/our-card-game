@@ -23,10 +23,6 @@ public class MinionModal
     public UnityEvent OnDeath;
     public UnityEvent OnTurnStart;
     public UnityEvent OnOwnerTurnEnd;
-    public UnityEvent OnSpellPlayed;
-    public UnityEvent OnMinionPlayed;
-    public UnityEvent OnThisMoved;
-    public UnityEvent OnAnyMoved;
     public UnityEvent OnOwnerDrawedCard;
 
     public MinionModal(CardSO card, MinionController owner)
@@ -53,10 +49,6 @@ public class MinionModal
         OnDeath = card.OnDeath;
         OnTurnStart = card.OnTurnStart;
         OnOwnerTurnEnd = card.OnOwnerTurnEnd;
-        OnSpellPlayed = card.OnSpellPlayed;
-        OnMinionPlayed = card.OnMinionPlayed;
-        OnThisMoved = card.OnThisMoved;
-        OnAnyMoved = card.OnAnyMoved;
         OnOwnerDrawedCard = card.OnOwnerDrawedCard;
     }
 }

@@ -29,7 +29,7 @@ public class Agent : MonoBehaviour
         get { return _availibleMana; }
         set { _availibleMana = value; }
     }
-    private void Awake()
+    protected virtual void Awake()
     {
         // Shuffle Deck
         for (int i = deck.Count - 1; i > 0; i--)
@@ -45,8 +45,6 @@ public class Agent : MonoBehaviour
     }
     private void Start()
     {
-
-
         MinionController.OnDied += UpdateMinions;
     }
 

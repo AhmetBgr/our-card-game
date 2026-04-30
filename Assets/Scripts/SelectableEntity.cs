@@ -22,7 +22,6 @@ public class SelectableEntity : MonoBehaviour
     private void OnDisable()
     {
         GameManager.Instance.selectables.Remove(this);
-
     }
     private void OnDestroy()
     {

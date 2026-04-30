@@ -648,6 +648,8 @@ MonoBehaviour:
   defHealth: 0
   isPlayerMinion: 0
   upgradedVerdion: {fileID: 0}
+  isUpgraded: 0
+  canMove: 1
 --- !u!114 &5286410626112935929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1004,7 +1006,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &7582577414565016631
 RectTransform:
   m_ObjectHideFlags: 0
