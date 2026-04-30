@@ -1,8 +1,6 @@
 using DG.Tweening;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting.FullSerializer;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +14,9 @@ public class DeckPanelController : Singleton<DeckPanelController>
     [SerializeField] private Button previousButton;
 
     [SerializeField] private CustomDeckUIController deckPrefab;
+    [SerializeField] private TextMeshProUGUI deckName;
+    [SerializeField] private TextMeshProUGUI cardAmount;
+
 
     private List<CustomDeckUIController> customDeckUIControllers = new();
     public AllCardsUIController AllCardsUIController;
@@ -57,6 +58,9 @@ public class DeckPanelController : Singleton<DeckPanelController>
         }
         if(selectedDeckIndex == 0)
             UpdateControlButtons(initialSelectablePanelPos.x);
+
+        UpdateDeckName(selectedDeckIndex);
+        UpdateCardAmount();
 
         AllCardsUIController.UpdateSelectableCards();
 
@@ -116,5 +120,18 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
         SaveManager.Instance.saveData.SelectedDeckIndex = value;
         AllCardsUIController.UpdateSelectableCards();
+        UpdateDeckName(value);
+        UpdateCardAmount();
+    }
+    private void UpdateDeckName(int index)
+    {
+        deckName.text = "Deck-" + (index + 1);
+
+    }
+    private void UpdateCardAmount()
+    {
+        int amount = curCustomDeck.Count;
+        cardAmount.text = (amount)+ "/" + SaveManager.Instance.DeckSize;
+
     }
 }

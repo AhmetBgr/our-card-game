@@ -43,7 +43,6 @@ public class AllCardsUIController : MonoBehaviour
         {
             if (!allCards.ContainsKey(item)) continue;
 
-            Debug.Log("disable card in all cards: " + item);
             allCards[item].Button.interactable = false;
         }
 

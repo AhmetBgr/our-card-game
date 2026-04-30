@@ -29,7 +29,7 @@ public class Player : Agent
     {
         // todo: get selected deck
         SaveManager saveManager = SaveManager.Instance;
-        var selectedDeck = saveManager.saveData.Decks[0];
+        var selectedDeck = saveManager.saveData.Decks[saveManager.saveData.SelectedDeckIndex];
 
         deck.Clear();
         // Load Deck

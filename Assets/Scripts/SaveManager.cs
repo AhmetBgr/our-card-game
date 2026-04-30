@@ -8,7 +8,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
     public SaveData saveData;
 
-    private int deckSize = 10;
+    public int DeckSize = 10;
 
     protected override void Awake()
     {
@@ -82,7 +82,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
         if (saveData.Decks[deckIndex].Deck.Contains(cardName)) return false;
 
-        if (saveData.Decks[deckIndex].Deck.Count >= deckSize) return false;
+        if (saveData.Decks[deckIndex].Deck.Count >= DeckSize) return false;
 
         saveData.Decks[deckIndex].Deck.Add(cardName);
 
