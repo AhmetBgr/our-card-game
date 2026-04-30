@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DeckView : MonoBehaviour
+public class DeckUIController : MonoBehaviour
 {
 
-    [SerializeField] private CardButtonHandler cardButtonPrefab;
+    [SerializeField] protected CardButtonHandler cardButtonPrefab;
     void Start()
     {
         
     }
 
-    public void Initialize(DeckData deck)
+    public virtual void Initialize(DeckData deck)
     {
         var allCardSOs = DeckDatabase.Instance.AllCards;
+
 
         foreach (var name in deck.Deck)
         {

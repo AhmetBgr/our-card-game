@@ -480,6 +480,56 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &283188503
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 283188504}
+  - component: {fileID: 283188505}
+  m_Layer: 5
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &283188504
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283188503}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1033209331}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 91.5, y: -50}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &283188505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283188503}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ea16a282ceb2b1428851ebd3f55fc34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardButtonPrefab: {fileID: 7938670217603084517, guid: 8ccfa92997e1b0d4d885605197b360bf,
+    type: 3}
 --- !u!1 &283452604
 GameObject:
   m_ObjectHideFlags: 0
@@ -965,8 +1015,9 @@ MonoBehaviour:
   selectableDecksPanel: {fileID: 118084229}
   nextButton: {fileID: 365808487}
   previousButton: {fileID: 2035380768}
-  deckPrefab: {fileID: 5019856576327302910, guid: c6cca30fd5e560b4eb0eb6e235edcb6a,
+  deckPrefab: {fileID: 2198960740839312122, guid: f0119259a303aed41abc30898d7d8977,
     type: 3}
+  AllCardsUIController: {fileID: 1033209334}
 --- !u!1 &614585548
 GameObject:
   m_ObjectHideFlags: 0
@@ -1554,6 +1605,7 @@ GameObject:
   - component: {fileID: 1033209331}
   - component: {fileID: 1033209332}
   - component: {fileID: 1033209333}
+  - component: {fileID: 1033209334}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -1574,6 +1626,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1556766623}
+  - {fileID: 283188504}
   m_Father: {fileID: 989055317}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -1621,6 +1674,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!114 &1033209334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1033209330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ea16a282ceb2b1428851ebd3f55fc34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardButtonPrefab: {fileID: 7938670217603084517, guid: 8ccfa92997e1b0d4d885605197b360bf,
+    type: 3}
 --- !u!1 &1054827688
 GameObject:
   m_ObjectHideFlags: 0
@@ -2686,6 +2753,7 @@ GameObject:
   - component: {fileID: 1556766623}
   - component: {fileID: 1556766624}
   - component: {fileID: 1556766625}
+  - component: {fileID: 1556766626}
   m_Layer: 5
   m_Name: AllCards
   m_TagString: Untagged
@@ -2719,7 +2787,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1556766622}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
   m_Name: 
@@ -2745,13 +2813,27 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1556766622}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_HorizontalFit: 0
   m_VerticalFit: 0
+--- !u!114 &1556766626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1556766622}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ea16a282ceb2b1428851ebd3f55fc34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardButtonPrefab: {fileID: 7938670217603084517, guid: 8ccfa92997e1b0d4d885605197b360bf,
+    type: 3}
 --- !u!1 &1575454670
 GameObject:
   m_ObjectHideFlags: 0

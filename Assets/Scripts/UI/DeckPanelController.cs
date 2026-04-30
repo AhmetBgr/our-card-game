@@ -2,10 +2,11 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DeckPanelController : MonoBehaviour
+public class DeckPanelController : Singleton<DeckPanelController>
 {
     [SerializeField] private CardButtonHandler cardButtonPrefab;
     [SerializeField] private Transform allCardsPanel;
@@ -14,8 +15,13 @@ public class DeckPanelController : MonoBehaviour
     [SerializeField] private Button nextButton;
     [SerializeField] private Button previousButton;
 
-    [SerializeField] private DeckView deckPrefab;
+    [SerializeField] private CustomDeckUIController deckPrefab;
 
+    private List<CustomDeckUIController> customDeckUIControllers = new();
+    public AllCardsUIController AllCardsUIController;
+
+    private SaveData saveData => SaveManager.Instance.saveData;
+    public List<string> curCustomDeck => saveData.Decks[saveData.SelectedDeckIndex].Deck;
 
     private float distanceBetweenToDecks;
     private Vector3 initialSelectablePanelPos;
@@ -30,6 +36,8 @@ public class DeckPanelController : MonoBehaviour
         {
             var deckView = Instantiate(deckPrefab, selectableDecksPanel);
             deckView.Initialize(item);
+
+            customDeckUIControllers.Add(deckView);
         }
 
         var horizantolLayout = selectableDecksPanel.GetComponent<HorizontalLayoutGroup>();
@@ -50,17 +58,36 @@ public class DeckPanelController : MonoBehaviour
         if(selectedDeckIndex == 0)
             UpdateControlButtons(initialSelectablePanelPos.x);
 
+        AllCardsUIController.UpdateSelectableCards();
+
+    }
+    public void RemoveFromCurrentCustomDeck(string card)
+    {
+        SaveManager.Instance.RemoveCard(card, SaveManager.Instance.saveData.SelectedDeckIndex);
+        AllCardsUIController.UpdateSelectableCards();
+    }
+    public bool TryAddToCurrentCustomDeck(string card)
+    {
+
+        bool success = SaveManager.Instance.AddCard(card, SaveManager.Instance.saveData.SelectedDeckIndex);
+
+        if (success)
+            customDeckUIControllers[SaveManager.Instance.saveData.SelectedDeckIndex].AddCard(card);
+
+        return success;
     }
 
     private void PopulateAllCards()
     {
-        var allCardSOs = DeckDatabase.Instance.AllCards;
+        AllCardsUIController.Initialize();
+
+        /*var allCardSOs = DeckDatabase.Instance.AllCards;
 
         foreach (var cardSO in allCardSOs)
         {
             var cardButton = Instantiate(cardButtonPrefab, allCardsPanel);
             cardButton.SetName(cardSO.name);
-        }
+        }*/
     }
 
     private void MoveSelectableDecksPanel(int direction)
@@ -88,6 +115,6 @@ public class DeckPanelController : MonoBehaviour
         value = Mathf.Clamp(value, 0, SaveManager.Instance.saveData.Decks.Length - 1);
 
         SaveManager.Instance.saveData.SelectedDeckIndex = value;
-
+        AllCardsUIController.UpdateSelectableCards();
     }
 }

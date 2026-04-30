@@ -8,6 +8,8 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
     public SaveData saveData;
 
+    private int deckSize = 10;
+
     protected override void Awake()
     {
         base.Awake();
@@ -26,8 +28,10 @@ public class SaveManager : PermanentSingleton<SaveManager>
             // Deserialize and load the deck data
             Debug.Log($"Loaded deck data: {json}");
             saveData = JsonUtility.FromJson<SaveData>(json);
+            EnsureSaveDataIsValid();
         }
-        else
+
+        if (saveData == null || saveData.Decks == null || saveData.Decks.Length == 0)
         {
             Debug.Log("No deck data found.");
             CreateNewSave();
@@ -54,27 +58,42 @@ public class SaveManager : PermanentSingleton<SaveManager>
         if (!IsValidDeckIndex(deckIndex))
             return;
 
-        List<string> cards = new List<string>(saveData.Decks[deckIndex].Deck);
+        if (!saveData.Decks[deckIndex].Deck.Contains(cardName)) return;
+
+        saveData.Decks[deckIndex].Deck.Remove(cardName);
+            SaveData();
+
+        /*List<string> cards = new List<string>(saveData.Decks[deckIndex].Deck);
 
         if (cards.Remove(cardName))
         {
             saveData.Decks[deckIndex].Deck = cards.ToArray();
             SaveData();
-        }
+        }*/
     }
 
-    public void AddCard(string cardName, int deckIndex)
+    public bool AddCard(string cardName, int deckIndex)
     {
         // add card to savedata
 
-        if (!IsValidDeckIndex(deckIndex))
-            return;
 
-        List<string> cards = new List<string>(saveData.Decks[deckIndex].Deck);
+        if (!IsValidDeckIndex(deckIndex))
+            return false;
+
+        if (saveData.Decks[deckIndex].Deck.Contains(cardName)) return false;
+
+        if (saveData.Decks[deckIndex].Deck.Count >= deckSize) return false;
+
+        saveData.Decks[deckIndex].Deck.Add(cardName);
+
+
+        /*List<string> cards = new List<string>(saveData.Decks[deckIndex].Deck);
         cards.Add(cardName);
         saveData.Decks[deckIndex].Deck = cards.ToArray();
-
+        */
         SaveData();
+
+        return true;
     }
 
     bool IsValidDeckIndex(int index)
@@ -96,26 +115,47 @@ public class SaveManager : PermanentSingleton<SaveManager>
         string value = JsonUtility.ToJson(saveData);
         return value;
     }
+
+    void EnsureSaveDataIsValid()
+    {
+        if (saveData == null)
+            return;
+
+        if (saveData.Decks == null)
+            saveData.Decks = new DeckData[0];
+
+        saveData.SelectedDeckIndex = Mathf.Clamp(saveData.SelectedDeckIndex, 0, Mathf.Max(0, saveData.Decks.Length - 1));
+
+        foreach (var deck in saveData.Decks)
+        {
+            if (deck == null)
+                continue;
+
+            if (deck.Deck == null)
+                deck.Deck = new List<string>();
+        }
+    }
+
     void CreateNewSave()
     {
         saveData = new SaveData
         {
             HighScore = 0,
+            SelectedDeckIndex = 0,
             Decks = new DeckData[]
             {
                 new DeckData
                 {
                     Name = "Default Deck",
-                    Deck = new string[0]
+                    isLocked = true,
+                    Deck = new List<string>
+                    {
+                        "Moth",
+                        "Nailpuncher",
+                        "Priest"
+                    }
                 }
             }
-        };
-        saveData.Decks[0].isLocked = true;
-        saveData.Decks[0].Deck = new string[]
-        {
-            "Moth",
-            "Nailpuncher",
-            "Priest"
         };
     }
 

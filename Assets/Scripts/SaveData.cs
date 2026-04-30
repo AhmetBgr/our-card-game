@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 [Serializable]
 public class SaveData 
@@ -13,7 +14,7 @@ public class DeckData
 {
     public string Name;
 
-    public string[] Deck;
+    public List<string> Deck = new();
     public bool isLocked;
 }
 
