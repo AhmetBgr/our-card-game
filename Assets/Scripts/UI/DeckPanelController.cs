@@ -197,13 +197,17 @@ public class DeckPanelController : Singleton<DeckPanelController>
         int amount = curCustomDeck.Count;
 
         if (amount < SaveManager.Instance.DeckSize) { 
-            cardAmount.text = $"<color=yellow>{amount}</color>" + "/" + SaveManager.Instance.DeckSize;
-
+            cardAmount.text = $"<color=yellow>{amount}/{SaveManager.Instance.DeckSize}</color>";
         }
         else
         {
             cardAmount.text = $"<color=green>{amount}/{SaveManager.Instance.DeckSize}</color>";
 
+        }
+
+        if (saveData.Decks[saveData.SelectedDeckIndex].isLocked)
+        {
+            cardAmount.text = cardAmount.text + " - LOCKED";
         }
 
     }

@@ -15,20 +15,21 @@ public class CustomDeckUIController : MonoBehaviour
 
         foreach (var name in deck.Deck)
         {
-            AddCard(name);
+            AddCard(name, deck.isLocked);
         }
 
         UpdateOrder();
     }
 
-    public void AddCard(string name)
+    public void AddCard(string name, bool isLocked = false)
     {
         var card = name;
 
         var cardButton = Instantiate(cardButtonPrefab, transform);
         cardButton.OnClicked = () => {
             DeckPanelController.Instance.RemoveFromCurrentCustomDeck(card);
-            RemoveCard(cardButton);
+            if(!isLocked)
+                RemoveCard(cardButton);
         };
         var cardSO = DeckDatabase.Instance.GetCard(name);
         cardButton.Card = cardSO;

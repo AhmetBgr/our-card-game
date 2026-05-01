@@ -142,21 +142,30 @@ public class SaveManager : PermanentSingleton<SaveManager>
         {
             HighScore = 0,
             SelectedDeckIndex = 0,
-            Decks = new DeckData[]
-            {
-                new DeckData
-                {
-                    Name = "Default Deck",
-                    isLocked = true,
-                    Deck = new List<string>
-                    {
-                        "Moth",
-                        "Nailpuncher",
-                        "Priest"
-                    }
-                }
+            Decks = new DeckData[10]
+
+
+        };
+        saveData.Decks[0] = new DeckData
+        {
+            Name = "Default_Deck_0",
+            isLocked = true,
+            Deck = new List<string>{
+                "Moth",
+                "Nailpuncher",
+                "Priest"
             }
         };
+
+        for (int i = 1; i < saveData.Decks.Length; i++)
+        {
+            saveData.Decks[i] = new DeckData
+            {
+                Name = "Default_Deck_" + i,
+                isLocked = false,
+                Deck = new List<string>()
+            };
+        }
     }
 
     protected void OnApplicationQuit()
