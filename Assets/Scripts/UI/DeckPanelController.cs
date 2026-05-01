@@ -125,23 +125,12 @@ public class DeckPanelController : Singleton<DeckPanelController>
         }
 
         UpdateCardAmount();
-
-
-
         return success;
     }
 
     private void PopulateAllCards()
     {
         AllCardsUIController.Initialize();
-
-        /*var allCardSOs = DeckDatabase.Instance.AllCards;
-
-        foreach (var cardSO in allCardSOs)
-        {
-            var cardButton = Instantiate(cardButtonPrefab, allCardsPanel);
-            cardButton.SetName(cardSO.name);
-        }*/
     }
 
     private void UpdateControlButtons(float selectableDeckPanelPosX)

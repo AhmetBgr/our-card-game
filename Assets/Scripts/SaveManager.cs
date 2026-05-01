@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class SaveManager : PermanentSingleton<SaveManager>
 {
+
     public string saveDataKey = "DeckData";
 
     public SaveData saveData;
+    public List<CardSO> defaultDeck = new List<CardSO>();
+
 
     public int DeckSize = 10;
 
@@ -150,12 +153,17 @@ public class SaveManager : PermanentSingleton<SaveManager>
         {
             Name = "Default_Deck_0",
             isLocked = true,
-            Deck = new List<string>{
-                "Moth",
-                "Nailpuncher",
-                "Priest"
-            }
+            Deck = new List<string>()
         };
+
+        for (int i = 0; i < defaultDeck.Count; i++)
+        {
+            if (i > DeckSize) break;
+
+            saveData.Decks[0].Deck.Add(defaultDeck[i].name);
+
+        }
+
 
         for (int i = 1; i < saveData.Decks.Length; i++)
         {

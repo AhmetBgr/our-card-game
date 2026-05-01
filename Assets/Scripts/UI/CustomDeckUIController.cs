@@ -26,11 +26,15 @@ public class CustomDeckUIController : MonoBehaviour
         var card = name;
 
         var cardButton = Instantiate(cardButtonPrefab, transform);
-        cardButton.OnClicked = () => {
-            DeckPanelController.Instance.RemoveFromCurrentCustomDeck(card);
-            if(!isLocked)
+
+        if (!isLocked)
+        {
+            cardButton.OnClicked = () => {
+                DeckPanelController.Instance.RemoveFromCurrentCustomDeck(card);
                 RemoveCard(cardButton);
-        };
+            };
+        }
+
         var cardSO = DeckDatabase.Instance.GetCard(name);
         cardButton.Card = cardSO;
         cardButton.SetName(name);
