@@ -50,20 +50,12 @@ public class DeckPanelController : Singleton<DeckPanelController>
         var horizantolLayout = selectableDecksPanel.GetComponent<HorizontalLayoutGroup>();
         distanceBetweenToDecks = horizantolLayout.spacing + selectableDecksPanel.GetChild(0).GetComponent<RectTransform>().rect.width;
 
-        nextButton.onClick.AddListener(() => MoveSelectableDecksPanel(-1));
-        nextButton.onClick.AddListener(() => UpdateSelectedDeckIndex(1));
-
-        previousButton.onClick.AddListener(() => MoveSelectableDecksPanel(1));
-        previousButton.onClick.AddListener(() => UpdateSelectedDeckIndex(-1));
+        nextButton.onClick.AddListener(() => ChangeSelectedDeck(1));
+        previousButton.onClick.AddListener(() => ChangeSelectedDeck(-1));
 
         var selectedDeckIndex = SaveManager.Instance.saveData.SelectedDeckIndex;
 
-        for (int i = 0; i < selectedDeckIndex; i++)
-        {
-            MoveSelectableDecksPanel(-1);
-        }
-        if(selectedDeckIndex == 0)
-            UpdateControlButtons(initialSelectablePanelPos.x);
+        SetSelectableDecksPanelToIndex(selectedDeckIndex, instant: true);
 
         UpdateDeckName(selectedDeckIndex);
         UpdateCardAmount();
@@ -152,35 +144,47 @@ public class DeckPanelController : Singleton<DeckPanelController>
         }*/
     }
 
-    private void MoveSelectableDecksPanel(int direction)
-    {
-
-        selectableDecksPanel.DOComplete();
-
-        var value = selectableDecksPanel.localPosition.x + (direction * distanceBetweenToDecks);
-
-        selectableDecksPanel.DOLocalMoveX(value, 0.2f);
-
-        UpdateControlButtons(value);
-
-    }
-
     private void UpdateControlButtons(float selectableDeckPanelPosX)
     {
         nextButton.interactable = selectableDeckPanelPosX > -1 * (SaveManager.Instance.saveData.Decks.Length - 1) * distanceBetweenToDecks + initialSelectablePanelPos.x;
         previousButton.interactable = selectableDeckPanelPosX < initialSelectablePanelPos.x;
     }
-    private void UpdateSelectedDeckIndex(int amount)
+
+    private void ChangeSelectedDeck(int amount)
     {
-        var value = SaveManager.Instance.saveData.SelectedDeckIndex + amount;
+        var oldIndex = SaveManager.Instance.saveData.SelectedDeckIndex;
+        var newIndex = Mathf.Clamp(oldIndex + amount, 0, SaveManager.Instance.saveData.Decks.Length - 1);
 
-        value = Mathf.Clamp(value, 0, SaveManager.Instance.saveData.Decks.Length - 1);
+        if (newIndex == oldIndex)
+            return;
 
-        SaveManager.Instance.saveData.SelectedDeckIndex = value;
+        SaveManager.Instance.saveData.SelectedDeckIndex = newIndex;
+        SetSelectableDecksPanelToIndex(newIndex, instant: false);
+
         AllCardsUIController.UpdateSelectableCards();
-        UpdateDeckName(value);
+        UpdateDeckName(newIndex);
         UpdateCardAmount();
         TriggerDeckChanged();
+    }
+
+    private void SetSelectableDecksPanelToIndex(int index, bool instant)
+    {
+        selectableDecksPanel.DOComplete();
+
+        var targetX = initialSelectablePanelPos.x + (-index * distanceBetweenToDecks);
+
+        if (instant)
+        {
+            var pos = selectableDecksPanel.localPosition;
+            pos.x = targetX;
+            selectableDecksPanel.localPosition = pos;
+        }
+        else
+        {
+            selectableDecksPanel.DOLocalMoveX(targetX, 0.2f);
+        }
+
+        UpdateControlButtons(targetX);
     }
     private void TriggerDeckChanged()
     {
