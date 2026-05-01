@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
 {
     public Button Button;
+    public CardSO Card;
 
     [SerializeField] private TMPro.TextMeshProUGUI cardNameText;
     [SerializeField] private TMPro.TextMeshProUGUI costText;

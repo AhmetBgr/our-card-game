@@ -10,11 +10,15 @@ public class MainMenuManager : MonoBehaviour
     void Start()
     {
         playButton.onClick.AddListener(() => { SceneTransitionManager.Instance.TransitionToScene("Game"); });
+        DeckPanelController.DeckChanged += UpdatePlayButton;
     }
-
-    // Update is called once per frame
-    void Update()
+    private void OnDestroy()
     {
-        
+        DeckPanelController.DeckChanged -= UpdatePlayButton;
+
+    }
+    void UpdatePlayButton(bool value)
+    {
+        playButton.interactable = value;
     }
 }

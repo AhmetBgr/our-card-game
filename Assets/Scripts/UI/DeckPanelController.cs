@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -29,6 +30,8 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
     private float distanceBetweenToDecks;
     private Vector3 initialSelectablePanelPos;
+
+    public static event Action<bool> DeckChanged;
 
     void Start()
     {
@@ -115,14 +118,23 @@ public class DeckPanelController : Singleton<DeckPanelController>
     {
         SaveManager.Instance.RemoveCard(card, SaveManager.Instance.saveData.SelectedDeckIndex);
         AllCardsUIController.UpdateSelectableCards();
+        UpdateCardAmount();
+        TriggerDeckChanged();
+
     }
     public bool TryAddToCurrentCustomDeck(string card)
     {
-
         bool success = SaveManager.Instance.AddCard(card, SaveManager.Instance.saveData.SelectedDeckIndex);
 
-        if (success)
+        if (success) { 
             customDeckUIControllers[SaveManager.Instance.saveData.SelectedDeckIndex].AddCard(card);
+            customDeckUIControllers[SaveManager.Instance.saveData.SelectedDeckIndex].UpdateOrder();
+            TriggerDeckChanged();
+        }
+
+        UpdateCardAmount();
+
+
 
         return success;
     }
@@ -168,6 +180,12 @@ public class DeckPanelController : Singleton<DeckPanelController>
         AllCardsUIController.UpdateSelectableCards();
         UpdateDeckName(value);
         UpdateCardAmount();
+        TriggerDeckChanged();
+    }
+    private void TriggerDeckChanged()
+    {
+        DeckChanged?.Invoke(curCustomDeck.Count >= SaveManager.Instance.DeckSize);
+
     }
     private void UpdateDeckName(int index)
     {
@@ -177,7 +195,16 @@ public class DeckPanelController : Singleton<DeckPanelController>
     private void UpdateCardAmount()
     {
         int amount = curCustomDeck.Count;
-        cardAmount.text = (amount)+ "/" + SaveManager.Instance.DeckSize;
+
+        if (amount < SaveManager.Instance.DeckSize) { 
+            cardAmount.text = $"<color=yellow>{amount}</color>" + "/" + SaveManager.Instance.DeckSize;
+
+        }
+        else
+        {
+            cardAmount.text = $"<color=green>{amount}/{SaveManager.Instance.DeckSize}</color>";
+
+        }
 
     }
 }
