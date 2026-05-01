@@ -51,7 +51,7 @@ MonoBehaviour:
     HighScore: 0
     SelectedDeckIndex: 0
   defaultDeck:
-  - {fileID: 11400000, guid: b5887332e38ce124d988da72b0dd3af1, type: 2}
+  - {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232, type: 2}
   - {fileID: 11400000, guid: aec9d658979efc045a0fdcfae0f9df39, type: 2}
   - {fileID: 11400000, guid: 11ac419feb8edce41a10a8db7426bf4a, type: 2}
   - {fileID: 11400000, guid: 956e23a16ec37f8449c93de95b556719, type: 2}

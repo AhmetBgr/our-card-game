@@ -41,7 +41,6 @@ public class Agent : MonoBehaviour
         }
 
         deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
-
     }
     private void Start()
     {
@@ -122,8 +121,7 @@ public class Agent : MonoBehaviour
         //handManager.AddToHand(cardObj.transform, handManager.GetEmptyHandSlot());
         cardHandLayout.AddCard(cardObj.transform);
         StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
-
-        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
+        deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : card.isUpgraded);
     }
 
     public void SpawnCardToDeck(CardSO card, bool isPlayerCard)

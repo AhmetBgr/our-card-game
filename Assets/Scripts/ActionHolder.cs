@@ -406,8 +406,12 @@ public class ActionHolder : ScriptableObject
     }
 
     #endregion
+    public void testAction()
+    {
 
-    public void summonminion(CardSO card)
+    }
+
+    public void SummonMinion(CardSO card)
     {
         //Debug.LogWarning("before summon ");
 
@@ -430,8 +434,6 @@ public class ActionHolder : ScriptableObject
             GameManager.Instance.SummonMinion(card, cell.position);
 
         }
-
-
         //Debug.Log("summonned minion");
     }
     public void Attack()

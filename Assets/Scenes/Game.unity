@@ -4026,7 +4026,7 @@ MonoBehaviour:
   selectables: []
   currentState: 0
   maxMana: 0
-  isPlayerTurn: 1
+  isPlayerTurn: 0
   isTesting: 0
   isTestingFailed: 0
 --- !u!4 &996718259

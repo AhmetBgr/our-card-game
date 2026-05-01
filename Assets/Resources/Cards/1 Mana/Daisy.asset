@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: Moth
+  m_Name: Daisy
   m_EditorClassIdentifier: 
-  minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  minionArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
+  cardArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
   frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  name: Moth
-  desc: 
-  attack: 1
-  health: 2
+  name: Daisy
+  desc: When Played, +1 mana this turn
+  attack: 0
+  health: 1
   cost: 1
-  range: 2
+  range: 1
   type: 0
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: 28851c8c8f286b94090c3a5000a3f388, type: 2}
   isUpgraded: 0
-  defHealth: 2
+  defHealth: 1
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -47,7 +47,31 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 11400000}
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
-          m_IntArgument: 2
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisAgent
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: AddMana
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
