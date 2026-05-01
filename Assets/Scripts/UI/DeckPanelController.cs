@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -17,6 +18,8 @@ public class DeckPanelController : Singleton<DeckPanelController>
     [SerializeField] private TextMeshProUGUI deckName;
     [SerializeField] private TextMeshProUGUI cardAmount;
 
+    [SerializeField] private GameObject mouseHoverCard;
+    [SerializeField] private GameObject upgradedMouseHoverCard;
 
     private List<CustomDeckUIController> customDeckUIControllers = new();
     public AllCardsUIController AllCardsUIController;
@@ -64,6 +67,49 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
         AllCardsUIController.UpdateSelectableCards();
 
+    }
+    public void ShowCard(string cardName, Vector3 screenPos)
+    {
+        if (hideCardCor != null)
+            StopCoroutine(hideCardCor);
+
+        var card  = DeckDatabase.Instance.GetCard(cardName);
+        //mouseHoverCard.card = card;
+        var modal = mouseHoverCard.GetComponent<CardModal>();
+        modal.UpdateModal(card);
+        mouseHoverCard.GetComponent<CardView>().UpdateView(modal);
+        mouseHoverCard.gameObject.SetActive(true);
+
+        if (card.upgradedVersion == null) return;
+
+        modal = upgradedMouseHoverCard.GetComponent<CardModal>();
+        modal.UpdateModal(card.upgradedVersion);
+        upgradedMouseHoverCard.GetComponent<CardView>().UpdateView(modal);
+        upgradedMouseHoverCard.gameObject.SetActive(true);
+
+    }
+    public void SetPosition(Vector3 screenPos)
+    {
+        mouseHoverCard.transform.position = screenPos;
+
+    }
+    private IEnumerator hideCardCor = null;
+    public void HideCard()
+    {
+
+        if(hideCardCor != null)
+            StopCoroutine(hideCardCor);
+
+        hideCardCor = DelayedHideCard();
+        StartCoroutine(hideCardCor);
+
+    }
+    private IEnumerator DelayedHideCard()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        mouseHoverCard.gameObject.SetActive(false);
+        upgradedMouseHoverCard.gameObject.SetActive(false);
     }
     public void RemoveFromCurrentCustomDeck(string card)
     {

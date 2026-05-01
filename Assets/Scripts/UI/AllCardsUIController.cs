@@ -11,21 +11,24 @@ public class AllCardsUIController : MonoBehaviour
 
     public void Initialize()
     {
-        var allCardSOs = DeckDatabase.Instance.AllCards;
+        var allCardSOs = new List<CardSO>(DeckDatabase.Instance.AllCards);
+
+        allCardSOs.Sort((a, b) => a.cost.CompareTo(b.cost));
 
         foreach (var item in allCardSOs)
         {
-            var card = item.name;
+            var name = item.name;
 
             var cardButton = Instantiate(cardButtonPrefab, transform);
             cardButton.OnClicked = () => {
-                if(DeckPanelController.Instance.TryAddToCurrentCustomDeck(card))
+                if(DeckPanelController.Instance.TryAddToCurrentCustomDeck(name))
                     UpdateSelectableCards();
             };
 
-            cardButton.SetName(card);
+            cardButton.SetName(name);
+            cardButton.SetCost(item.cost);
 
-            allCards.Add(card, cardButton);
+            allCards.Add(name, cardButton);
         }
     }
 
