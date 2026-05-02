@@ -24,11 +24,11 @@ public class MinionRangeHandler : Singleton<MinionRangeHandler>
 
     public void ShowRange(Vector2Int index, int range)
     {
-        Debug.Log("shouldshow range 2");
+        //Debug.Log("shouldshow range 2");
 
         foreach (RangeInfo rangeInfo in ranges)
         {
-            Debug.Log("range active?: " + (rangeInfo.indexes.Contains(index) && rangeInfo.range == range));
+            //Debug.Log("range active?: " + (rangeInfo.indexes.Contains(index) && rangeInfo.range == range));
             rangeInfo.rangeImageObject.SetActive(rangeInfo.indexes.Contains(index) && rangeInfo.range == range);
         }
     }

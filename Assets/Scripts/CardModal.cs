@@ -15,6 +15,7 @@ public class CardModal : MonoBehaviour
     public int health;
     public int cost;
     public int range;
+    public int armor;
 
     public int defHealth;
     public bool isPlayerMinion = true;
@@ -35,6 +36,7 @@ public class CardModal : MonoBehaviour
         defHealth = card.defHealth; 
         range = card.range;
         cost = card.cost;
+        armor = card.armor;
         upgradedVerdion = card.upgradedVersion;
         isUpgraded = card.isUpgraded;
         //isPlayerMinion = GameManager.Instance.isPlayerTurn;

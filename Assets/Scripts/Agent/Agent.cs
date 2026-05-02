@@ -110,6 +110,11 @@ public class Agent : MonoBehaviour
         if(deck.Count == 0 | hand.Count >= 7) return;
 
         CardSO card = deck[deck.Count-1]; //Random.Range(0, deck.Count)
+        if(card == null)
+        {
+
+            Debug.Log("card is null");
+        }
         deck.RemoveAt(deck.Count - 1);
         CardController cardObj = Instantiate(cardPrefab);
         cardObj.gameObject.name = card.cardName;

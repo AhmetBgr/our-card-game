@@ -10,22 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: card2
+  m_Name: MinionBase
   m_EditorClassIdentifier: 
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  cardName: card2
-  desc: 
-  attack: 3
-  health: 3
-  cost: 2
+  cardName: minion base
+  desc: minion base
+  attack: 1
+  health: 1
+  cost: 1
   range: 1
-  armor: 0
   type: 0
   upgradedVersion: {fileID: 0}
   isUpgraded: 0
-  defHealth: 3
+  defHealth: 0
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -46,9 +45,10 @@ MonoBehaviour:
         m_MethodName: SummonMinion
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 11400000}
+          m_ObjectArgument: {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232,
+            type: 2}
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
-          m_IntArgument: 2
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

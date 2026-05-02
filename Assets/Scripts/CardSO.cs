@@ -10,12 +10,15 @@ public class CardSO : ScriptableObject
     public Sprite frame;
 
 
-    public new string cardName;
+    public string cardName;
     [TextAreaAttribute] public string desc;
     public int attack;
     public int health;
     public int cost;
     public int range;
+
+    public int armor;
+
     public Type type;
 
     public CardSO upgradedVersion;

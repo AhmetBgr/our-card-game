@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using static UnityEngine.Rendering.DebugUI;
 
 public enum MinionType
 {
@@ -22,6 +23,8 @@ public class ActionHolder : ScriptableObject
     public static Transform selectedcell = null;
     public static List<Transform> selectedCells = new List<Transform>();
     public static List<MinionController> selectedMinions = new List<MinionController>();
+    public static List<CardController> selectedCards = new List<CardController>();
+
 
     public static MinionController selectedMinion = null;
     public static Agent selectedAgent = null;
@@ -201,6 +204,25 @@ public class ActionHolder : ScriptableObject
         yield return null;
 
     }
+    public void SelectAllMinionsInHand()
+    {
+        curActionsList.Enqueue(_SelectAllMinionsInHand());
+
+    }
+    public IEnumerator _SelectAllMinionsInHand()
+    {
+        selectedCards.Clear();
+
+        foreach (var item in selectedAgent.hand)
+        {
+            if (item.card.health == 0) continue;
+
+            selectedCards.Add(item);
+        }
+        
+        yield return null;
+    }
+
     public void SelectAllMinionsAdjacentToThis()
     {
         curActionsList.Enqueue(_SelectAllMinionsAdjacentToThis());
@@ -406,10 +428,12 @@ public class ActionHolder : ScriptableObject
     }
 
     #endregion
-    public void testAction()
+    public void AtestAction()
     {
 
     }
+
+
 
     public void SummonMinion(CardSO card)
     {
@@ -482,7 +506,22 @@ public class ActionHolder : ScriptableObject
         selectedAgent.availibleMana += amount;
     }
 
+    public void ChangeMinionsCost(int value)
+    {
+        if (GameManager.Instance.isTesting) return;
 
+        curActionsList.Enqueue(_ChangeMinionsCost(value));
+    }
+    public IEnumerator _ChangeMinionsCost(int value)
+    {
+        foreach (var card in selectedCards)
+        {
+            card.modal.cost = Mathf.Clamp(card.modal.cost+value, 1, int.MaxValue);
+            card.view.UpdateView(card.modal);
+        }
+
+        yield return null;
+    }
     public void ChangeMinionAttack(int value)
     {
         if (GameManager.Instance.isTesting) return;

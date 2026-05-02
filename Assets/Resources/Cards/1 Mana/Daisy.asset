@@ -22,7 +22,7 @@ MonoBehaviour:
   cost: 1
   range: 1
   type: 0
-  upgradedVersion: {fileID: 11400000, guid: 28851c8c8f286b94090c3a5000a3f388, type: 2}
+  upgradedVersion: {fileID: 11400000, guid: 866bd5bc3e3b56349aefde718fdf3957, type: 2}
   isUpgraded: 0
   defHealth: 1
   OnPlay:

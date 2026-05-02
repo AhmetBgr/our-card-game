@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: card2
+  m_Name: Moth
   m_EditorClassIdentifier: 
-  minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  minionArt: {fileID: 817428628, guid: f736e4c134fc2dc4888fcac841518cfa, type: 3}
+  cardArt: {fileID: 767342166, guid: f736e4c134fc2dc4888fcac841518cfa, type: 3}
   frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  cardName: card2
+  cardName: Moth
   desc: 
-  attack: 3
-  health: 3
-  cost: 2
-  range: 1
+  attack: 1
+  health: 2
+  cost: 1
+  range: 2
   armor: 0
   type: 0
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f, type: 2}
   isUpgraded: 0
-  defHealth: 3
+  defHealth: 2
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -48,7 +48,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 11400000}
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
-          m_IntArgument: 2
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

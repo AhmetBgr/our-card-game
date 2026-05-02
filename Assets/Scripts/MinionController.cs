@@ -239,7 +239,7 @@ public class MinionController : MonoBehaviour
     }
     public void TakeDamage(int damage)
     {
-        modal.health -= damage;
+        modal.health -= Mathf.Max(damage - modal.armor, 0);
 
         DOVirtual.DelayedCall(0.75f, () => view.UpdateView(modal));
         Debug.Log("minion take damage: " + modal.name);

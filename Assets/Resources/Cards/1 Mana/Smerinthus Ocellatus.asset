@@ -10,21 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: Moth
+  m_Name: Smerinthus Ocellatus
   m_EditorClassIdentifier: 
-  minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  minionArt: {fileID: 1680542353, guid: f3787018efc7bf240be23e5f16f6949d, type: 3}
+  cardArt: {fileID: 1715944439, guid: f3787018efc7bf240be23e5f16f6949d, type: 3}
   frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  cardName: moth
-  desc: 
-  attack: 1
-  health: 2
-  cost: 1
+  cardName: Smerinthus Ocellatus
+  desc: Recive -1 damage from minion attacks.
+  attack: 2
+  health: 3
+  cost: 3
   range: 2
+  armor: 1
   type: 0
   upgradedVersion: {fileID: 0}
-  isUpgraded: 0
-  defHealth: 2
+  isUpgraded: 1
+  defHealth: 3
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -47,7 +48,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 11400000}
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
-          m_IntArgument: 2
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

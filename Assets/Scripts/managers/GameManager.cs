@@ -503,6 +503,7 @@ public class GameManager : Singleton<GameManager>
 
     }
 
+    // checks if card can be played?
     public void TestCard(CardController card)
     {
         isTestingFailed = false;
