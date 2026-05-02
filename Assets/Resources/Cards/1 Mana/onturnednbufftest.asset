@@ -12,15 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: onturnednbufftest
   m_EditorClassIdentifier: 
-  art: {fileID: 0}
-  name: buff test
+  minionArt: {fileID: 0}
+  cardArt: {fileID: 0}
+  frame: {fileID: 0}
+  cardName: buff test
   desc: '+1 +1 '
   attack: 1
   health: 1
   cost: 0
   range: 0
+  type: 0
+  upgradedVersion: {fileID: 0}
+  isUpgraded: 0
   defHealth: 1
-  effectValues: 
   OnPlay:
     m_PersistentCalls:
       m_Calls: []
@@ -33,16 +37,7 @@ MonoBehaviour:
   OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls: []
-  OnSpellPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnMinionPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnThisMoved:
-    m_PersistentCalls:
-      m_Calls: []
-  OnAnyMoved:
+  OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrawedCard:

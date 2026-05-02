@@ -1,8 +1,6 @@
-using DG.Tweening.Core.Easing;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Progress;
+using UnityEngine.EventSystems;
 
 public class AllCardsUIController : MonoBehaviour
 {
@@ -17,12 +15,26 @@ public class AllCardsUIController : MonoBehaviour
 
         foreach (var item in allCardSOs)
         {
-            var name = item.name;
+            var name = item.cardName;
 
             var cardButton = Instantiate(cardButtonPrefab, transform);
             cardButton.OnClicked = () => {
-                if(DeckPanelController.Instance.TryAddToCurrentCustomDeck(name))
-                    UpdateSelectableCards();
+                if (!DeckPanelController.Instance.IsCurCustomDeckLocked()) {
+
+                    if (!cardButton.Button.interactable)
+                    {
+                        DeckPanelController.Instance.RemoveFromCurrentCustomDeck(name);
+                    }
+                    else
+                    {
+                        if (DeckPanelController.Instance.TryAddToCurrentCustomDeck(name))
+                            UpdateSelectableCards();
+                    }
+                }
+
+
+
+
             };
 
             cardButton.SetName(name);
@@ -51,4 +63,5 @@ public class AllCardsUIController : MonoBehaviour
 
 
     }
+
 }

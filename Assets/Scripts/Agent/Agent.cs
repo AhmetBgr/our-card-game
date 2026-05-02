@@ -112,7 +112,7 @@ public class Agent : MonoBehaviour
         CardSO card = deck[deck.Count-1]; //Random.Range(0, deck.Count)
         deck.RemoveAt(deck.Count - 1);
         CardController cardObj = Instantiate(cardPrefab);
-        cardObj.gameObject.name = card.name;
+        cardObj.gameObject.name = card.cardName;
         cardObj.card = card;
         cardObj.modal.isPlayerMinion = isPlayerCard;
         cardObj.modal.UpdateModal(card);

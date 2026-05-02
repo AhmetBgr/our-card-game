@@ -15,7 +15,7 @@ MonoBehaviour:
   minionArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
   cardArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
   frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  name: Daisy
+  cardName: daisy
   desc: When Played, +1 mana this turn
   attack: 0
   health: 1

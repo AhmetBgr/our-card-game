@@ -10,7 +10,7 @@ public class CardSO : ScriptableObject
     public Sprite frame;
 
 
-    public new string name;
+    public new string cardName;
     [TextAreaAttribute] public string desc;
     public int attack;
     public int health;

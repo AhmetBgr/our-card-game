@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 
-public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
+public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler, IPointerDownHandler
 {
     public Button Button;
     public CardSO Card;
@@ -15,14 +15,14 @@ public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerEx
     [SerializeField] private TMPro.TextMeshProUGUI costText;
 
 
-    private string cardName;
+    public string cardName;
 
     public Action OnClicked;
     // Start is called before the first frame update
     void Awake()
     {
         Button = GetComponent<Button>();
-        Button.onClick.AddListener(() => OnClicked?.Invoke());
+        //Button.onClick.AddListener(() => OnClicked?.Invoke());
     }
 
     public void SetName(string name)
@@ -72,5 +72,10 @@ public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerEx
         var pos = mousePos + offset;
 
         return pos;
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        OnClicked?.Invoke();
     }
 }

@@ -28,7 +28,7 @@ public class CardModal : MonoBehaviour
         cardArt = card.cardArt;
 
         frame = card.frame;
-        name = card.name;
+        name = card.cardName;
         desc = card.desc;
         attack = card.attack;
         health = card.health;

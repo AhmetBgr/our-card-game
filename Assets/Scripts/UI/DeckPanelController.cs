@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -113,6 +114,12 @@ public class DeckPanelController : Singleton<DeckPanelController>
         UpdateCardAmount();
         TriggerDeckChanged();
 
+        customDeckUIControllers[SaveManager.Instance.saveData.SelectedDeckIndex].RemoveCard(card);
+
+    }
+    public bool IsCurCustomDeckLocked()
+    {
+        return saveData.Decks[saveData.SelectedDeckIndex].isLocked;
     }
     public bool TryAddToCurrentCustomDeck(string card)
     {

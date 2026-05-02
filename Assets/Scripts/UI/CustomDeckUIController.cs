@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEditor.Tilemaps;
 using UnityEngine;
 
 public class CustomDeckUIController : MonoBehaviour
 {
-    private List<CardButtonHandler> cards = new List<CardButtonHandler>();
+    private Dictionary<string, CardButtonHandler> cards = new Dictionary<string, CardButtonHandler>();
 
     [SerializeField] protected CardButtonHandler cardButtonPrefab;
 
@@ -29,9 +30,9 @@ public class CustomDeckUIController : MonoBehaviour
 
         if (!isLocked)
         {
+
             cardButton.OnClicked = () => {
                 DeckPanelController.Instance.RemoveFromCurrentCustomDeck(card);
-                RemoveCard(cardButton);
             };
         }
 
@@ -39,24 +40,29 @@ public class CustomDeckUIController : MonoBehaviour
         cardButton.Card = cardSO;
         cardButton.SetName(name);
         cardButton.SetCost(cardSO.cost);
-        cards.Add(cardButton);
+        cards.Add(name, cardButton);
     }
-    public void RemoveCard(CardButtonHandler cardButtonHandler)
+    public void RemoveCard(string cardName)
     {
-        if (cards.Contains(cardButtonHandler)) 
-            cards.Remove(cardButtonHandler);
+        if (cards.ContainsKey(cardName)) {
 
-        Destroy(cardButtonHandler.gameObject);
+            var cardButton = cards[cardName];
+            cards.Remove(cardName);
+
+            Destroy(cardButton.gameObject);
+        }
+
     }
     public void UpdateOrder()
     {
-        foreach (var item in cards)
+        var cardbuttons = cards.Values.ToList();
+        foreach (var item in cardbuttons)
         {
             item.transform.SetParent(transform.parent);
         }
-        cards.Sort((a, b) => a.Card.cost.CompareTo(b.Card.cost));
+        cardbuttons.Sort((a, b) => a.Card.cost.CompareTo(b.Card.cost));
 
-        foreach (var item in cards)
+        foreach (var item in cardbuttons)
         {
             item.transform.SetParent(transform);
         }

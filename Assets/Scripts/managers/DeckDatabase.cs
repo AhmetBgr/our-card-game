@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,13 +23,15 @@ public class DeckDatabase : Singleton<DeckDatabase>
 
         foreach (CardSO card in cards)
         {
-            if (cardsByName.ContainsKey(card.name))
+            if(String.IsNullOrEmpty(card.cardName)) continue;
+
+            if (cardsByName.ContainsKey(card.cardName))
             {
-                Debug.LogWarning($"Duplicate CardSO name found: {card.name}");
+                Debug.LogWarning($"Duplicate CardSO name found: {card.cardName}");
                 continue;
             }
 
-            cardsByName.Add(card.name, card);
+            cardsByName.Add(card.cardName, card);
             AllCards.Add(card);
         }
 

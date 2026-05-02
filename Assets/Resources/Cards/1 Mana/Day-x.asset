@@ -15,7 +15,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   frame: {fileID: 0}
-  name: Day-x
+  cardName: day-x
   desc: When played, +2 mana. Reduce the cost of minions in your hand by 1
   attack: 1
   health: 4

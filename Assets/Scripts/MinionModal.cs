@@ -34,7 +34,7 @@ public class MinionModal
 
     public void UpdateModal(CardSO card, MinionController owner)
     {
-        name = card.name;
+        name = card.cardName;
         desc = card.desc;
         attack = card.attack;
         health = card.health;

@@ -15,7 +15,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  name: Moth
+  cardName: moth
   desc: 
   attack: 1
   health: 2

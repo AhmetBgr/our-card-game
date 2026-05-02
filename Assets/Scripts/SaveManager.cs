@@ -160,7 +160,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
         {
             if (i > DeckSize) break;
 
-            saveData.Decks[0].Deck.Add(defaultDeck[i].name);
+            saveData.Decks[0].Deck.Add(defaultDeck[i].cardName);
 
         }
 

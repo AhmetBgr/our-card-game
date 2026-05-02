@@ -15,7 +15,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  name: Priest
+  cardName: priest
   desc: 'On Death: Draw a card.
 
 '
@@ -27,7 +27,6 @@ MonoBehaviour:
   upgradedVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 1
-  effectValues: 
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -88,16 +87,7 @@ MonoBehaviour:
   OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls: []
-  OnSpellPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnMinionPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnThisMoved:
-    m_PersistentCalls:
-      m_Calls: []
-  OnAnyMoved:
+  OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrawedCard:
