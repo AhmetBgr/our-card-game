@@ -8,6 +8,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -9219122176713955577, guid: fee8230318367e0469503ddb35cbd494,
+        type: 3}
+      propertyPath: upgradedFrame
+      value: 
+      objectReference: {fileID: 1685722491058455979}
+    - target: {fileID: 2436532469952196142, guid: fee8230318367e0469503ddb35cbd494,
+        type: 3}
+      propertyPath: isPlayerMinion
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3303856136721092169, guid: fee8230318367e0469503ddb35cbd494,
         type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -136,7 +146,20 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 7634800039286001232, guid: fee8230318367e0469503ddb35cbd494, type: 3}
     - {fileID: 5083467201469550001, guid: fee8230318367e0469503ddb35cbd494, type: 3}
+    - {fileID: 3303856136721092169, guid: fee8230318367e0469503ddb35cbd494, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fee8230318367e0469503ddb35cbd494, type: 3}
+--- !u!114 &1685722491058455979 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7764824571933236349, guid: fee8230318367e0469503ddb35cbd494,
+    type: 3}
+  m_PrefabInstance: {fileID: 8982096727488272854}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

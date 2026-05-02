@@ -3851,7 +3851,7 @@ PrefabInstance:
     - target: {fileID: 62550299587566304, guid: cd007044eb84e08419c0f5b511ea0b3f,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -4.8489685
+      value: -494
       objectReference: {fileID: 0}
     - target: {fileID: 62550299587566304, guid: cd007044eb84e08419c0f5b511ea0b3f,
         type: 3}
@@ -3931,10 +3931,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   deck:
-  - {fileID: 11400000, guid: 866bd5bc3e3b56349aefde718fdf3957, type: 2}
-  - {fileID: 11400000, guid: aec9d658979efc045a0fdcfae0f9df39, type: 2}
-  - {fileID: 11400000, guid: 11ac419feb8edce41a10a8db7426bf4a, type: 2}
-  - {fileID: 11400000, guid: 956e23a16ec37f8449c93de95b556719, type: 2}
+  - {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f, type: 2}
+  - {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f, type: 2}
+  - {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f, type: 2}
+  - {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f, type: 2}
   hand: []
   minions: []
   hero: {fileID: 8738183267910160269}
@@ -4005,7 +4005,7 @@ MonoBehaviour:
   selectables: []
   currentState: 0
   maxMana: 5
-  isPlayerTurn: 0
+  isPlayerTurn: 1
   isTesting: 0
   isTestingFailed: 0
 --- !u!4 &996718259
@@ -4295,19 +4295,31 @@ PrefabInstance:
         type: 3}
       propertyPath: defaultDeck.Array.data[0]
       value: 
-      objectReference: {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f,
+      objectReference: {fileID: 11400000, guid: de61890a59135bf4da9e4135d332026f,
+        type: 2}
+    - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
+        type: 3}
+      propertyPath: defaultDeck.Array.data[1]
+      value: 
+      objectReference: {fileID: 11400000, guid: de61890a59135bf4da9e4135d332026f,
+        type: 2}
+    - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
+        type: 3}
+      propertyPath: defaultDeck.Array.data[2]
+      value: 
+      objectReference: {fileID: 11400000, guid: de61890a59135bf4da9e4135d332026f,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[3]
       value: 
-      objectReference: {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232,
+      objectReference: {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[4]
       value: 
-      objectReference: {fileID: 11400000, guid: 866bd5bc3e3b56349aefde718fdf3957,
+      objectReference: {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f,
         type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8642,32 +8654,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d33da830bc682b246a50900493e927eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deck:
-  - {fileID: 11400000, guid: fad634d507da0ad4587407bbd0d59b3b, type: 2}
-  - {fileID: 11400000, guid: fad634d507da0ad4587407bbd0d59b3b, type: 2}
-  - {fileID: 11400000, guid: 7c6d5574d844bdb4e813a865eb837a92, type: 2}
-  - {fileID: 11400000, guid: 7c6d5574d844bdb4e813a865eb837a92, type: 2}
-  - {fileID: 11400000, guid: b5887332e38ce124d988da72b0dd3af1, type: 2}
-  - {fileID: 11400000, guid: b5887332e38ce124d988da72b0dd3af1, type: 2}
-  - {fileID: 11400000, guid: aec9d658979efc045a0fdcfae0f9df39, type: 2}
-  - {fileID: 11400000, guid: aec9d658979efc045a0fdcfae0f9df39, type: 2}
-  - {fileID: 11400000, guid: 11ac419feb8edce41a10a8db7426bf4a, type: 2}
-  - {fileID: 11400000, guid: 11ac419feb8edce41a10a8db7426bf4a, type: 2}
-  - {fileID: 11400000, guid: 3866e38974599c944ae40894a7799f99, type: 2}
-  - {fileID: 11400000, guid: 3866e38974599c944ae40894a7799f99, type: 2}
-  - {fileID: 11400000, guid: 956e23a16ec37f8449c93de95b556719, type: 2}
-  - {fileID: 11400000, guid: 956e23a16ec37f8449c93de95b556719, type: 2}
-  - {fileID: 11400000, guid: 4f950df988824f34ba5cd1f90008ef3e, type: 2}
-  - {fileID: 11400000, guid: 4f950df988824f34ba5cd1f90008ef3e, type: 2}
-  - {fileID: 11400000, guid: d1f72174487234545a2b213b64d94ba6, type: 2}
-  - {fileID: 11400000, guid: d1f72174487234545a2b213b64d94ba6, type: 2}
-  - {fileID: 11400000, guid: af207d2db347bbe43bb3b7790209d314, type: 2}
-  - {fileID: 11400000, guid: af207d2db347bbe43bb3b7790209d314, type: 2}
-  - {fileID: 11400000, guid: 54cd2e72173264e4a9980298757f8753, type: 2}
-  - {fileID: 11400000, guid: 54cd2e72173264e4a9980298757f8753, type: 2}
-  - {fileID: 11400000, guid: d108f43a5214df34aa81873ef4952feb, type: 2}
-  - {fileID: 11400000, guid: d108f43a5214df34aa81873ef4952feb, type: 2}
-  - {fileID: 11400000, guid: af207d2db347bbe43bb3b7790209d314, type: 2}
+  deck: []
   hand: []
   minions: []
   hero: {fileID: 614705674}

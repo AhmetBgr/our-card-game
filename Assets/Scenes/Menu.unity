@@ -2939,7 +2939,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1431496118
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3287,7 +3287,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1529446925
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4698,13 +4698,19 @@ PrefabInstance:
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.size
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
+        type: 3}
+      propertyPath: defaultDeck.Array.data[3]
+      value: 
+      objectReference: {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85,
+        type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[4]
       value: 
-      objectReference: {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85,
+      objectReference: {fileID: 11400000, guid: 54cd2e72173264e4a9980298757f8753,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}

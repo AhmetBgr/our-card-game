@@ -1501,6 +1501,7 @@ MonoBehaviour:
   health: 0
   cost: 0
   range: 0
+  armor: 0
   defHealth: 0
   isPlayerMinion: 0
   upgradedVerdion: {fileID: 0}
@@ -1522,6 +1523,9 @@ MonoBehaviour:
   frame: {fileID: 7764824571933236349}
   minionFrame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
   spellFrame: {fileID: 21300000, guid: cf00fc60285b9d241a572d4327d48259, type: 3}
+  upgradedMinionFrame: {fileID: 21300000, guid: cda48945ea361c34aa07283e062d4023,
+    type: 3}
+  upgradedSpellFrame: {fileID: 21300000, guid: ec11f76e3de9a97439c65b8e71bf103b, type: 3}
   upgradedFrame: {fileID: 0}
   minionTypeIconObjects:
   - {fileID: 792424545872040543}

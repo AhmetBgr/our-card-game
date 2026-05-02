@@ -57,7 +57,7 @@ public class DeckDatabase : Singleton<DeckDatabase>
 
         if (upgradedCardsByName.TryGetValue(cardName, out CardSO card2))
             return card2;
-
+        
         Debug.LogWarning($"Card not found: {cardName}");
         return null;
     }
