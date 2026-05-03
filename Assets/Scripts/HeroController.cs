@@ -44,13 +44,13 @@ public class HeroController : MinionController
     {
 
     }
-    public override void FailedMove(Vector3 dir)
+    public override void FailedMove(Vector3 dir, MinionController collidedEntity = null)
     {
 
     }
 
-    public override bool CanMove(Vector3Int pos)
+    public override MoveInfo CanMove(Vector3Int pos)
     {
-        return false;
+        return default;
     }
 }

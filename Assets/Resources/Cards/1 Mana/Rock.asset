@@ -10,26 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: MinionBase
+  m_Name: Rock
   m_EditorClassIdentifier: 
-  actionHolder: {fileID: 0}
-  minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
-  frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  cardName: minion base
-  desc: minion base
-  attack: 1
-  health: 1
-  cost: 1
+  actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+  minionArt: {fileID: 2071410874, guid: 17c69b4cf4d539e439fb996e084169ca, type: 3}
+  cardArt: {fileID: -1650270546, guid: 17c69b4cf4d539e439fb996e084169ca, type: 3}
+  frame: {fileID: 0}
+  cardName: Rock
+  desc: 'Can only move when pushed. '
+  attack: 0
+  health: 4
+  cost: 2
   range: 1
   armor: 0
+  canMove: 0
   type: 0
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: 0e2d9d76b5a6edc47801766975ca2c23, type: 2}
   isUpgraded: 0
-  defHealth: 1
-  OnPlayInitialize:
-    m_PersistentCalls:
-      m_Calls: []
+  defHealth: 4
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -39,8 +37,32 @@ MonoBehaviour:
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisAgent
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: PayCardCost
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -50,34 +72,9 @@ MonoBehaviour:
         m_MethodName: SummonMinion
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232,
-            type: 2}
+          m_ObjectArgument: {fileID: 11400000}
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisAgent
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: PayCardCost
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -95,5 +92,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrawedCard:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []

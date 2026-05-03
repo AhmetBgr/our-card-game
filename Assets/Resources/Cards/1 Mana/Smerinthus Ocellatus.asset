@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Smerinthus Ocellatus
   m_EditorClassIdentifier: 
+  actionHolder: {fileID: 0}
   minionArt: {fileID: 1680542353, guid: f3787018efc7bf240be23e5f16f6949d, type: 3}
   cardArt: {fileID: 1715944439, guid: f3787018efc7bf240be23e5f16f6949d, type: 3}
   frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
@@ -26,6 +27,9 @@ MonoBehaviour:
   upgradedVersion: {fileID: 0}
   isUpgraded: 1
   defHealth: 3
+  OnPlayInitialize:
+    m_PersistentCalls:
+      m_Calls: []
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -48,6 +52,30 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 11400000}
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisAgent
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: PayCardCost
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 

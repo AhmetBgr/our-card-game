@@ -1,8 +1,9 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using DG.Tweening;
+using static UnityEditor.PlayerSettings;
 
 public class MinionController : MonoBehaviour
 {
@@ -33,6 +34,8 @@ public class MinionController : MonoBehaviour
     public SelectionType SelectionType { get => SelectionType.Minion; }
     public static event Action<List<MinionController>> OnSelectingMinionForAttack;
     public static event Action<MinionController> OnDied;
+    public static event Action<MinionController, MinionController> OnCollided;
+
 
     private void OnEnable()
     {
@@ -299,24 +302,37 @@ public class MinionController : MonoBehaviour
     }
     public virtual void Move(Vector3Int pos)
     {
+        gridEntity.WorldPos = pos;
         transform.DOMove(pos, 0.25f);
         plannedMoveDir = Vector3Int.zero;
         isMovementValidated = false;
+
+        GridManager.Instance.InvokeGridChanged();
     }
-    public virtual void FailedMove(Vector3 dir)
+    public virtual void FailedMove(Vector3 dir, MinionController  collidedEntity = null)
     {
         Debug.Log("failed move");
         transform.DOPunchPosition(dir/20, 0.25f, vibrato: 0).SetEase(Ease.OutCubic);
         plannedMoveDir = Vector3Int.zero;
         isMovementValidated = false;
-    }
 
-    public virtual bool CanMove(Vector3Int pos)
+        if (collidedEntity != null) {
+            OnCollided?.Invoke(this, collidedEntity);
+        }
+    }
+    public virtual MoveInfo CanMove(Vector3Int pos)
     {
+        var moveInfo = new MoveInfo();
+
+        moveInfo.CanMove = false;
+        moveInfo.CollidedEntity = null;
+
+        if(!modal.canMove) return moveInfo;
+
         if(age < 1)
         {
             Debug.Log("cant move because age: " + age);
-            return false;
+            return moveInfo;
         }
 
         if (GridManager.Instance.IsOutSideOfGrid(GridManager.Instance.PosToGridIndex(pos)))
@@ -324,13 +340,23 @@ public class MinionController : MonoBehaviour
             Debug.Log("-2: " + GridManager.Instance.PosToGridIndex(pos));
 
             plannedMoveDir = Vector3Int.zero;
-            return false;
+            return moveInfo;
         }
 
         GameObject objectAtDest = GridManager.Instance.GetCell(GridManager.Instance.PosToGridIndex(pos)).obj;
 
-        if (objectAtDest != null) return false;
+        if (objectAtDest != null) {
+            moveInfo.CollidedEntity = objectAtDest.GetComponent<MinionController>();
+            return moveInfo;
+        }
 
-        return true;
+        moveInfo.CanMove= true;
+        return moveInfo;
+    }
+
+    public struct MoveInfo
+    {
+        public bool CanMove;
+        public MinionController CollidedEntity;
     }
 }

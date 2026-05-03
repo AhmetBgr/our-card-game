@@ -37,6 +37,7 @@ public class CardModal : MonoBehaviour
         range = card.range;
         cost = card.cost;
         armor = card.armor;
+        canMove = card.canMove; 
         upgradedVerdion = card.upgradedVersion;
         isUpgraded = card.isUpgraded;
         //isPlayerMinion = GameManager.Instance.isPlayerTurn;

@@ -11,15 +11,18 @@ public enum GridEntityType
 public class GridEntity : MonoBehaviour
 {
     public GridEntityType type;
-
+    public Vector3 WorldPos;
     public bool dontAddAtTheStart = false;
 
+
     protected Vector2Int gridIndex;
+
 
 
     // Start is called before the first frame update
     protected virtual void Start()
     {
+        WorldPos = transform.position;
         if (dontAddAtTheStart) return;
 
         AddToGridCell();
@@ -37,7 +40,7 @@ public class GridEntity : MonoBehaviour
 
     public virtual void AddToGridCell()
     {
-        gridIndex = GridManager.Instance.PosToGridIndex(transform.position);
+        gridIndex = GridManager.Instance.PosToGridIndex(WorldPos);
 
         if (type == GridEntityType.Obj)
         {
@@ -56,7 +59,6 @@ public class GridEntity : MonoBehaviour
         {
             GridManager.Instance.AddSpacelessObjectToCell(gridIndex.x, gridIndex.y, gameObject);
         }
-
     }
     
     public void RemoveFromGridCell()
@@ -83,7 +85,7 @@ public class GridEntity : MonoBehaviour
 
     public Vector2Int GetGridIndex()
     {
-        return GridManager.Instance.PosToGridIndex(transform.position);
+        return GridManager.Instance.PosToGridIndex(WorldPos);
     }
 
 }

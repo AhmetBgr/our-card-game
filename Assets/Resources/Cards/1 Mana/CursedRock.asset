@@ -10,26 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: Daisy
+  m_Name: CursedRock
   m_EditorClassIdentifier: 
-  actionHolder: {fileID: 0}
-  minionArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
-  cardArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
-  frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  cardName: daisy
-  desc: When Played, +1 mana this turn
+  actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+  minionArt: {fileID: 1461745105, guid: ccb53726e24183644a16e58f28c11cc1, type: 3}
+  cardArt: {fileID: -804686564, guid: ccb53726e24183644a16e58f28c11cc1, type: 3}
+  frame: {fileID: 0}
+  cardName: Cursed Rock
+  desc: Can only move when pushed. Destroys the minion on the target tile.
   attack: 0
-  health: 1
-  cost: 1
+  health: 6
+  cost: 4
   range: 1
   armor: 0
+  canMove: 0
   type: 0
-  upgradedVersion: {fileID: 11400000, guid: 866bd5bc3e3b56349aefde718fdf3957, type: 2}
-  isUpgraded: 0
-  defHealth: 1
-  OnPlayInitialize:
-    m_PersistentCalls:
-      m_Calls: []
+  upgradedVersion: {fileID: 0}
+  isUpgraded: 1
+  defHealth: 6
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -39,8 +37,32 @@ MonoBehaviour:
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisAgent
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: PayCardCost
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -52,55 +74,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 11400000}
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisAgent
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: PayCardCost
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisAgent
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: AddMana
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -120,3 +94,42 @@ MonoBehaviour:
   OnOwnerDrawedCard:
     m_PersistentCalls:
       m_Calls: []
+  OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: ChangeTargetMinionHealth
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: -999
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisMinion
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: PushSelectedMinionForward
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2

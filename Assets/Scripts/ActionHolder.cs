@@ -29,6 +29,7 @@ public class ActionHolder : ScriptableObject
 
 
     public static MinionController selectedMinion = null;
+    public static MinionController selectedTargetMinion = null;
     public static Agent selectedAgent = null;
     public static MinionController thisMinion = null;
     public static CardSO thisCardSO = null;
@@ -65,6 +66,7 @@ public class ActionHolder : ScriptableObject
 
     public void SelectMinion(int typeIndex = 0)
     {
+
         //GameManager.Instance.Addtoactions( _SelectMinion());
         curActionsList.Enqueue(_SelectMinion());
 
@@ -437,7 +439,37 @@ public class ActionHolder : ScriptableObject
     {
 
     }
+    public void PushSelectedMinionForward()
+    {
+        if (GameManager.Instance.isTesting) return;
 
+        curActionsList.Enqueue(_PushSelectedMinionForward());
+    }
+    public IEnumerator _PushSelectedMinionForward()
+    {
+        var dir = GameManager.Instance.isPlayerTurn ? Vector3Int.up : Vector3Int.down;
+
+        Vector3Int pos = Vector3Int.RoundToInt(selectedMinion.transform.position) + dir;
+        var canMove = selectedMinion.modal.canMove;
+        var age = selectedMinion.age;
+
+        selectedMinion.age = 1;
+        selectedMinion.modal.canMove = true;
+        Debug.Log("try move minion ");
+        var canMoveInfo = selectedMinion.CanMove(pos);
+        if (canMoveInfo.CanMove)
+        {
+            Debug.Log("minion should move");
+            selectedMinion.Move(pos);
+        }
+        else
+        {
+            selectedMinion.FailedMove(pos, canMoveInfo.CollidedEntity);
+        }
+        selectedMinion.modal.canMove = canMove;
+        selectedMinion.age = age;
+        yield return null;
+    }
     public void PayCardCost()
     {
         if (GameManager.Instance.isTesting) return;
@@ -671,7 +703,26 @@ public class ActionHolder : ScriptableObject
         //GameManager.Instance.Addtoactions(_ChangeMinionDefHealth(value));
         curActionsList.Enqueue(_ChangeMinionHealth(value));
     }
+    public void ChangeTargetMinionHealth(int value)
+    {
+        if (GameManager.Instance.isTesting) return;
 
+        //GameManager.Instance.Addtoactions(_ChangeMinionDefHealth(value));
+        curActionsList.Enqueue(_ChangeTargetMinionHealth(value));
+    }
+    public IEnumerator _ChangeTargetMinionHealth(int value)
+    {
+        if (value < 0)
+        {
+            selectedTargetMinion.TakeDamage(Mathf.Abs(value));
+        }
+        else
+        {
+            selectedTargetMinion.modal.health += value;
+            selectedTargetMinion.view.UpdateView(selectedTargetMinion.modal);
+        }
+        yield return new WaitForSeconds(1);
+    }
     public void DestroyCard()
     {
         if (GameManager.Instance.isTesting) return;
@@ -716,14 +767,6 @@ public class ActionHolder : ScriptableObject
         //Debug.Log("selected minion");
     }
 
-    public void PushSelectedMinionForward()
-    {
-
-    }
-    public IEnumerator _PushSelectedMinionForward()
-    {
-        yield return null;
-    }
 }
 
 

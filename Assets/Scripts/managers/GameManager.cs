@@ -36,7 +36,7 @@ public class GameManager : Singleton<GameManager>
     private Queue<IEnumerator> onTurnEndActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onCardDrawActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionDeathActions = new Queue<IEnumerator>();
-
+    private Queue<IEnumerator> onMinionCollidedActions = new Queue<IEnumerator>();
 
     [SerializeField] private Queue<IEnumerator> defaultActionQueue;
 
@@ -52,10 +52,12 @@ public class GameManager : Singleton<GameManager>
     {
         StartCoroutine(GameLoop());
         MinionController.OnDied += OnMinionDied;
+        MinionController.OnCollided += OnMinionCollided;
     }
     private void OnDestroy()
     {
         MinionController.OnDied -= OnMinionDied;
+        MinionController.OnCollided -= OnMinionCollided;
 
     }
 
@@ -328,12 +330,12 @@ public class GameManager : Singleton<GameManager>
 
 
                     Vector3Int pos = Vector3Int.RoundToInt(minion.transform.position) + Vector3Int.up;
-                    if (minion.CanMove(pos))
+                    if (minion.CanMove(pos).CanMove)
                     {
                         minion.Move(pos);
                         yield return new WaitForSeconds(0.26f);
 
-                        GridManager.Instance.InvokeGridChanged();
+                        
                     }
                     else
                     {
@@ -413,7 +415,7 @@ public class GameManager : Singleton<GameManager>
                     if (minion.modal.isPlayerMinion) continue;
 
                     Vector3Int pos = Vector3Int.RoundToInt(minion.transform.position) + Vector3Int.down;
-                    if (minion.CanMove(pos))
+                    if (minion.CanMove(pos).CanMove)
                     {
                         minion.Move(pos);
                         yield return new WaitForSeconds(0.26f);
@@ -516,11 +518,7 @@ public class GameManager : Singleton<GameManager>
 
         yield return StartCoroutine(ExecuteActions(card));
 
-
         Debug.LogWarning("played card");
-
-
-
     }
     public void PayCardCost(Agent agent, int cost)
     {
@@ -840,6 +838,58 @@ public class GameManager : Singleton<GameManager>
     private void OnMinionDied(MinionController minion)
     {
         StartCoroutine(InvokeOnMinionDeathActions(minion));
+    }
+
+    private void OnMinionCollided(MinionController minion, MinionController collidedMinion)
+    {
+        StartCoroutine(_OnMinionCollided(minion, collidedMinion));
+    }
+
+    private IEnumerator _OnMinionCollided(MinionController minion, MinionController collidedMinion)
+    {
+        var tempselectedcell = ActionHolder.selectedcell;
+        var tempselectedMinion = ActionHolder.selectedMinion;
+        var tempthisMinion = ActionHolder.thisMinion;
+        var tempthisCardSO = ActionHolder.thisCardSO;
+        var tempThisCard = ActionHolder.thisCard;
+        var tempTargetMinion = ActionHolder.selectedTargetMinion;
+        var tempselectedMinions = new List<MinionController>();
+        tempselectedMinions.AddRange(ActionHolder.selectedMinions);
+        var tempselectedCells = new List<Transform>();
+        tempselectedCells.AddRange(ActionHolder.selectedCells);
+        var tempselectedAgent = ActionHolder.selectedAgent;
+        Queue<IEnumerator> tempCurActionList = new Queue<IEnumerator>(ActionHolder.curActionsList);
+
+        onMinionCollidedActions.Clear();
+        ActionHolder.selectedcell = null;
+        ActionHolder.selectedMinion = null;
+        ActionHolder.selectedTargetMinion = collidedMinion;
+        //ActionHolder.thisMinion = minion;
+        ActionHolder.thisCardSO = minion.card;
+        ActionHolder.selectedMinions.Clear();
+        //ActionHolder.selectedMinions.Add(minion);
+        ActionHolder.selectedCells.Clear();
+        //ActionHolder.selectedAgent = player;
+        ActionHolder.curActionsList = onMinionCollidedActions;
+        minion.card.OnMinionCollided.Invoke();
+
+        Debug.LogWarning("executing minion collision actions");
+
+        yield return StartCoroutine(ExecuteActions(onMinionCollidedActions));
+
+
+        ActionHolder.selectedcell = tempselectedcell;
+        ActionHolder.selectedMinion = tempselectedMinion;
+        ActionHolder.selectedTargetMinion = tempTargetMinion;
+        ActionHolder.thisMinion = tempthisMinion;
+        ActionHolder.thisCardSO = tempthisCardSO;
+        ActionHolder.selectedMinions = new List<MinionController>(tempselectedMinions);
+        ActionHolder.selectedCells = new List<Transform>(tempselectedCells);
+        ActionHolder.selectedAgent = tempselectedAgent;
+        ActionHolder.curActionsList = new Queue<IEnumerator>(tempCurActionList);
+
+        Debug.LogWarning("executed minion collision actions");
+
     }
 }
 
