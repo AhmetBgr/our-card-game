@@ -244,7 +244,8 @@ public class GameManager : Singleton<GameManager>
                     ActionHolder.selectedcell = null;
                     ActionHolder.selectedMinion = null;
                     ActionHolder.thisMinion = minion;
-                    ActionHolder.thisCard = minion.card;
+                    ActionHolder.thisCardSO = minion.card;
+                    ActionHolder.thisCard = null;
                     ActionHolder.selectedMinions.Clear();
                     ActionHolder.selectedMinions.Add(minion);
                     ActionHolder.selectedCells.Clear();
@@ -279,8 +280,8 @@ public class GameManager : Singleton<GameManager>
                     ActionHolder.selectedcell = null;
                     ActionHolder.selectedMinion = null;
                     ActionHolder.thisMinion = minion;
-                    ActionHolder.thisCard = minion.card;
-
+                    ActionHolder.thisCardSO = minion.card;
+                    ActionHolder.thisCard = null;
                     ActionHolder.selectedMinions.Clear();
                     ActionHolder.selectedMinions.Add(minion);
                     ActionHolder.selectedCells.Clear();
@@ -365,8 +366,8 @@ public class GameManager : Singleton<GameManager>
                     ActionHolder.selectedcell = null;
                     ActionHolder.selectedMinion = null;
                     ActionHolder.thisMinion = minion;
-                    ActionHolder.thisCard = minion.card;
-
+                    ActionHolder.thisCardSO = minion.card;
+                    ActionHolder.thisCard = null;
                     ActionHolder.selectedMinions.Clear();
                     ActionHolder.selectedMinions.Add(minion);
                     ActionHolder.selectedCells.Clear();
@@ -478,15 +479,15 @@ public class GameManager : Singleton<GameManager>
 
         isTesting = false;
         isTestingFailed = false;
-        agent.availibleMana -= card.modal.cost;
+        //agent.availibleMana -= card.modal.cost;
         isPlayingCard = true;
         actionQueue.Clear();
         ActionHolder.selectedcell = null;
         ActionHolder.selectedMinion = null;
         ActionHolder.selectedAgent = null;
         //ActionHolder.thisMinion = null;
-        ActionHolder.thisCard = card.card;
-
+        ActionHolder.thisCardSO = card.card;
+        ActionHolder.thisCard = card;
         ActionHolder.selectedMinions.Clear();
         ActionHolder.selectedCells.Clear();
         ActionHolder.curActionsList = actionQueue;
@@ -502,7 +503,22 @@ public class GameManager : Singleton<GameManager>
 
 
     }
+    public void PayCardCost(Agent agent, int cost)
+    {
 
+        
+        
+    }
+    public IEnumerator _PayCardCost(Agent agent, int cost)
+    {
+        agent.availibleMana -= cost;
+
+        yield return null;
+    }
+    public void RefundCardCost(Agent agent, int cost)
+    {
+        agent.availibleMana += cost;
+    }
     // checks if card can be played?
     public void TestCard(CardController card)
     {
@@ -511,8 +527,8 @@ public class GameManager : Singleton<GameManager>
         actionQueue.Clear();
         ActionHolder.selectedcell = null;
         ActionHolder.selectedMinion = null;
-        ActionHolder.thisCard = card.card;
-
+        ActionHolder.thisCardSO = card.card;
+        ActionHolder.thisCard = card;
         ActionHolder.selectedMinions.Clear();
         ActionHolder.selectedCells.Clear();
         //ActionHolder.thisMinion = null;
@@ -656,7 +672,7 @@ public class GameManager : Singleton<GameManager>
         minion.modal.UpdateModal(minion.card);
         minion.view.UpdateView(minion.modal);
         ActionHolder.thisMinion = minion;
-        ActionHolder.thisCard = minion.card;
+        ActionHolder.thisCardSO = minion.card;
 
         if (isPlayerTurn)
         {
@@ -686,7 +702,8 @@ public class GameManager : Singleton<GameManager>
         var tempselectedcell = ActionHolder.selectedcell;
         var tempselectedMinion = ActionHolder.selectedMinion ;
         var tempthisMinion = ActionHolder.thisMinion ;
-        var tempthisCard = ActionHolder.thisCard ;
+        var tempthisCardSO = ActionHolder.thisCardSO ;
+        var tempThisCard = ActionHolder.thisCard;
         var tempselectedMinions = new List<MinionController>();
         tempselectedMinions.AddRange(ActionHolder.selectedMinions);
         var tempselectedCells = new List<Transform>();
@@ -698,7 +715,7 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.selectedcell = null;
         ActionHolder.selectedMinion = null;
         //ActionHolder.thisMinion = minion;
-        ActionHolder.thisCard = minion.card;
+        ActionHolder.thisCardSO = minion.card;
         ActionHolder.selectedMinions.Clear();
         //ActionHolder.selectedMinions.Add(minion);
         ActionHolder.selectedCells.Clear();
@@ -714,7 +731,7 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.selectedcell = tempselectedcell;
         ActionHolder.selectedMinion = tempselectedMinion;
         ActionHolder.thisMinion = tempthisMinion;
-        ActionHolder.thisCard = tempthisCard;
+        ActionHolder.thisCardSO = tempthisCardSO;
         ActionHolder.selectedMinions = new List<MinionController>(tempselectedMinions);
         ActionHolder.selectedCells = new List<Transform>(tempselectedCells);
         ActionHolder.selectedAgent = tempselectedAgent;

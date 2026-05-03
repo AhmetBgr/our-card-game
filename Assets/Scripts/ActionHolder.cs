@@ -29,9 +29,8 @@ public class ActionHolder : ScriptableObject
     public static MinionController selectedMinion = null;
     public static Agent selectedAgent = null;
     public static MinionController thisMinion = null;
-    public static CardSO thisCard = null;
-
-
+    public static CardSO thisCardSO = null;
+    public static CardController thisCard = null;
 
     public static Queue<IEnumerator> curActionsList = new Queue<IEnumerator>();
 
@@ -96,7 +95,7 @@ public class ActionHolder : ScriptableObject
 
         friendlyMinions = selectableminions.Where(minion => (!minion.modal.isPlayerMinion && !GameManager.Instance.isPlayerTurn) || (minion.modal.isPlayerMinion && GameManager.Instance.isPlayerTurn)).ToList();
 
-        OnWaitingMinionSelect?.Invoke(selectableminions, thisCard);
+        OnWaitingMinionSelect?.Invoke(selectableminions, thisCardSO);
 
         if (selectableminions.Count == 0 && GameManager.Instance.isTesting)
         {
@@ -167,7 +166,7 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
-        OnWaitingCellSelect?.Invoke(selectableCells, thisCard);
+        OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
         while (selectedcell == null)
         {
@@ -355,7 +354,7 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
-        OnWaitingCellSelect?.Invoke(selectableCells, thisCard);
+        OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
         while (selectedcell == null)
         {
@@ -401,7 +400,7 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
-        OnWaitingCellSelect?.Invoke(selectableCells, thisCard);
+        OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
         while (selectedcell == null)
         {
@@ -433,7 +432,18 @@ public class ActionHolder : ScriptableObject
 
     }
 
+    public void PayCardCost()
+    {
+        if (GameManager.Instance.isTesting) return;
 
+        curActionsList.Enqueue(_PayCardCost());
+    }
+    public IEnumerator _PayCardCost()
+    {
+        selectedAgent.availibleMana -= thisCard.modal.cost;
+        Debug.Log("cost paid");
+        yield return null;
+    }
 
     public void SummonMinion(CardSO card)
     {

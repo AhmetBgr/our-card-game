@@ -63,6 +63,8 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
         AllCardsUIController.UpdateSelectableCards();
 
+        TriggerDeckChanged();
+
     }
     public void ShowCard(string cardName, Vector3 screenPos)
     {
