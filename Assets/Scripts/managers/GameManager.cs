@@ -22,6 +22,12 @@ public class GameManager : Singleton<GameManager>
     public bool isPlayingCard = false;
     public IEnumerator curaction;
 
+    private bool cancelPlayingCardRequested = false;
+    private CardController playingCard = null;
+    private Agent playingAgent = null;
+    private int playingAgentManaBeforePlay = 0;
+    private int playingCardHandLayoutIndex = -1;
+
     public TextMeshProUGUI[] playerCornerDamageTexts;
     public TextMeshProUGUI[] opponentCornerDamageTexts;
 
@@ -58,6 +64,11 @@ public class GameManager : Singleton<GameManager>
     private void Update()
     {
         if (currentState == GameState.EndGame) return;
+
+        if (isPlayingCard && isPlayerTurn && Input.GetMouseButtonDown(1))
+        {
+            CancelPlayingCard();
+        }
 
         CheckWinCondition();
     }
@@ -479,6 +490,14 @@ public class GameManager : Singleton<GameManager>
 
         isTesting = false;
         isTestingFailed = false;
+        cancelPlayingCardRequested = false;
+        ActionHolder.cancelRequested = false;
+        playingCard = card;
+        playingAgent = agent;
+        playingAgentManaBeforePlay = agent != null ? agent.availibleMana : 0;
+        playingCardHandLayoutIndex = player != null && player.cardHandLayout != null
+            ? player.cardHandLayout.cards.IndexOf(card.transform)
+            : -1;
         //agent.availibleMana -= card.modal.cost;
         isPlayingCard = true;
         actionQueue.Clear();
@@ -557,12 +576,23 @@ public class GameManager : Singleton<GameManager>
         Debug.Log("executeing card actions");
         while (actionQueue.Count > 0)
         {
+            if (cancelPlayingCardRequested || ActionHolder.cancelRequested)
+            {
+                actionQueue.Clear();
+                break;
+            }
             Debug.Log("executeing action");
             IEnumerator action = actionQueue.Dequeue();
             yield return StartCoroutine(action);
         }
         Debug.Log("execution complete");
         isTesting = false;
+
+        if (cancelPlayingCardRequested || ActionHolder.cancelRequested)
+        {
+            FinishCancelPlayingCard();
+            yield break;
+        }
 
         if (isTesting) 
         {
@@ -637,6 +667,10 @@ public class GameManager : Singleton<GameManager>
 
         isPlayingCard = false;
         ClearSelectables();
+        playingCard = null;
+        playingAgent = null;
+        cancelPlayingCardRequested = false;
+        ActionHolder.cancelRequested = false;
 
         if (isPlayerTurn)
         {
@@ -650,6 +684,68 @@ public class GameManager : Singleton<GameManager>
             opponent.UpdateHand();
         }
         Debug.Log("All actions completed.");
+    }
+
+    public void CancelPlayingCard()
+    {
+        if (!isPlayingCard) return;
+        if (!isPlayerTurn) return;
+        if (currentState != GameState.PlayerTurn) return;
+        if (playingAgent != player) return;
+
+        cancelPlayingCardRequested = true;
+        ActionHolder.cancelRequested = true;
+
+        ActionHolder.selectedcell = null;
+        ActionHolder.selectedMinion = null;
+        ActionHolder.selectedAgent = null;
+        ActionHolder.selectedMinions.Clear();
+        ActionHolder.selectedCells.Clear();
+
+        player.curState = Player.State.Waiting;
+        ClearSelectables();
+    }
+
+    private void FinishCancelPlayingCard()
+    {
+        if (playingAgent != null)
+        {
+            playingAgent.availibleMana = playingAgentManaBeforePlay;
+        }
+
+        if (playingCard != null && isPlayerTurn && player != null && player.cardHandLayout != null)
+        {
+            var layout = player.cardHandLayout;
+
+            layout.RemoveCard(playingCard.transform);
+            int insertIndex = playingCardHandLayoutIndex >= 0 ? playingCardHandLayoutIndex : 0;
+            layout.AddCard(playingCard.transform, insertIndex);
+
+            playingCard.transform.localRotation = Quaternion.identity;
+            playingCard.transform.localScale = Vector3.one;
+            playingCard.draggableItem.ParentAfterDrag = layout.transform;
+            playingCard.EnablePeek();
+        }
+
+        isPlayingCard = false;
+        cancelPlayingCardRequested = false;
+        ActionHolder.cancelRequested = false;
+
+        ClearSelectables();
+
+        if (isPlayerTurn)
+        {
+            player.UpdateHand();
+            SetPlayerMinionsReadyToAttack();
+        }
+        else
+        {
+            opponent.UpdateHand();
+        }
+
+        playingCard = null;
+        playingAgent = null;
+        playingCardHandLayoutIndex = -1;
     }
 
     public IEnumerator ExecuteActions(Queue<IEnumerator> actionsList)

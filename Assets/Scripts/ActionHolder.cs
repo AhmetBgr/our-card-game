@@ -20,6 +20,8 @@ public enum SelectionType
 
 public class ActionHolder : ScriptableObject
 {
+    public static bool cancelRequested = false;
+
     public static Transform selectedcell = null;
     public static List<Transform> selectedCells = new List<Transform>();
     public static List<MinionController> selectedMinions = new List<MinionController>();
@@ -105,12 +107,13 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
-        while (selectedMinion == null)
+        while (selectedMinion == null && !cancelRequested)
         {
             //Debug.Log("selecting minion");
 
             yield return null;
         }
+        if (cancelRequested) yield break;
         selectedMinions.Clear();
         selectedMinions.Add(selectedMinion.GetComponent<MinionController>());
         foreach (var cell in grid)
@@ -168,12 +171,13 @@ public class ActionHolder : ScriptableObject
 
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null)
+        while (selectedcell == null && !cancelRequested)
         {
             //Debug.Log("selecting cell");
 
             yield return null;
         }
+        if (cancelRequested) yield break;
 
         selectedMinions.Clear();
 
@@ -356,12 +360,13 @@ public class ActionHolder : ScriptableObject
 
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null)
+        while (selectedcell == null && !cancelRequested)
         {
             //Debug.Log("selecting cell");
 
             yield return null;
         }
+        if (cancelRequested) yield break;
         selectedCells.Clear();
         selectedCells.Add(selectedcell);
         foreach (var cell in grid)
@@ -402,12 +407,13 @@ public class ActionHolder : ScriptableObject
 
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null)
+        while (selectedcell == null && !cancelRequested)
         {
             //Debug.Log("selecting cell");
 
             yield return null;
         }
+        if (cancelRequested) yield break;
 
         selectedCells.Clear();
         selectedCells.Add(selectedcell);
@@ -554,7 +560,7 @@ public class ActionHolder : ScriptableObject
         {
             minion.modal.attack += value;
             minion.view.UpdateView(minion.modal);
-            //Debug.LogWarning("öinion attack changed to :" + minion.card.attack);
+            //Debug.LogWarning("Ã¶inion attack changed to :" + minion.card.attack);
         }
 
         yield return null;
@@ -562,7 +568,7 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _ChangeMinionAttack(MinionController minion, int value)
     {
         minion.card.attack += value;
-        //Debug.LogWarning("öinion attack changed to :" + minion.card.attack);
+        //Debug.LogWarning("Ã¶inion attack changed to :" + minion.card.attack);
         yield return null;
 
     }
@@ -593,7 +599,7 @@ public class ActionHolder : ScriptableObject
         {
             minion.modal.attack += minion.modal.attack;
             minion.view.UpdateView(selectedMinion.modal);
-            //Debug.LogWarning("öinion attack changed to :" + selectedMinion.card.attack);
+            //Debug.LogWarning("Ã¶inion attack changed to :" + selectedMinion.card.attack);
         }
 
         yield return null;
@@ -678,12 +684,13 @@ public class ActionHolder : ScriptableObject
     }
     public IEnumerator _DestroyCard()
     {
-        while (selectedMinion == null)
+        while (selectedMinion == null && !cancelRequested)
         {
             //Debug.Log("selecting minion");
 
             yield return null;
         }
+        if (cancelRequested) yield break;
        // Debug.Log("selected minion");
 
 
@@ -699,11 +706,12 @@ public class ActionHolder : ScriptableObject
 
     public IEnumerator _SetCanMove(bool value)
     {
-        while (selectedMinion == null)
+        while (selectedMinion == null && !cancelRequested)
         {
             //Debug.Log("selecting minion");
             yield return null;
         }
+        if (cancelRequested) yield break;
         selectedMinion.modal.canMove = value;
         //Debug.Log("selected minion");
     }
