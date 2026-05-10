@@ -27,7 +27,6 @@ public class ActionHolder : ScriptableObject
     public static List<MinionController> selectedMinions = new List<MinionController>();
     public static List<CardController> selectedCards = new List<CardController>();
 
-
     public static MinionController selectedMinion = null;
     public static MinionController selectedTargetMinion = null;
     public static Agent selectedAgent = null;
@@ -276,7 +275,7 @@ public class ActionHolder : ScriptableObject
 
         player = GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent;
 
-        curActionsList.Enqueue(_SelectRandomMinionInRange(player));
+        curActionsList.Enqueue(_SelectRandomFriendlyMinionInRange(player));
     }
     public IEnumerator _SelectRandomMinion(List<MinionController> minions)
     {
@@ -306,17 +305,18 @@ public class ActionHolder : ScriptableObject
         }
         yield return null;
     }
-    public IEnumerator _SelectRandomFriendlyMinionInRange(Agent opponent)
+    public IEnumerator _SelectRandomFriendlyMinionInRange(Agent thisAgent)
     {
         List<MinionController> minionsInRange = new List<MinionController>();
-        //Debug.Log("opponent: " + opponent.name);
-
-        foreach (var minion in opponent.minions)
+        Debug.Log("opponent: " + thisAgent.name);
+        selectedMinions.Clear();
+        foreach (var minion in thisAgent.minions)
         {
-            //Debug.Log("checking if minion is in range: ");
+            if (minion == thisMinion) continue;
+            Debug.Log("checking if minion is in range: ");
             if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1)
             {
-                //Debug.Log("minion is in range: ");
+                Debug.Log("minion is in range: ");
 
                 minionsInRange.Add(minion);
             }
@@ -324,7 +324,8 @@ public class ActionHolder : ScriptableObject
 
         if(minionsInRange.Count > 0)
         {
-            selectedMinion = minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)];
+            selectedMinions.Add(minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)]);
+            //selectedMinion = minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)];
 
         }
         yield return null;

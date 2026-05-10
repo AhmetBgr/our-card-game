@@ -4004,7 +4004,7 @@ MonoBehaviour:
   - {fileID: 1184556070}
   selectables: []
   currentState: 0
-  maxMana: 5
+  maxMana: 8
   isPlayerTurn: 1
   isTesting: 0
   isTestingFailed: 0
@@ -4289,37 +4289,43 @@ PrefabInstance:
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.size
-      value: 4
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[0]
       value: 
-      objectReference: {fileID: 11400000, guid: de61890a59135bf4da9e4135d332026f,
+      objectReference: {fileID: 11400000, guid: a1e416c7ad9913848ac3413e5802f091,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[1]
       value: 
-      objectReference: {fileID: 11400000, guid: 0e2d9d76b5a6edc47801766975ca2c23,
+      objectReference: {fileID: 11400000, guid: 49458b2cd6d1c13449ee275ce033d12e,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[2]
       value: 
-      objectReference: {fileID: 11400000, guid: c4369a7bf8c9caf4e82a65d2c8df65b2,
+      objectReference: {fileID: 11400000, guid: a1e416c7ad9913848ac3413e5802f091,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[3]
       value: 
-      objectReference: {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232,
+      objectReference: {fileID: 11400000, guid: a1e416c7ad9913848ac3413e5802f091,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[4]
       value: 
-      objectReference: {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232,
+      objectReference: {fileID: 11400000, guid: 49458b2cd6d1c13449ee275ce033d12e,
+        type: 2}
+    - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
+        type: 3}
+      propertyPath: defaultDeck.Array.data[5]
+      value: 
+      objectReference: {fileID: 11400000, guid: 49458b2cd6d1c13449ee275ce033d12e,
         type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

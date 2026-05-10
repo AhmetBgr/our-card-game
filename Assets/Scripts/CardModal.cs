@@ -7,7 +7,6 @@ public class CardModal : MonoBehaviour
 {
     public Sprite minionArt;
     public Sprite cardArt;
-    public Sprite frame;
 
     public new string name;
     [TextAreaAttribute] public string desc;
@@ -28,7 +27,6 @@ public class CardModal : MonoBehaviour
         minionArt = card.minionArt;
         cardArt = card.cardArt;
 
-        frame = card.frame;
         name = card.cardName;
         desc = card.desc;
         attack = card.attack;

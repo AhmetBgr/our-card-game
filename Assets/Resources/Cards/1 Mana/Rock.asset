@@ -19,7 +19,7 @@ MonoBehaviour:
   cardName: Rock
   desc: 'Can only move when pushed. '
   attack: 0
-  health: 4
+  health: 5
   cost: 2
   range: 1
   armor: 0
@@ -27,7 +27,7 @@ MonoBehaviour:
   type: 0
   upgradedVersion: {fileID: 11400000, guid: 0e2d9d76b5a6edc47801766975ca2c23, type: 2}
   isUpgraded: 0
-  defHealth: 4
+  defHealth: 5
   OnPlay:
     m_PersistentCalls:
       m_Calls:

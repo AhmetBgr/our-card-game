@@ -11,9 +11,6 @@ public class CardSO : ScriptableObject
     public Sprite minionArt;
     public Sprite cardArt;
 
-    public Sprite frame;
-
-
     public string cardName;
     [TextAreaAttribute] public string desc;
     public int attack;
