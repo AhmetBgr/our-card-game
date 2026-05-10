@@ -256,21 +256,29 @@ public class GameManager : Singleton<GameManager>
 
                 if (cell.obj != null && cell.obj.TryGetComponent(out minion) && ((minion.owner == player && isPlayerTurn) || (minion.owner == opponent && !isPlayerTurn)))
                 {
-                    onCardDrawActions.Clear();
-                    ActionHolder.selectedcell = null;
-                    ActionHolder.selectedMinion = null;
-                    ActionHolder.thisMinion = minion;
-                    ActionHolder.thisCardSO = minion.card;
-                    ActionHolder.thisCard = null;
-                    ActionHolder.selectedMinions.Clear();
-                    ActionHolder.selectedMinions.Add(minion);
-                    ActionHolder.selectedCells.Clear();
-                    ActionHolder.selectedAgent = player;
-                    ActionHolder.curActionsList = onCardDrawActions;
+                    var snapshot = ActionHolder.TakeSnapshot();
+                    try
+                    {
+                        onCardDrawActions.Clear();
+                        ActionHolder.selectedcell = null;
+                        ActionHolder.selectedMinion = null;
+                        ActionHolder.thisMinion = minion;
+                        ActionHolder.thisCardSO = minion.card;
+                        ActionHolder.thisCard = null;
+                        ActionHolder.selectedMinions.Clear();
+                        ActionHolder.selectedMinions.Add(minion);
+                        ActionHolder.selectedCells.Clear();
+                        ActionHolder.selectedAgent = player;
+                        ActionHolder.curActionsList = onCardDrawActions;
 
-                    minion.card.OnOwnerDrawedCard.Invoke();
+                        minion.card.OnOwnerDrawedCard.Invoke();
 
-                    yield return StartCoroutine(ExecuteActions(onCardDrawActions));
+                        yield return StartCoroutine(ExecuteActions(onCardDrawActions));
+                    }
+                    finally
+                    {
+                        snapshot.Restore();
+                    }
                 }
             }
         }
@@ -292,21 +300,29 @@ public class GameManager : Singleton<GameManager>
 
                 if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == player)
                 {
-                    onTurnEndActions.Clear();
-                    ActionHolder.selectedcell = null;
-                    ActionHolder.selectedMinion = null;
-                    ActionHolder.thisMinion = minion;
-                    ActionHolder.thisCardSO = minion.card;
-                    ActionHolder.thisCard = null;
-                    ActionHolder.selectedMinions.Clear();
-                    ActionHolder.selectedMinions.Add(minion);
-                    ActionHolder.selectedCells.Clear();
-                    ActionHolder.selectedAgent = player;
-                    ActionHolder.curActionsList = onTurnEndActions;
+                    var snapshot = ActionHolder.TakeSnapshot();
+                    try
+                    {
+                        onTurnEndActions.Clear();
+                        ActionHolder.selectedcell = null;
+                        ActionHolder.selectedMinion = null;
+                        ActionHolder.thisMinion = minion;
+                        ActionHolder.thisCardSO = minion.card;
+                        ActionHolder.thisCard = null;
+                        ActionHolder.selectedMinions.Clear();
+                        ActionHolder.selectedMinions.Add(minion);
+                        ActionHolder.selectedCells.Clear();
+                        ActionHolder.selectedAgent = player;
+                        ActionHolder.curActionsList = onTurnEndActions;
 
-                    minion.card.OnOwnerTurnEnd.Invoke();
+                        minion.card.OnOwnerTurnEnd.Invoke();
 
-                    yield return StartCoroutine(ExecuteActions(onTurnEndActions));
+                        yield return StartCoroutine(ExecuteActions(onTurnEndActions));
+                    }
+                    finally
+                    {
+                        snapshot.Restore();
+                    }
                 }
             }
         }
@@ -378,21 +394,29 @@ public class GameManager : Singleton<GameManager>
 
                 if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == opponent)
                 {
-                    onTurnEndActions.Clear();
-                    ActionHolder.selectedcell = null;
-                    ActionHolder.selectedMinion = null;
-                    ActionHolder.thisMinion = minion;
-                    ActionHolder.thisCardSO = minion.card;
-                    ActionHolder.thisCard = null;
-                    ActionHolder.selectedMinions.Clear();
-                    ActionHolder.selectedMinions.Add(minion);
-                    ActionHolder.selectedCells.Clear();
-                    ActionHolder.selectedAgent = opponent;
-                    ActionHolder.curActionsList = onTurnEndActions;
+                    var snapshot = ActionHolder.TakeSnapshot();
+                    try
+                    {
+                        onTurnEndActions.Clear();
+                        ActionHolder.selectedcell = null;
+                        ActionHolder.selectedMinion = null;
+                        ActionHolder.thisMinion = minion;
+                        ActionHolder.thisCardSO = minion.card;
+                        ActionHolder.thisCard = null;
+                        ActionHolder.selectedMinions.Clear();
+                        ActionHolder.selectedMinions.Add(minion);
+                        ActionHolder.selectedCells.Clear();
+                        ActionHolder.selectedAgent = opponent;
+                        ActionHolder.curActionsList = onTurnEndActions;
 
-                    minion.card.OnOwnerTurnEnd.Invoke();
+                        minion.card.OnOwnerTurnEnd.Invoke();
 
-                    yield return StartCoroutine(ExecuteActions(onTurnEndActions));
+                        yield return StartCoroutine(ExecuteActions(onTurnEndActions));
+                    }
+                    finally
+                    {
+                        snapshot.Restore();
+                    }
                 }
             }
         }

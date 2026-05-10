@@ -36,6 +36,83 @@ public class ActionHolder : ScriptableObject
 
     public static Queue<IEnumerator> curActionsList = new Queue<IEnumerator>();
 
+    public sealed class Snapshot
+    {
+        private readonly bool _cancelRequested;
+        private readonly Transform _selectedCell;
+        private readonly List<Transform> _selectedCells;
+        private readonly List<MinionController> _selectedMinions;
+        private readonly List<CardController> _selectedCards;
+        private readonly MinionController _selectedMinion;
+        private readonly MinionController _selectedTargetMinion;
+        private readonly Agent _selectedAgent;
+        private readonly MinionController _thisMinion;
+        private readonly CardSO _thisCardSO;
+        private readonly CardController _thisCard;
+        private readonly Queue<IEnumerator> _curActionsList;
+
+        internal Snapshot(
+            bool cancelRequested,
+            Transform selectedCell,
+            List<Transform> selectedCells,
+            List<MinionController> selectedMinions,
+            List<CardController> selectedCards,
+            MinionController selectedMinion,
+            MinionController selectedTargetMinion,
+            Agent selectedAgent,
+            MinionController thisMinion,
+            CardSO thisCardSO,
+            CardController thisCard,
+            Queue<IEnumerator> curActionsList)
+        {
+            _cancelRequested = cancelRequested;
+            _selectedCell = selectedCell;
+            _selectedCells = selectedCells;
+            _selectedMinions = selectedMinions;
+            _selectedCards = selectedCards;
+            _selectedMinion = selectedMinion;
+            _selectedTargetMinion = selectedTargetMinion;
+            _selectedAgent = selectedAgent;
+            _thisMinion = thisMinion;
+            _thisCardSO = thisCardSO;
+            _thisCard = thisCard;
+            _curActionsList = curActionsList;
+        }
+
+        public void Restore()
+        {
+            ActionHolder.cancelRequested = _cancelRequested;
+            ActionHolder.selectedcell = _selectedCell;
+            ActionHolder.selectedCells = new List<Transform>(_selectedCells);
+            ActionHolder.selectedMinions = new List<MinionController>(_selectedMinions);
+            ActionHolder.selectedCards = new List<CardController>(_selectedCards);
+            ActionHolder.selectedMinion = _selectedMinion;
+            ActionHolder.selectedTargetMinion = _selectedTargetMinion;
+            ActionHolder.selectedAgent = _selectedAgent;
+            ActionHolder.thisMinion = _thisMinion;
+            ActionHolder.thisCardSO = _thisCardSO;
+            ActionHolder.thisCard = _thisCard;
+            ActionHolder.curActionsList = new Queue<IEnumerator>(_curActionsList);
+        }
+    }
+
+    public static Snapshot TakeSnapshot()
+    {
+        return new Snapshot(
+            cancelRequested,
+            selectedcell,
+            new List<Transform>(selectedCells),
+            new List<MinionController>(selectedMinions),
+            new List<CardController>(selectedCards),
+            selectedMinion,
+            selectedTargetMinion,
+            selectedAgent,
+            thisMinion,
+            thisCardSO,
+            thisCard,
+            new Queue<IEnumerator>(curActionsList));
+    }
+
     public static event Action<SelectableParameters> OnSelect;
     public static event Action<List<Transform>, CardSO> OnWaitingCellSelect;
     public static event Action<List<MinionController>, CardSO> OnWaitingMinionSelect;
