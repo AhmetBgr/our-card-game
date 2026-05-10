@@ -160,4 +160,9 @@ public class OpponentRando : Agent
 
         ActionHolder.selectedcell = cells[UnityEngine.Random.Range(0, cells.Count)];    
     }
+
+    public override bool IsPlayer()
+    {
+        return false;
+    }
 }

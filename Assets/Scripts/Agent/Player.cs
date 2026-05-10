@@ -70,4 +70,9 @@ public class Player : Agent
     {
         yield break;
     }
+
+    public override bool IsPlayer()
+    {
+        return true;
+    }
 }

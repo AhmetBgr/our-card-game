@@ -36,6 +36,7 @@ public class CardSO : ScriptableObject
     public UnityEvent OnAnyMinionSummoned;
     public UnityEvent OnOwnerDrawedCard; //
     public UnityEvent OnMinionCollided; //
+    public UnityEvent OnTookDamage; //
 
     private void Awake()
     {

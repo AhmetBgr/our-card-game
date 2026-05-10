@@ -37,6 +37,7 @@ public class GameManager : Singleton<GameManager>
     private Queue<IEnumerator> onCardDrawActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionDeathActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionCollidedActions = new Queue<IEnumerator>();
+    private Queue<IEnumerator> onMinionTookDamageActions = new Queue<IEnumerator>();
 
     [SerializeField] private Queue<IEnumerator> defaultActionQueue;
 
@@ -53,11 +54,13 @@ public class GameManager : Singleton<GameManager>
         StartCoroutine(GameLoop());
         MinionController.OnDied += OnMinionDied;
         MinionController.OnCollided += OnMinionCollided;
+        MinionController.OnTookDamage += OnMinionTookDamage;
     }
     private void OnDestroy()
     {
         MinionController.OnDied -= OnMinionDied;
         MinionController.OnCollided -= OnMinionCollided;
+        MinionController.OnTookDamage -= OnMinionTookDamage;
 
     }
 
@@ -135,22 +138,22 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log("Setting up game...");
         yield return new WaitForSeconds(0.5f);
 
-        player.DrawCard(true);
+        player.DrawCard();
         yield return new WaitForSeconds(0.5f);
 
-        opponent.DrawCard(false);
+        opponent.DrawCard();
         yield return new WaitForSeconds(0.5f);
 
-        player.DrawCard(true);
+        player.DrawCard();
         yield return new WaitForSeconds(0.5f);
 
-        opponent.DrawCard(false);
+        opponent.DrawCard();
         yield return new WaitForSeconds(0.5f);
 
-        player.DrawCard(true);
+        player.DrawCard();
         yield return new WaitForSeconds(0.5f);
 
-        opponent.DrawCard(false);
+        opponent.DrawCard();
         yield return new WaitForSeconds(0.5f);
 
         /*player.DrawCard(true);
@@ -175,7 +178,7 @@ public class GameManager : Singleton<GameManager>
         player.availibleMana = maxMana;
         player.curState = Player.State.Waiting;
         //Debug.Log("Player's Turn");
-        player.DrawCard(true);
+        player.DrawCard();
         StartCoroutine(InvokeOnTurnStarted());
         yield return StartCoroutine(player.PlayTurn()); 
 
@@ -359,7 +362,7 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log("Opponent's Turn");
         opponent.availibleMana = maxMana;
 
-        opponent.DrawCard(false);
+        opponent.DrawCard();
 
         StartCoroutine(InvokeOnTurnStarted());
 
@@ -845,6 +848,59 @@ public class GameManager : Singleton<GameManager>
         StartCoroutine(_OnMinionCollided(minion, collidedMinion));
     }
 
+    private void OnMinionTookDamage(MinionController minion, int damage)
+    {
+        StartCoroutine(InvokeOnMinionTookDamageActions(minion, damage));
+    }
+
+    private IEnumerator InvokeOnMinionTookDamageActions(MinionController minion, int damage)
+    {
+        var tempselectedcell = ActionHolder.selectedcell;
+        var tempselectedMinion = ActionHolder.selectedMinion;
+        var tempthisMinion = ActionHolder.thisMinion;
+        var tempthisCardSO = ActionHolder.thisCardSO;
+        var tempThisCard = ActionHolder.thisCard;
+        var tempTargetMinion = ActionHolder.selectedTargetMinion;
+        var tempselectedMinions = new List<MinionController>();
+        tempselectedMinions.AddRange(ActionHolder.selectedMinions);
+        var tempselectedCells = new List<Transform>();
+        tempselectedCells.AddRange(ActionHolder.selectedCells);
+        var tempselectedAgent = ActionHolder.selectedAgent;
+        Queue<IEnumerator> tempCurActionList = new Queue<IEnumerator>(ActionHolder.curActionsList);
+
+        onMinionTookDamageActions.Clear();
+        ActionHolder.selectedcell = null;
+        ActionHolder.selectedMinion = null;
+        ActionHolder.selectedTargetMinion = null;
+        ActionHolder.thisMinion = minion;
+        ActionHolder.thisCardSO = minion.card;
+        ActionHolder.thisCard = null;
+        ActionHolder.selectedMinions.Clear();
+        ActionHolder.selectedMinions.Add(minion);
+        ActionHolder.selectedCells.Clear();
+        ActionHolder.selectedAgent = minion.owner;
+        ActionHolder.curActionsList = onMinionTookDamageActions;
+
+        minion.card.OnTookDamage.Invoke();
+
+        Debug.LogWarning($"executing on took damage actions (damage: {damage})");
+
+        yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
+
+        ActionHolder.selectedcell = tempselectedcell;
+        ActionHolder.selectedMinion = tempselectedMinion;
+        ActionHolder.selectedTargetMinion = tempTargetMinion;
+        ActionHolder.thisMinion = tempthisMinion;
+        ActionHolder.thisCardSO = tempthisCardSO;
+        ActionHolder.thisCard = tempThisCard;
+        ActionHolder.selectedMinions = new List<MinionController>(tempselectedMinions);
+        ActionHolder.selectedCells = new List<Transform>(tempselectedCells);
+        ActionHolder.selectedAgent = tempselectedAgent;
+        ActionHolder.curActionsList = new Queue<IEnumerator>(tempCurActionList);
+
+        Debug.LogWarning("executed on took damage actions");
+    }
+
     private IEnumerator _OnMinionCollided(MinionController minion, MinionController collidedMinion)
     {
         var tempselectedcell = ActionHolder.selectedcell;
@@ -883,6 +939,7 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.selectedTargetMinion = tempTargetMinion;
         ActionHolder.thisMinion = tempthisMinion;
         ActionHolder.thisCardSO = tempthisCardSO;
+        ActionHolder.thisCard = tempThisCard;
         ActionHolder.selectedMinions = new List<MinionController>(tempselectedMinions);
         ActionHolder.selectedCells = new List<Transform>(tempselectedCells);
         ActionHolder.selectedAgent = tempselectedAgent;

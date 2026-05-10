@@ -35,6 +35,7 @@ public class MinionController : MonoBehaviour
     public static event Action<List<MinionController>> OnSelectingMinionForAttack;
     public static event Action<MinionController> OnDied;
     public static event Action<MinionController, MinionController> OnCollided;
+    public static event Action<MinionController, int> OnTookDamage;
 
 
     private void OnEnable()
@@ -242,10 +243,16 @@ public class MinionController : MonoBehaviour
     }
     public void TakeDamage(int damage)
     {
-        modal.health -= Mathf.Max(damage - modal.armor, 0);
+        int effectiveDamage = Mathf.Max(damage - modal.armor, 0);
+        modal.health -= effectiveDamage;
 
         DOVirtual.DelayedCall(0.75f, () => view.UpdateView(modal));
         Debug.Log("minion take damage: " + modal.name);
+
+        if (effectiveDamage > 0)
+        {
+            OnTookDamage?.Invoke(this, effectiveDamage);
+        }
 
         if (modal.health <= 0)
         {

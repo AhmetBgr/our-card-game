@@ -21,6 +21,7 @@ public class Agent : MonoBehaviour
     public CardController cardPrefab;
     public Transform cardPlayPos;
 
+    public virtual bool IsPlayer() { return false; }
 
     protected int _availibleMana;
 
@@ -102,7 +103,7 @@ public class Agent : MonoBehaviour
 
         minions.Remove(minion);
     }
-    public void DrawCard(bool isPlayerCard)
+    public void DrawCard()
     {
         UpdateHand();
         //handManager.UpdateSlots();
@@ -119,7 +120,7 @@ public class Agent : MonoBehaviour
         CardController cardObj = Instantiate(cardPrefab);
         cardObj.gameObject.name = card.cardName;
         cardObj.card = card;
-        cardObj.modal.isPlayerMinion = isPlayerCard;
+        cardObj.modal.isPlayerMinion = IsPlayer();
         cardObj.modal.UpdateModal(card);
         cardObj.view.UpdateView(cardObj.modal);
         hand.Add(cardObj);

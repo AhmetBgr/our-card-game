@@ -55,6 +55,22 @@ public class ActionHolder : ScriptableObject
         yield return null;
 
     }
+    public void SelectFriendlyAgent()
+    {
+        //Debug.Log("adding select agent to list: " + curActionsList);
+
+        curActionsList.Enqueue(_SelectThisMinion());
+
+        curActionsList.Enqueue(_SelectFriendlyAgent());
+    }
+    public IEnumerator _SelectFriendlyAgent()
+    {
+
+        selectedAgent = thisMinion.owner;
+        Debug.Log("selected agent: " + selectedAgent.name);
+        yield return null;
+
+    }
     public void SelectCell(int rowIndex = 2)
     {
         IEnumerator cor = _SelectCell(rowIndex);
@@ -539,7 +555,7 @@ public class ActionHolder : ScriptableObject
 
         yield return new WaitForSeconds(0.5f);
 
-        selectedAgent.DrawCard(GameManager.Instance.isPlayerTurn);
+        selectedAgent.DrawCard();
     }
     public void AddMana(int amount)
     {
