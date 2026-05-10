@@ -620,19 +620,21 @@ public class ActionHolder : ScriptableObject
     }
     public void DrawCard()
     {
+        Debug.Log("try draw card");
+
         if (GameManager.Instance.isTesting) return;
 
-        //Debug.Log("selected agent2: " + selectedAgent.name);
-        curActionsList.Enqueue(_DrawCard());
+        var agentToDraw = selectedAgent;
+        curActionsList.Enqueue(_DrawCard(agentToDraw));
     }
 
-    public IEnumerator _DrawCard()
+    public IEnumerator _DrawCard(Agent agentToDraw)
     {
-        //Debug.Log("selected agent3: " + selectedAgent.name);
-
+        //yield return null;
         yield return new WaitForSeconds(0.5f);
 
-        selectedAgent.DrawCard();
+        Debug.Log("should draw card");
+        agentToDraw.DrawCard();
     }
     public void AddMana(int amount)
     {

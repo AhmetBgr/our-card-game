@@ -264,16 +264,16 @@ public class GameManager : Singleton<GameManager>
                         ActionHolder.selectedMinion = null;
                         ActionHolder.thisMinion = minion;
                         ActionHolder.thisCardSO = minion.card;
-                        ActionHolder.thisCard = null;
-                        ActionHolder.selectedMinions.Clear();
-                        ActionHolder.selectedMinions.Add(minion);
-                        ActionHolder.selectedCells.Clear();
-                        ActionHolder.selectedAgent = player;
-                        ActionHolder.curActionsList = onCardDrawActions;
+                    ActionHolder.thisCard = null;
+                    ActionHolder.selectedMinions.Clear();
+                    ActionHolder.selectedMinions.Add(minion);
+                    ActionHolder.selectedCells.Clear();
+                    ActionHolder.selectedAgent = minion.owner;
+                    ActionHolder.curActionsList = onCardDrawActions;
 
-                        minion.card.OnOwnerDrawedCard.Invoke();
+                    minion.card.OnOwnerDrawedCard.Invoke();
 
-                        yield return StartCoroutine(ExecuteActions(onCardDrawActions));
+                    yield return StartCoroutine(ExecuteActions(onCardDrawActions));
                     }
                     finally
                     {
@@ -874,55 +874,53 @@ public class GameManager : Singleton<GameManager>
 
     private void OnMinionTookDamage(MinionController minion, int damage)
     {
+        if (executingOnTookDamageActions)
+        {
+            OnOnTookDamageActionsCompleted = () =>
+            {
+                StartCoroutine(InvokeOnMinionTookDamageActions(minion, damage));
+            };
+            return;
+        }
+
         StartCoroutine(InvokeOnMinionTookDamageActions(minion, damage));
     }
-
+    private bool executingOnTookDamageActions = false;
+    UnityAction OnOnTookDamageActionsCompleted;
     private IEnumerator InvokeOnMinionTookDamageActions(MinionController minion, int damage)
     {
-        var tempselectedcell = ActionHolder.selectedcell;
-        var tempselectedMinion = ActionHolder.selectedMinion;
-        var tempthisMinion = ActionHolder.thisMinion;
-        var tempthisCardSO = ActionHolder.thisCardSO;
-        var tempThisCard = ActionHolder.thisCard;
-        var tempTargetMinion = ActionHolder.selectedTargetMinion;
-        var tempselectedMinions = new List<MinionController>();
-        tempselectedMinions.AddRange(ActionHolder.selectedMinions);
-        var tempselectedCells = new List<Transform>();
-        tempselectedCells.AddRange(ActionHolder.selectedCells);
-        var tempselectedAgent = ActionHolder.selectedAgent;
-        Queue<IEnumerator> tempCurActionList = new Queue<IEnumerator>(ActionHolder.curActionsList);
+        var snapshot = ActionHolder.TakeSnapshot();
+        try
+        {
+            onMinionTookDamageActions.Clear();
+            ActionHolder.selectedcell = null;
+            ActionHolder.selectedMinion = null;
+            ActionHolder.selectedTargetMinion = null;
+            ActionHolder.thisMinion = minion;
+            ActionHolder.thisCardSO = minion.card;
+            ActionHolder.thisCard = null;
+            ActionHolder.selectedMinions.Clear();
+            ActionHolder.selectedMinions.Add(minion);
+            ActionHolder.selectedCells.Clear();
+            ActionHolder.selectedAgent = minion.owner;
+            ActionHolder.curActionsList = onMinionTookDamageActions;
 
-        onMinionTookDamageActions.Clear();
-        ActionHolder.selectedcell = null;
-        ActionHolder.selectedMinion = null;
-        ActionHolder.selectedTargetMinion = null;
-        ActionHolder.thisMinion = minion;
-        ActionHolder.thisCardSO = minion.card;
-        ActionHolder.thisCard = null;
-        ActionHolder.selectedMinions.Clear();
-        ActionHolder.selectedMinions.Add(minion);
-        ActionHolder.selectedCells.Clear();
-        ActionHolder.selectedAgent = minion.owner;
-        ActionHolder.curActionsList = onMinionTookDamageActions;
+            minion.card.OnTookDamage.Invoke();
+            executingOnTookDamageActions = true;
+            Debug.LogWarning($"executing on took damage actions (damage: {damage})");
 
-        minion.card.OnTookDamage.Invoke();
+            yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
 
-        Debug.LogWarning($"executing on took damage actions (damage: {damage})");
+            Debug.LogWarning("executed on took damage actions");
+            executingOnTookDamageActions = false;
+        }
+        finally
+        {
+            snapshot.Restore();
+        }
 
-        yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
-
-        ActionHolder.selectedcell = tempselectedcell;
-        ActionHolder.selectedMinion = tempselectedMinion;
-        ActionHolder.selectedTargetMinion = tempTargetMinion;
-        ActionHolder.thisMinion = tempthisMinion;
-        ActionHolder.thisCardSO = tempthisCardSO;
-        ActionHolder.thisCard = tempThisCard;
-        ActionHolder.selectedMinions = new List<MinionController>(tempselectedMinions);
-        ActionHolder.selectedCells = new List<Transform>(tempselectedCells);
-        ActionHolder.selectedAgent = tempselectedAgent;
-        ActionHolder.curActionsList = new Queue<IEnumerator>(tempCurActionList);
-
-        Debug.LogWarning("executed on took damage actions");
+        OnOnTookDamageActionsCompleted?.Invoke();
+        OnOnTookDamageActionsCompleted = null;
     }
 
     private IEnumerator _OnMinionCollided(MinionController minion, MinionController collidedMinion)
