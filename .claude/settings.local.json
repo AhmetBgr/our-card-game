@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__unity-mcp__Unity_ManageEditor",
+      "Bash(Get-ChildItem -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Recurse -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\\\\Assets\\\\Scripts\" -Filter \"*.cs\")",
+      "Bash(grep -E \"\\\\.\\(cs\\)$\")"
+    ]
+  }
+}
