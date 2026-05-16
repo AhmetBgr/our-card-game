@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
 using static UnityEngine.Rendering.DebugUI;
 
 public enum MinionType
@@ -292,13 +293,17 @@ public class ActionHolder : ScriptableObject
 
     public void SelectThisMinion()
     {
-        if (GameManager.Instance.isTesting) return;
-
+        Debug.Log("select this minion action added ");
         curActionsList.Enqueue(_SelectThisMinion());
     }
     public IEnumerator _SelectThisMinion()
     {
+        selectedMinions.Clear();
         selectedMinion = thisMinion;
+        if (selectedMinion != null)
+            selectedMinions.Add(selectedMinion);
+
+        Debug.Log("minion sohuld be selected");
 
         yield return null;
 
@@ -360,7 +365,14 @@ public class ActionHolder : ScriptableObject
     {
         Agent opponent = null;
 
-        opponent = GameManager.Instance.isPlayerTurn ? GameManager.Instance.opponent : GameManager.Instance.player;
+        if (thisMinion != null)
+        {
+            opponent = thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+        }
+        else
+        {
+            opponent = GameManager.Instance.isPlayerTurn ? GameManager.Instance.opponent : GameManager.Instance.player;
+        }
 
         curActionsList.Enqueue(_SelectRandomMinionInRange(opponent));
     }
@@ -368,7 +380,14 @@ public class ActionHolder : ScriptableObject
     {
         Agent player = null;
 
-        player = GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent;
+        if (thisMinion != null)
+        {
+            player = thisMinion.owner;
+        }
+        else
+        {
+            player = GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent;
+        }
 
         curActionsList.Enqueue(_SelectRandomFriendlyMinionInRange(player));
     }
@@ -679,10 +698,8 @@ public class ActionHolder : ScriptableObject
     }
     public void ChangeMinionAttack(int value)
     {
-        if (GameManager.Instance.isTesting) return;
-
         //GameManager.Instance.Addtoactions( _ChangeMinionAttack(selectedMinion, value));
-        //Debug.LogWarning("change attack added to actions");
+        Debug.LogWarning("change attack added to actions");
         curActionsList.Enqueue(_ChangeMinionAttack(value));
     }
 
@@ -699,15 +716,26 @@ public class ActionHolder : ScriptableObject
         {
             minion.modal.attack += value;
             minion.view.UpdateView(minion.modal);
-            //Debug.LogWarning("öinion attack changed to :" + minion.card.attack);
+            Debug.LogWarning("öinion attack changed to :" + minion.card.attack);
         }
 
         yield return null;
     }
     public IEnumerator _ChangeMinionAttack(MinionController minion, int value)
     {
-        minion.card.attack += value;
-        //Debug.LogWarning("öinion attack changed to :" + minion.card.attack);
+        if (minion == null) {
+
+            Debug.LogWarning("minion is null, actions canceled");
+            yield break;
+
+        }
+
+        minion.modal.attack += value;
+        minion.view.UpdateView(minion.modal);
+
+        if (minion.card != null)
+            minion.card.attack = minion.modal.attack;
+
         yield return null;
 
     }
@@ -864,5 +892,3 @@ public class ActionHolder : ScriptableObject
     }
 
 }
-
-
