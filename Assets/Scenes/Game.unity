@@ -3933,12 +3933,6 @@ MonoBehaviour:
   deck:
   - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
   - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
-  - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
-  - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
-  - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
-  - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
-  - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
-  - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
   hand: []
   minions: []
   hero: {fileID: 8738183267910160269}
@@ -4008,7 +4002,7 @@ MonoBehaviour:
   - {fileID: 1184556070}
   selectables: []
   currentState: 0
-  maxMana: 0
+  maxMana: 9
   isPlayerTurn: 1
   isTesting: 0
   isTestingFailed: 0
@@ -4299,37 +4293,37 @@ PrefabInstance:
         type: 3}
       propertyPath: defaultDeck.Array.data[0]
       value: 
-      objectReference: {fileID: 11400000, guid: a0335d1f8b6b49c4bab2b4a8a037af47,
+      objectReference: {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[1]
       value: 
-      objectReference: {fileID: 11400000, guid: a0335d1f8b6b49c4bab2b4a8a037af47,
+      objectReference: {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[2]
       value: 
-      objectReference: {fileID: 11400000, guid: a0335d1f8b6b49c4bab2b4a8a037af47,
+      objectReference: {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[3]
       value: 
-      objectReference: {fileID: 11400000, guid: a0335d1f8b6b49c4bab2b4a8a037af47,
+      objectReference: {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[4]
       value: 
-      objectReference: {fileID: 11400000, guid: a0335d1f8b6b49c4bab2b4a8a037af47,
+      objectReference: {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.data[5]
       value: 
-      objectReference: {fileID: 11400000, guid: a0335d1f8b6b49c4bab2b4a8a037af47,
+      objectReference: {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}

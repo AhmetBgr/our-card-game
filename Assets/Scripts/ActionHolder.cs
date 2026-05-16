@@ -292,6 +292,8 @@ public class ActionHolder : ScriptableObject
 
     public void SelectThisMinion()
     {
+        if (GameManager.Instance.isTesting) return;
+
         curActionsList.Enqueue(_SelectThisMinion());
     }
     public IEnumerator _SelectThisMinion()
@@ -631,10 +633,19 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _DrawCard(Agent agentToDraw)
     {
         //yield return null;
+
         yield return new WaitForSeconds(0.5f);
 
         Debug.Log("should draw card");
-        agentToDraw.DrawCard();
+        if (agentToDraw == null)
+        {
+            Debug.LogWarning("Agent is null, cannot draw card");
+
+        }
+        else { 
+            agentToDraw.DrawCard();
+        }
+
     }
     public void AddMana(int amount)
     {
@@ -702,17 +713,6 @@ public class ActionHolder : ScriptableObject
     }
     public void ChangeMinionAttackThisTurn(int value)
     {
-        if (GameManager.Instance.isTesting) return;
-
-        //GameManager.Instance.Addtoactions(_ChangeMinionAttack(value));
-        curActionsList.Enqueue(_ChangeMinionAttack(value));
-
-        //Debug.LogWarning("change attack added to actions");
-
-        /*selectedMinion.card.OnTurnEnd.AddListener(() =>
-        {
-            ChangeMinionAttack(selectedMinion, -value);
-        });*/
     }
     public void DoubleMinionAttack()
     {
