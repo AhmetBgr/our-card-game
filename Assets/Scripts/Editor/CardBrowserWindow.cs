@@ -20,6 +20,7 @@ public class CardBrowserWindow : EditorWindow
         public bool baseOnly = false;
 
         public bool minionsOnly = false;
+        public bool spellsOnly = false;
 
         public bool noDescriptionsOnly = false;
 
@@ -135,6 +136,9 @@ public class CardBrowserWindow : EditorWindow
         if (_filters.minionsOnly)
             query = query.Where(IsMinionLike);
 
+        if (_filters.spellsOnly)
+            query = query.Where(IsSpellLike);
+
         if (_filters.noDescriptionsOnly)
             query = query.Where(c => string.IsNullOrWhiteSpace(c.desc));
 
@@ -178,6 +182,14 @@ public class CardBrowserWindow : EditorWindow
             return true;
 
         return card.attack > 0 || card.health > 0;
+    }
+
+    private static bool IsSpellLike(CardSO card)
+    {
+        if (card == null)
+            return false;
+
+        return card.attack <= 0 && card.health <= 0;
     }
 
     private static string DisplayName(CardSO card)
@@ -312,6 +324,18 @@ public class CardBrowserWindow : EditorWindow
             if (nextMinionsOnly != _filters.minionsOnly)
             {
                 _filters.minionsOnly = nextMinionsOnly;
+                if (_filters.minionsOnly && _filters.spellsOnly)
+                    _filters.spellsOnly = false;
+                ApplyFilters();
+                SavePrefs();
+            }
+
+            bool nextSpellsOnly = EditorGUILayout.ToggleLeft("Spells Only (no ATK/HP)", _filters.spellsOnly);
+            if (nextSpellsOnly != _filters.spellsOnly)
+            {
+                _filters.spellsOnly = nextSpellsOnly;
+                if (_filters.spellsOnly && _filters.minionsOnly)
+                    _filters.minionsOnly = false;
                 ApplyFilters();
                 SavePrefs();
             }
