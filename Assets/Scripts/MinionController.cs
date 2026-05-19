@@ -253,6 +253,7 @@ public class MinionController : MonoBehaviour
 
         if (effectiveDamage > 0)
         {
+            Debug.Log("on took damage invoke");
             OnTookDamage?.Invoke(this, effectiveDamage);
         }
 

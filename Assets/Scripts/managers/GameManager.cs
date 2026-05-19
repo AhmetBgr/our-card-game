@@ -277,7 +277,7 @@ public class GameManager : Singleton<GameManager>
                     ActionHolder.selectedAgent = minion.owner;
                     ActionHolder.curActionsList = onCardDrawActions;
 
-                    minion.card.OnOwnerDrawedCard.Invoke();
+                    minion.modal.OnOwnerDrawedCard.Invoke();
 
                     yield return StartCoroutine(ExecuteActions(onCardDrawActions));
                     }
@@ -321,13 +321,15 @@ public class GameManager : Singleton<GameManager>
                         ActionHolder.selectedAgent = player;
                         ActionHolder.curActionsList = onTurnEndActions;
 
-                        minion.card.OnOwnerTurnEnd.Invoke();
+                        minion.modal.OnOwnerTurnEnd.Invoke();
 
                         yield return StartCoroutine(ExecuteActions(onTurnEndActions));
                     }
                     finally
                     {
                         snapshot.Restore();
+                        FinishTriggeredAction();
+
                     }
                 }
             }
@@ -390,6 +392,7 @@ public class GameManager : Singleton<GameManager>
 
         yield return StartCoroutine(opponent.PlayTurn());
 
+
         for (int x = GridManager.Instance.GridWidth-1; x >= 0; x--)
         {
             for (int y = GridManager.Instance.GridHeight-1; y >= 0 ; y--)
@@ -416,13 +419,15 @@ public class GameManager : Singleton<GameManager>
                         ActionHolder.selectedAgent = opponent;
                         ActionHolder.curActionsList = onTurnEndActions;
 
-                        minion.card.OnOwnerTurnEnd.Invoke();
+                        minion.modal.OnOwnerTurnEnd.Invoke();
 
                         yield return StartCoroutine(ExecuteActions(onTurnEndActions));
                     }
                     finally
                     {
                         snapshot.Restore();
+                        FinishTriggeredAction();
+
                     }
                 }
             }
@@ -546,7 +551,7 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.selectedMinions.Clear();
         ActionHolder.selectedCells.Clear();
         ActionHolder.curActionsList = actionQueue;
-        card.card.OnPlay.Invoke();
+        card.modal.OnPlay.Invoke();
 
         Debug.LogWarning("playing card");
 
@@ -587,7 +592,7 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.curActionsList = actionQueue;
 
         isTesting = true;
-        card.card.OnPlay.Invoke();
+        card.modal.OnPlay.Invoke();
         
         //yield return StartCoroutine(ExecuteActions(card));
 
@@ -604,6 +609,7 @@ public class GameManager : Singleton<GameManager>
     public IEnumerator ExecuteActions(CardController card)
     {
         isTesting = false;
+        _executingTriggeredActions = true;
 
         Debug.Log("executeing card actions");
         while (actionQueue.Count > 0)
@@ -715,7 +721,10 @@ public class GameManager : Singleton<GameManager>
         {
             opponent.UpdateHand();
         }
+        FinishTriggeredAction();
+        
         Debug.Log("All actions completed.");
+
     }
 
     public void CancelPlayingCard()
@@ -846,7 +855,7 @@ public class GameManager : Singleton<GameManager>
             ActionHolder.curActionsList = onMinionDeathActions;
 
             this.isTesting = false;
-            minion.card.OnDeath.Invoke();
+            minion.modal.OnDeath.Invoke();
 
             Debug.LogWarning("executing on death actions: " + minion.card.cardName);
             yield return StartCoroutine(ExecuteActions(onMinionDeathActions));
@@ -873,6 +882,8 @@ public class GameManager : Singleton<GameManager>
 
     private void OnMinionTookDamage(MinionController minion, int damage)
     {
+        Debug.Log("OnMinionTookDamage");
+
         EnqueueTriggeredAction(() => StartCoroutine(InvokeOnMinionTookDamageActions(minion, damage)));
     }
 
@@ -880,6 +891,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (_executingTriggeredActions)
         {
+            Debug.Log("added top pending actions");
             _pendingTriggeredCallbacks.Enqueue(startCoroutine);
             return;
         }
@@ -898,6 +910,9 @@ public class GameManager : Singleton<GameManager>
     private IEnumerator InvokeOnMinionTookDamageActions(MinionController minion, int damage)
     {
         var snapshot = ActionHolder.TakeSnapshot();
+        var isTesting = this.isTesting;
+
+        Debug.Log("try invoke on too kdamage events: " + minion.card.cardName);
         try
         {
             _executingTriggeredActions = true;
@@ -914,8 +929,8 @@ public class GameManager : Singleton<GameManager>
             ActionHolder.selectedCells.Clear();
             ActionHolder.selectedAgent = minion.owner;
             ActionHolder.curActionsList = onMinionTookDamageActions;
-
-            minion.card.OnTookDamage.Invoke();
+            this.isTesting = false;
+            minion.modal.OnTookDamage.Invoke();
             Debug.LogWarning($"executing on took damage actions (damage: {damage})");
 
             yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
@@ -927,6 +942,8 @@ public class GameManager : Singleton<GameManager>
             snapshot.Restore();
             FinishTriggeredAction();
         }
+        this.isTesting = isTesting;
+
     }
 
     private IEnumerator InvokeOnMinionCollidedActions(MinionController minion, MinionController collidedMinion)
@@ -948,7 +965,7 @@ public class GameManager : Singleton<GameManager>
             ActionHolder.selectedAgent = minion.owner;
             ActionHolder.curActionsList = onMinionCollidedActions;
 
-            minion.card.OnMinionCollided.Invoke();
+            minion.modal.OnMinionCollided.Invoke();
 
             Debug.LogWarning("executing minion collision actions");
             yield return StartCoroutine(ExecuteActions(onMinionCollidedActions));

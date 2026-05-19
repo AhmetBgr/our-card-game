@@ -138,7 +138,7 @@ public class ActionHolder : ScriptableObject
     }
     public void SelectFriendlyAgent()
     {
-        //Debug.Log("adding select agent to list: " + curActionsList);
+        Debug.Log("adding select agent to list: " + curActionsList);
 
         curActionsList.Enqueue(_SelectThisMinion());
 
@@ -171,6 +171,205 @@ public class ActionHolder : ScriptableObject
         //GameManager.Instance.Addtoactions(cor);
         curActionsList.Enqueue(cor);
         //Debug.LogWarning("selectcell added to actions");
+    }
+    public IEnumerator _SelectCell(int rowIndex)
+    {
+        var grid = GridManager.Instance.GetGrid();
+        List<Transform> selectableCells = new List<Transform>();
+        if (!GameManager.Instance.isPlayerTurn)
+        {
+            rowIndex = 2 - rowIndex;
+        }
+        foreach (var cell in grid)
+        {
+            if (cell.index.y == rowIndex && cell.obj == null)
+            {
+                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
+                selectableCells.Add(cell.cellObj.transform);
+            }
+            else
+            {
+                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
+            }
+        }
+        if (GameManager.Instance.isPlayerTurn)
+        {
+            GameManager.Instance.player.curState = Player.State.SelectingCell;
+        }
+        if (GameManager.Instance.isTesting && selectableCells.Count == 0)
+        {
+            GameManager.Instance.isTestingFailed = true;
+            yield break;
+        }
+
+        OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
+
+        while (selectedcell == null && !cancelRequested)
+        {
+            //Debug.Log("selecting cell");
+
+            yield return null;
+        }
+        if (cancelRequested) yield break;
+        selectedCells.Clear();
+        selectedCells.Add(selectedcell);
+        foreach (var cell in grid)
+        {
+            cell.cellObj.GetComponent<CellController>()
+                .selectable.SetSelectable(false);
+        }
+
+        //Debug.Log("selected cell");
+    }
+
+    public IEnumerator _SelectCollumn()
+    {
+        var grid = GridManager.Instance.GetGrid();
+        List<Transform> selectableCells = new List<Transform>();
+        int rowIndex = 2;
+        foreach (var cell in grid)
+        {
+            if (cell.index.y == rowIndex && cell.obj == null)
+            {
+                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
+                selectableCells.Add(cell.cellObj.transform);
+            }
+            else
+            {
+                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
+            }
+        }
+        if (GameManager.Instance.isPlayerTurn)
+        {
+            GameManager.Instance.player.curState = Player.State.SelectingCell;
+        }
+
+        if (GameManager.Instance.isTesting && selectableCells.Count == 0)
+        {
+            GameManager.Instance.isTestingFailed = true;
+            yield break;
+        }
+
+        OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
+
+        while (selectedcell == null && !cancelRequested)
+        {
+            //Debug.Log("selecting cell");
+
+            yield return null;
+        }
+
+        if (cancelRequested) yield break;
+
+        selectedCells.Clear();
+        selectedCells.Add(selectedcell);
+
+        foreach (var cell in grid)
+        {
+            cell.cellObj.GetComponent<CellController>()
+                .selectable.SetSelectable(false);
+
+            if (cell.cellObj.transform.position.y == selectedcell.position.y)
+            {
+                selectedCells.Add(cell.cellObj.transform);
+            }
+        }
+
+        //Debug.Log("selected collumn");
+    }
+    public void SelectSmallArea()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SelectSmallArea());
+    }
+    public IEnumerator _SelectSmallArea()
+    {
+        // Select a center cell, then select the surrounding plus-shape (center + 4 orthogonal neighbors).
+        var grid = GridManager.Instance.GetGrid();
+        List<Transform> selectableCells = new List<Transform>();
+
+        selectedcell = null;
+
+        foreach (var cell in grid)
+        {
+            if (cell.cellObj == null) continue;
+
+            cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
+            selectableCells.Add(cell.cellObj.transform);
+        }
+
+        if (GameManager.Instance.isPlayerTurn)
+        {
+            GameManager.Instance.player.curState = Player.State.SelectingCell;
+        }
+
+        if (GameManager.Instance.isTesting && selectableCells.Count == 0)
+        {
+            GameManager.Instance.isTestingFailed = true;
+            yield break;
+        }
+
+        OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
+
+        while (selectedcell == null && !cancelRequested)
+        {
+            yield return null;
+        }
+
+        if (cancelRequested) yield break;
+
+        selectedCells.Clear();
+        Vector2Int centerIndex = GridManager.Instance.PosToGridIndex(selectedcell.position);
+        HashSet<Transform> uniqueCells = new HashSet<Transform>();
+        uniqueCells.Add(selectedcell);
+
+        foreach (var cell in grid)
+        {
+            if (cell.cellObj == null) continue;
+
+            cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
+
+            int dx = Mathf.Abs(cell.index.x - centerIndex.x);
+            int dy = Mathf.Abs(cell.index.y - centerIndex.y);
+            bool isCenter = dx == 0 && dy == 0;
+            bool isOrthogonalNeighbor = (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
+            if (isCenter || isOrthogonalNeighbor)
+            {
+                uniqueCells.Add(cell.cellObj.transform);
+            }
+        }
+
+        selectedCells.AddRange(uniqueCells);
+        Debug.Log("selected cells count: " + selectedCells.Count);
+    }
+    public void SelectAllMinionsFromCells()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SelectAllMinionsFromCells());
+
+    }
+    public IEnumerator _SelectAllMinionsFromCells()
+    {
+        selectedMinions.Clear();
+
+        foreach (var item in selectedCells)
+        {
+            var cell = GridManager.Instance.GetCell(item.transform.position);
+            var obj = cell.obj;
+
+            if (obj == null) continue;
+
+            var minion = obj.GetComponent<MinionController>();
+
+            if (minion == null) continue;
+
+            selectedMinions.Add(minion);
+
+        }
+
+        yield return null; 
     }
 
     public void SelectMinion(int typeIndex = 0)
@@ -505,109 +704,7 @@ public class ActionHolder : ScriptableObject
         selectedTargetMinions.Add(selectedTargetMinion);
         yield return null;
     }
-    public IEnumerator _SelectCell(int rowIndex)
-    {
-        var grid = GridManager.Instance.GetGrid();
-        List<Transform> selectableCells = new List<Transform>();
-        if (!GameManager.Instance.isPlayerTurn)
-        {
-            rowIndex = 2 - rowIndex;
-        }
-        foreach (var cell in grid)
-        {
-            if (cell.index.y == rowIndex && cell.obj == null)
-            {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
-                selectableCells.Add(cell.cellObj.transform);
-            }
-            else
-            {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
-            }
-        }
-        if (GameManager.Instance.isPlayerTurn)
-        {
-            GameManager.Instance.player.curState = Player.State.SelectingCell;
-        }
-        if (GameManager.Instance.isTesting && selectableCells.Count == 0)
-        {
-            GameManager.Instance.isTestingFailed = true;
-            yield break;
-        }
 
-        OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
-
-        while (selectedcell == null && !cancelRequested)
-        {
-            //Debug.Log("selecting cell");
-
-            yield return null;
-        }
-        if (cancelRequested) yield break;
-        selectedCells.Clear();
-        selectedCells.Add(selectedcell);
-        foreach (var cell in grid)
-        {
-            cell.cellObj.GetComponent<CellController>()
-                .selectable.SetSelectable(false);
-        }
-
-        //Debug.Log("selected cell");
-    }
-
-    public IEnumerator _SelectCollumn()
-    {
-        var grid = GridManager.Instance.GetGrid();
-        List<Transform> selectableCells = new List<Transform>();
-        int rowIndex = 2;
-        foreach (var cell in grid)
-        {
-            if (cell.index.y == rowIndex && cell.obj == null)
-            {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
-                selectableCells.Add(cell.cellObj.transform);
-            }
-            else
-            {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
-            }
-        }
-        if (GameManager.Instance.isPlayerTurn)
-        {
-            GameManager.Instance.player.curState = Player.State.SelectingCell;
-        }
-        if (GameManager.Instance.isTesting && selectableCells.Count == 0)
-        {
-            GameManager.Instance.isTestingFailed = true;
-            yield break;
-        }
-
-        OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
-
-        while (selectedcell == null && !cancelRequested)
-        {
-            //Debug.Log("selecting cell");
-
-            yield return null;
-        }
-        if (cancelRequested) yield break;
-
-        selectedCells.Clear();
-        selectedCells.Add(selectedcell);
-
-        foreach (var cell in grid)
-        {
-            cell.cellObj.GetComponent<CellController>()
-                .selectable.SetSelectable(false);
-
-            if(cell.cellObj.transform.position.y == selectedcell.position.y)
-            {
-                selectedCells.Add(cell.cellObj.transform);
-            }
-        }
-
-        //Debug.Log("selected collumn");
-    }
 
     #endregion
     public void AtestAction()
@@ -654,7 +751,7 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _PayCardCost()
     {
         selectedAgent.availibleMana -= thisCard.modal.cost;
-        Debug.Log("cost paid");
+        Debug.Log("cost paid: " + thisCard.modal.cost);
         yield return null;
     }
 
@@ -714,6 +811,7 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _DrawCard()
     {
         //yield return null;
+        Debug.Log("should draw card in 0.5 sec");
 
         yield return new WaitForSeconds(0.5f);
 
@@ -854,7 +952,7 @@ public class ActionHolder : ScriptableObject
 
     public IEnumerator _ChangeMinionHealth(int value)
     {
-        Debug.Log("try change minions health");
+        Debug.Log("try change minions health: " + selectedMinions.Count);
 
         foreach (var minion in selectedMinions)
         {
@@ -990,5 +1088,55 @@ public class ActionHolder : ScriptableObject
 
 
 
+    }
+    public void AddBonusEventsToMinionsOnTookDamage()
+    {
+        //if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_AddBonusEventsToMinionsOnTookDamage());
+    }
+
+    public IEnumerator _AddBonusEventsToMinionsOnTookDamage()
+    {
+        // Adds this card's OnPlay actions to selected minions' OnTookDamage triggers.
+        // Requires: ActionHolder.thisCard (current card controller) and selectedMinions (targets).
+        if (thisCard == null)
+        {
+            Debug.LogWarning("AddToMinionsOnTookDamage: thisCard is null");
+            yield break;
+        }
+
+        if (thisCard.modal == null || thisCard.modal.OnPlay == null)
+        {
+            Debug.LogWarning("AddToMinionsOnTookDamage: thisCard.modal or thisCard.modal.OnPlay is null");
+            yield break;
+        }
+
+        /*if (selectedMinion == null || selectedMinion.modal == null)
+            continue;*/
+
+        if (selectedMinion.modal.OnTookDamage == null)
+            selectedMinion.modal.OnTookDamage = new UnityEvent();
+
+        // Runtime-only wiring: when the minion takes damage, run this card's OnPlay actions.
+        selectedMinion.modal.OnTookDamage.AddListener(thisCard.modal.BonusEvents.Invoke);
+        //selectedMinion.modal.OnTookDamage = thisCard.modal.BonusEvents;
+
+        Debug.Log("added to minions on took damage events: " + selectedMinion.modal.name);
+        /*foreach (var minion in selectedMinions)
+        {
+            if (minion == null || minion.modal == null)
+                continue;
+
+            if (minion.modal.OnTookDamage == null)
+                minion.modal.OnTookDamage = new UnityEvent();
+
+            // Runtime-only wiring: when the minion takes damage, run this card's OnPlay actions.
+            minion.modal.OnTookDamage.AddListener(thisCard.modal.BonusEvents.Invoke);
+        }*/
+
+
+
+        yield return null;
     }
 }

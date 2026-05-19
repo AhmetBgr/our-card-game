@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 public class CardModal : MonoBehaviour
@@ -22,6 +23,16 @@ public class CardModal : MonoBehaviour
     public bool isUpgraded = false;
     public bool canMove = true;
 
+    public UnityEvent OnPlay;
+    public UnityEvent OnDeath;
+    public UnityEvent OnTurnStart;
+    public UnityEvent OnOwnerTurnEnd;
+    public UnityEvent OnAnyMinionSummoned;
+    public UnityEvent OnOwnerDrawedCard;
+    public UnityEvent OnMinionCollided;
+    public UnityEvent OnTookDamage;
+    public UnityEvent BonusEvents; // Holds events to be added to another event
+
     public void UpdateModal(CardSO card)
     {
         minionArt = card.minionArt;
@@ -38,6 +49,18 @@ public class CardModal : MonoBehaviour
         canMove = card.canMove; 
         upgradedVerdion = card.upgradedVersion;
         isUpgraded = card.isUpgraded;
+
+        // Copy event templates from CardSO into this runtime modal.
+        // (These are assigned by reference; gameplay should invoke events on the modal instance.)
+        OnPlay = card.OnPlay;
+        OnDeath = card.OnDeath;
+        OnTurnStart = card.OnTurnStart;
+        OnOwnerTurnEnd = card.OnOwnerTurnEnd;
+        OnAnyMinionSummoned = card.OnAnyMinionSummoned;
+        OnOwnerDrawedCard = card.OnOwnerDrawedCard;
+        OnMinionCollided = card.OnMinionCollided;
+        OnTookDamage = card.OnTookDamage;
+        BonusEvents = card.BonusEvents;
         //isPlayerMinion = GameManager.Instance.isPlayerTurn;
     }
 }

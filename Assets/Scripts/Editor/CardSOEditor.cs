@@ -17,6 +17,10 @@ public class CardSOEditor : Editor
         {
             InitializeDefaultMinionCard(card);
         }
+        if (GUILayout.Button("Initialize Default Spell Card"))
+        {
+            InitializeDefaultSpellCard(card);
+        }
     }
 
     private void InitializeDefaultMinionCard(CardSO card)
@@ -46,6 +50,31 @@ public class CardSOEditor : Editor
             card.OnPlay,
             card.actionHolder.SummonMinion,
             card
+        );
+
+        // Mark dirty so Unity saves changes
+        EditorUtility.SetDirty(card);
+        AssetDatabase.SaveAssets();
+
+        Debug.Log("OnPlayInitialize configured for " + card.name);
+    }
+
+    private void InitializeDefaultSpellCard(CardSO card)
+    {
+        if (card.actionHolder == null)
+        {
+            Debug.LogError("ActionHolder is not assigned!");
+            return;
+        }
+
+        UnityEventTools.AddPersistentListener(
+            card.OnPlay,
+            card.actionHolder.SelectThisAgent
+        );
+
+        UnityEventTools.AddPersistentListener(
+            card.OnPlay,
+            card.actionHolder.PayCardCost
         );
 
         // Mark dirty so Unity saves changes

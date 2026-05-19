@@ -3,7 +3,7 @@ using UnityEditor.Events;
 using UnityEngine;
 using UnityEngine.Events;
 
-[CreateAssetMenu(fileName = "TestCArd", menuName = "New Test Card")]
+[CreateAssetMenu(fileName = "Card", menuName = "New Card")]
 public class CardSO : ScriptableObject
 {
     public ActionHolder actionHolder;
@@ -37,6 +37,8 @@ public class CardSO : ScriptableObject
     public UnityEvent OnOwnerDrawedCard; //
     public UnityEvent OnMinionCollided; //
     public UnityEvent OnTookDamage; //
+
+    public UnityEvent BonusEvents; // Holds events to be added to another event
 
     private void Awake()
     {

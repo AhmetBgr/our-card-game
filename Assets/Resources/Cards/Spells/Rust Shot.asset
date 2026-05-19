@@ -12,23 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Rust Shot
   m_EditorClassIdentifier: 
-  art:
-  - {fileID: 0}
-  - {fileID: 0}
-  frame: {fileID: 0}
-  name: 'Rust Shot '
-  desc: 'Deal 3 damage to a minion
+  actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+  minionArt: {fileID: 0}
+  cardArt: {fileID: 0}
+  cardName: Rust Shot
+  desc: 'Deal 3 damage to a minion.
 
 '
   attack: 0
   health: 0
   cost: 2
   range: 0
+  armor: 0
+  canMove: 1
   type: 2
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: 3365e8c6c6ac3db42a62fe4f1e630ed3, type: 2}
   isUpgraded: 0
   defHealth: 0
-  effectValues: 
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -56,6 +56,30 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisAgent
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: PayCardCost
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   OnDeath:
     m_PersistentCalls:
       m_Calls: []
@@ -65,18 +89,18 @@ MonoBehaviour:
   OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls: []
-  OnSpellPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnMinionPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnThisMoved:
-    m_PersistentCalls:
-      m_Calls: []
-  OnAnyMoved:
+  OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrawedCard:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

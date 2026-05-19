@@ -24,6 +24,7 @@ public class MinionModal
     public UnityEvent OnTurnStart;
     public UnityEvent OnOwnerTurnEnd;
     public UnityEvent OnOwnerDrawedCard;
+    public UnityEvent BonusEvents; // Holds events to be added to another event
 
     public MinionModal(CardSO card, MinionController owner)
     {
@@ -50,5 +51,6 @@ public class MinionModal
         OnTurnStart = card.OnTurnStart;
         OnOwnerTurnEnd = card.OnOwnerTurnEnd;
         OnOwnerDrawedCard = card.OnOwnerDrawedCard;
+        BonusEvents = card.BonusEvents;
     }
 }
