@@ -54,13 +54,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232, type: 2}
   - {fileID: 11400000, guid: aec9d658979efc045a0fdcfae0f9df39, type: 2}
   - {fileID: 11400000, guid: 11ac419feb8edce41a10a8db7426bf4a, type: 2}
-  - {fileID: 11400000, guid: 956e23a16ec37f8449c93de95b556719, type: 2}
   - {fileID: 11400000, guid: 4f950df988824f34ba5cd1f90008ef3e, type: 2}
   - {fileID: 11400000, guid: 5215dd3e819d3be40ada5aaf63cd718d, type: 2}
   - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
   - {fileID: 11400000, guid: 54cd2e72173264e4a9980298757f8753, type: 2}
-  - {fileID: 11400000, guid: 54cd2e72173264e4a9980298757f8753, type: 2}
   - {fileID: 11400000, guid: b5698a2cd334e774396b31df186d0e7c, type: 2}
+  - {fileID: 11400000, guid: d108f43a5214df34aa81873ef4952feb, type: 2}
+  - {fileID: 11400000, guid: b5887332e38ce124d988da72b0dd3af1, type: 2}
   DeckSize: 10
 --- !u!114 &6552837891346492369
 MonoBehaviour:

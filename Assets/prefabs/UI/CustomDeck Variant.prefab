@@ -8,6 +8,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1097283044651411479, guid: c6cca30fd5e560b4eb0eb6e235edcb6a,
+        type: 3}
+      propertyPath: m_Padding.m_Top
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1097283044651411479, guid: c6cca30fd5e560b4eb0eb6e235edcb6a,
+        type: 3}
+      propertyPath: m_Padding.m_Right
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 5325481345723371195, guid: c6cca30fd5e560b4eb0eb6e235edcb6a,
         type: 3}
       propertyPath: m_Name

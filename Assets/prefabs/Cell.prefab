@@ -80,7 +80,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6,
     type: 3}
@@ -459,6 +459,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SelectableCell
+      objectReference: {fileID: 0}
+    - target: {fileID: 4648695774230313995, guid: d9faec8b0269af740beec7bfe60617e4,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5697807528602161949, guid: d9faec8b0269af740beec7bfe60617e4,
         type: 3}

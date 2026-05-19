@@ -7,7 +7,10 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\" -Directory)",
       "Bash(Select-Object Name)",
       "Bash(Get-ChildItem -Recurse -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\\\\Assets\\\\Scripts\" -Filter \"*.cs\")",
-      "Bash(grep -E \"\\\\.\\(cs\\)$\")"
+      "Bash(grep -E \"\\\\.\\(cs\\)$\")",
+      "mcp__unity-mcp__Unity_ReadResource",
+      "Bash(python -c ' *)",
+      "mcp__unity-mcp__Unity_RunCommand"
     ]
   }
 }

@@ -1,3 +1,4 @@
+using NUnit.Framework.Constraints;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,14 +10,11 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
     public SaveData saveData;
     public List<CardSO> defaultDeck = new List<CardSO>();
-
-
     public int DeckSize = 10;
 
     protected override void Awake()
     {
         base.Awake();
-    
         // load
         LoadData();
     }
@@ -65,6 +63,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
         saveData.Decks[deckIndex].Deck.Remove(cardName);
             SaveData();
+
 
         /*List<string> cards = new List<string>(saveData.Decks[deckIndex].Deck);
 

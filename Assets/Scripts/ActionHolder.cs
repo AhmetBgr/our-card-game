@@ -26,6 +26,7 @@ public class ActionHolder : ScriptableObject
     public static Transform selectedcell = null;
     public static List<Transform> selectedCells = new List<Transform>();
     public static List<MinionController> selectedMinions = new List<MinionController>();
+    public static List<MinionController> selectedTargetMinions = new List<MinionController>();
     public static List<CardController> selectedCards = new List<CardController>();
 
     public static MinionController selectedMinion = null;
@@ -118,6 +119,8 @@ public class ActionHolder : ScriptableObject
     public static event Action<List<Transform>, CardSO> OnWaitingCellSelect;
     public static event Action<List<MinionController>, CardSO> OnWaitingMinionSelect;
 
+
+
     #region SELECTION
 
     public void SelectThisAgent()
@@ -129,7 +132,7 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _SelectThisAgent()
     {
         selectedAgent = GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent;
-        //Debug.Log("selected agent: " + selectedAgent.name);
+        Debug.Log("selected agent: " + selectedAgent.name);
         yield return null;
 
     }
@@ -149,6 +152,19 @@ public class ActionHolder : ScriptableObject
         yield return null;
 
     }
+    public void SelectOpponentAgent()
+    {
+        //Debug.Log("adding select agent to list: " + curActionsList);
+        curActionsList.Enqueue(_SelectOpponentAgent());
+    }
+    public IEnumerator _SelectOpponentAgent()
+    {
+        selectedAgent = thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+        Debug.Log("selected agent: " + selectedAgent.name);
+        yield return null;
+
+    }
+
     public void SelectCell(int rowIndex = 2)
     {
         IEnumerator cor = _SelectCell(rowIndex);
@@ -221,6 +237,20 @@ public class ActionHolder : ScriptableObject
 
 
     }
+    public void SelectAllMinionsOfSelectedAgent()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SelectAllMinionsOfSelectedAgent());
+    }
+    public IEnumerator _SelectAllMinionsOfSelectedAgent()
+    {
+        selectedMinions.Clear();
+        selectedMinions.AddRange(selectedAgent.minions);
+
+        yield return null;
+    }
+
     public void SelectAllMinionsAsSelectedCell()
     {
         curActionsList.Enqueue(_SelectAllMinionsAsSelectedCell());
@@ -304,9 +334,7 @@ public class ActionHolder : ScriptableObject
             selectedMinions.Add(selectedMinion);
 
         Debug.Log("minion sohuld be selected");
-
         yield return null;
-
     }
     public void SelectAllMinionsInHand()
     {
@@ -353,10 +381,13 @@ public class ActionHolder : ScriptableObject
         if(thisMinion != null)
         {
             opponent = thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+            Debug.Log("opponent: " + opponent.name);
         }
         else
         {
             opponent = GameManager.Instance.isPlayerTurn ? GameManager.Instance.opponent : GameManager.Instance.player;
+            Debug.Log("opponent: " + opponent.name);
+
         }
 
         curActionsList.Enqueue(_SelectRandomMinion(opponent.minions));
@@ -367,11 +398,16 @@ public class ActionHolder : ScriptableObject
 
         if (thisMinion != null)
         {
+
             opponent = thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+            Debug.Log("opponent: " + opponent.name);
+
         }
         else
         {
             opponent = GameManager.Instance.isPlayerTurn ? GameManager.Instance.opponent : GameManager.Instance.player;
+            Debug.Log("opponent: " + opponent.name);
+
         }
 
         curActionsList.Enqueue(_SelectRandomMinionInRange(opponent));
@@ -394,30 +430,41 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _SelectRandomMinion(List<MinionController> minions)
     {
         selectedMinion = minions[UnityEngine.Random.Range(0, minions.Count)];
-
+        selectedMinions.Add(selectedMinion);
+        Debug.Log("selected minionÇ: " + selectedMinion.card.cardName);
         yield return null;
     }
     public IEnumerator _SelectRandomMinionInRange(Agent agent)
     {
         List<MinionController> minionsInRange = new List<MinionController>();
-        //Debug.Log("opponent: " + agent.name);
+        Debug.Log("opponent: " + agent.name);
 
         foreach (var minion in agent.minions)
         {
-            //Debug.Log("checking if minion is in range: ");
+            Debug.Log("checking if minion is in range: ");
             if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1 && minion != thisMinion)
             {
-                //Debug.Log("minion is in range: ");
+                Debug.Log("minion is in range: ");
 
                 minionsInRange.Add(minion);
             }
         }
+        selectedMinions.Clear();
 
         if (minionsInRange.Count > 0)
         {
             selectedMinion = minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)];
+            selectedMinions.Add(selectedMinion);
+            Debug.Log("selected minion: " + selectedMinion.card.cardName);
+
         }
-        yield return null;
+        else
+        {
+            selectedMinion = null;
+        }
+
+            
+            yield return null;
     }
     public IEnumerator _SelectRandomFriendlyMinionInRange(Agent thisAgent)
     {
@@ -444,7 +491,20 @@ public class ActionHolder : ScriptableObject
         }
         yield return null;
     }
+    public void SelectThisMinionsLastTargetAsTarget()
+    {
+        if (GameManager.Instance.isTesting) return;
 
+        curActionsList.Enqueue(_SelectThisMinionsLastTargetAsTarget());
+
+    }
+    public IEnumerator _SelectThisMinionsLastTargetAsTarget()
+    {
+        selectedTargetMinion = thisMinion.LastTarget;
+        selectedTargetMinions.Clear();
+        selectedTargetMinions.Add(selectedTargetMinion);
+        yield return null;
+    }
     public IEnumerator _SelectCell(int rowIndex)
     {
         var grid = GridManager.Instance.GetGrid();
@@ -635,10 +695,12 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _Attack()
     {
         //Debug.Log("should attack minion: " + thisMinion.modal.name + " : " + selectedMinion.modal.name);
-        thisMinion.StartAttack(selectedMinion.owner, selectedMinion);
+        thisMinion.StartAttack(selectedMinion.owner, selectedTargetMinion);
         thisMinion.isAttackedThisTurn = false;
         yield return null;
     }
+
+
     public void DrawCard()
     {
         Debug.Log("try draw card");
@@ -646,23 +708,23 @@ public class ActionHolder : ScriptableObject
         if (GameManager.Instance.isTesting) return;
 
         var agentToDraw = selectedAgent;
-        curActionsList.Enqueue(_DrawCard(agentToDraw));
+        curActionsList.Enqueue(_DrawCard());
     }
 
-    public IEnumerator _DrawCard(Agent agentToDraw)
+    public IEnumerator _DrawCard()
     {
         //yield return null;
 
         yield return new WaitForSeconds(0.5f);
 
         Debug.Log("should draw card");
-        if (agentToDraw == null)
+        if (selectedAgent == null)
         {
             Debug.LogWarning("Agent is null, cannot draw card");
 
         }
-        else { 
-            agentToDraw.DrawCard();
+        else {
+            selectedAgent.DrawCard();
         }
 
     }
@@ -787,13 +849,17 @@ public class ActionHolder : ScriptableObject
         //GameManager.Instance.Addtoactions(_ChangeMinionHealth(value));
         curActionsList.Enqueue(_ChangeMinionHealth(value));
 
-        //Debug.LogWarning("change attack added to actions");
+        Debug.LogWarning("change health added to actions");
     }
 
     public IEnumerator _ChangeMinionHealth(int value)
     {
+        Debug.Log("try change minions health");
+
         foreach (var minion in selectedMinions)
         {
+            Debug.Log("minion should change health: "+ minion.card.cardName);
+
             if (value < 0)
             {
                 minion.TakeDamage(Mathf.Abs(value));
@@ -822,7 +888,12 @@ public class ActionHolder : ScriptableObject
     }
     public void ChangeMinionHealth(int value)
     {
-        if (GameManager.Instance.isTesting) return;
+        if (GameManager.Instance.isTesting) { 
+            Debug.LogWarning("testing. change health canceled.");
+            return;
+        }
+
+        Debug.LogWarning("change health added to actions");
 
         //GameManager.Instance.Addtoactions(_ChangeMinionDefHealth(value));
         curActionsList.Enqueue(_ChangeMinionHealth(value));
@@ -890,5 +961,34 @@ public class ActionHolder : ScriptableObject
         selectedMinion.modal.canMove = value;
         //Debug.Log("selected minion");
     }
+    public void Wait()
+    {
+        curActionsList.Enqueue(_Wait());
+    }
+    public IEnumerator _Wait( )
+    {
+        yield return new WaitForSeconds(0.5f);
+    }
 
+    public void SwitchSide()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SwitchSide());
+    }
+
+    public IEnumerator _SwitchSide()
+    {
+        selectedMinion.modal.isPlayerMinion = thisMinion.modal.isPlayerMinion;
+        selectedMinion.owner.minions.Remove(selectedMinion);
+        thisMinion.owner.minions.Add(selectedMinion);
+        selectedMinion.owner = thisMinion.owner;
+
+        selectedMinion.view.UpdateView(selectedMinion.modal);
+
+        yield return null;
+
+
+
+    }
 }

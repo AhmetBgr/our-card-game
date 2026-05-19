@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.sarpersoher.ide.sublimetext": {
+      "version": "https://github.com/ssoher/com.sarpersoher.ide.sublimetext.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "6ffd6aa7f871c3be49797b888687ac3eaceae0c1"
+    },
     "com.unity.2d.animation": {
       "version": "13.0.4",
       "depth": 1,

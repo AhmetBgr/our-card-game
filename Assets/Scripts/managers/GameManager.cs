@@ -403,6 +403,8 @@ public class GameManager : Singleton<GameManager>
                     var snapshot = ActionHolder.TakeSnapshot();
                     try
                     {
+                        _executingTriggeredActions = true;
+
                         onTurnEndActions.Clear();
                         ActionHolder.selectedcell = null;
                         ActionHolder.selectedMinion = null;
@@ -410,7 +412,6 @@ public class GameManager : Singleton<GameManager>
                         ActionHolder.thisCardSO = minion.card;
                         ActionHolder.thisCard = null;
                         ActionHolder.selectedMinions.Clear();
-                        ActionHolder.selectedMinions.Add(minion);
                         ActionHolder.selectedCells.Clear();
                         ActionHolder.selectedAgent = opponent;
                         ActionHolder.curActionsList = onTurnEndActions;
@@ -827,6 +828,7 @@ public class GameManager : Singleton<GameManager>
     private IEnumerator InvokeOnMinionDeathActions(MinionController minion)
     {
         var snapshot = ActionHolder.TakeSnapshot();
+        var isTesting = this.isTesting;
         try
         {
             _executingTriggeredActions = true;
@@ -843,9 +845,10 @@ public class GameManager : Singleton<GameManager>
             ActionHolder.selectedAgent = minion.owner;
             ActionHolder.curActionsList = onMinionDeathActions;
 
+            this.isTesting = false;
             minion.card.OnDeath.Invoke();
 
-            Debug.LogWarning("executing on death actions");
+            Debug.LogWarning("executing on death actions: " + minion.card.cardName);
             yield return StartCoroutine(ExecuteActions(onMinionDeathActions));
             Debug.LogWarning("executed on death actions");
         }
@@ -854,6 +857,8 @@ public class GameManager : Singleton<GameManager>
             snapshot.Restore();
             FinishTriggeredAction();
         }
+
+        this.isTesting = isTesting;
     }
 
     private void OnMinionDied(MinionController minion)

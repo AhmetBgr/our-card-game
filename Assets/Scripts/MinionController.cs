@@ -31,6 +31,8 @@ public class MinionController : MonoBehaviour
 
     public MinionController selectedMinion;
 
+    public MinionController LastTarget;
+
     public SelectionType SelectionType { get => SelectionType.Minion; }
     public static event Action<List<MinionController>> OnSelectingMinionForAttack;
     public static event Action<MinionController> OnDied;
@@ -227,7 +229,7 @@ public class MinionController : MonoBehaviour
         {
             StartCoroutine(animationController.PlayArrowAnimation(dir, selectedMinion.transform.position, 0.65f, selectedMinion.animationController.PlayArrowHitAnimation));
         }
-
+        LastTarget = selectedMinion;
         isAttackedThisTurn = true;
         selectedMinion = null;
         canAttack = false;
