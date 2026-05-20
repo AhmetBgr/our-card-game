@@ -123,6 +123,12 @@ public class ActionHolder : ScriptableObject
 
     #region SELECTION
 
+    private static Transform GetCellTransform(Vector2Int index)
+    {
+        var cell = GridManager.Instance.GetCell(index);
+        return cell.cellObj != null ? cell.cellObj.transform : null;
+    }
+
     public void SelectThisAgent()
     {
         //Debug.Log("adding select agent to list: " + curActionsList);
@@ -176,6 +182,9 @@ public class ActionHolder : ScriptableObject
     {
         var grid = GridManager.Instance.GetGrid();
         List<Transform> selectableCells = new List<Transform>();
+        HashSet<Vector2Int> selectableIndexes = new HashSet<Vector2Int>();
+
+        selectedcell = null;
         if (!GameManager.Instance.isPlayerTurn)
         {
             rowIndex = 2 - rowIndex;
@@ -184,13 +193,16 @@ public class ActionHolder : ScriptableObject
         {
             if (cell.index.y == rowIndex && cell.obj == null)
             {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
                 selectableCells.Add(cell.cellObj.transform);
+                selectableIndexes.Add(cell.index);
             }
-            else
-            {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
-            }
+        }
+
+        if (GridCellSelectionManager.Instance != null)
+        {
+            GridCellSelectionManager.Instance.BeginSelection(
+                selectableIndexes,
+                hovered => new[] { hovered });
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -210,14 +222,10 @@ public class ActionHolder : ScriptableObject
 
             yield return null;
         }
+        if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
         if (cancelRequested) yield break;
         selectedCells.Clear();
         selectedCells.Add(selectedcell);
-        foreach (var cell in grid)
-        {
-            cell.cellObj.GetComponent<CellController>()
-                .selectable.SetSelectable(false);
-        }
 
         //Debug.Log("selected cell");
     }
@@ -226,18 +234,23 @@ public class ActionHolder : ScriptableObject
     {
         var grid = GridManager.Instance.GetGrid();
         List<Transform> selectableCells = new List<Transform>();
+        HashSet<Vector2Int> selectableIndexes = new HashSet<Vector2Int>();
         int rowIndex = 2;
+        selectedcell = null;
         foreach (var cell in grid)
         {
             if (cell.index.y == rowIndex && cell.obj == null)
             {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
                 selectableCells.Add(cell.cellObj.transform);
+                selectableIndexes.Add(cell.index);
             }
-            else
-            {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
-            }
+        }
+
+        if (GridCellSelectionManager.Instance != null)
+        {
+            GridCellSelectionManager.Instance.BeginSelection(
+                selectableIndexes,
+                hovered => selectableIndexes.Where(i => i.y == hovered.y));
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -259,6 +272,7 @@ public class ActionHolder : ScriptableObject
             yield return null;
         }
 
+        if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
         if (cancelRequested) yield break;
 
         selectedCells.Clear();
@@ -266,9 +280,6 @@ public class ActionHolder : ScriptableObject
 
         foreach (var cell in grid)
         {
-            cell.cellObj.GetComponent<CellController>()
-                .selectable.SetSelectable(false);
-
             if (cell.cellObj.transform.position.y == selectedcell.position.y)
             {
                 selectedCells.Add(cell.cellObj.transform);
@@ -288,6 +299,7 @@ public class ActionHolder : ScriptableObject
         // Select a center cell, then select the surrounding plus-shape (center + 4 orthogonal neighbors).
         var grid = GridManager.Instance.GetGrid();
         List<Transform> selectableCells = new List<Transform>();
+        HashSet<Vector2Int> selectableIndexes = new HashSet<Vector2Int>();
 
         selectedcell = null;
 
@@ -295,8 +307,22 @@ public class ActionHolder : ScriptableObject
         {
             if (cell.cellObj == null) continue;
 
-            cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
             selectableCells.Add(cell.cellObj.transform);
+            selectableIndexes.Add(cell.index);
+        }
+
+        if (GridCellSelectionManager.Instance != null)
+        {
+            GridCellSelectionManager.Instance.BeginSelection(
+                selectableIndexes,
+                hovered => new[]
+                {
+                    hovered,
+                    new Vector2Int(hovered.x + 1, hovered.y),
+                    new Vector2Int(hovered.x - 1, hovered.y),
+                    new Vector2Int(hovered.x, hovered.y + 1),
+                    new Vector2Int(hovered.x, hovered.y - 1),
+                });
         }
 
         if (GameManager.Instance.isPlayerTurn)
@@ -317,30 +343,27 @@ public class ActionHolder : ScriptableObject
             yield return null;
         }
 
+        if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
         if (cancelRequested) yield break;
 
         selectedCells.Clear();
         Vector2Int centerIndex = GridManager.Instance.PosToGridIndex(selectedcell.position);
-        HashSet<Transform> uniqueCells = new HashSet<Transform>();
-        uniqueCells.Add(selectedcell);
-
-        foreach (var cell in grid)
+        HashSet<Vector2Int> areaIndexes = new HashSet<Vector2Int>
         {
-            if (cell.cellObj == null) continue;
+            centerIndex,
+            new Vector2Int(centerIndex.x + 1, centerIndex.y),
+            new Vector2Int(centerIndex.x - 1, centerIndex.y),
+            new Vector2Int(centerIndex.x, centerIndex.y + 1),
+            new Vector2Int(centerIndex.x, centerIndex.y - 1),
+        };
 
-            cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
-
-            int dx = Mathf.Abs(cell.index.x - centerIndex.x);
-            int dy = Mathf.Abs(cell.index.y - centerIndex.y);
-            bool isCenter = dx == 0 && dy == 0;
-            bool isOrthogonalNeighbor = (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
-            if (isCenter || isOrthogonalNeighbor)
-            {
-                uniqueCells.Add(cell.cellObj.transform);
-            }
+        foreach (var areaIndex in areaIndexes)
+        {
+            if (GridManager.Instance.IsOutSideOfGrid(areaIndex)) continue;
+            Transform t = GetCellTransform(areaIndex);
+            if (t != null) selectedCells.Add(t);
         }
 
-        selectedCells.AddRange(uniqueCells);
         Debug.Log("selected cells count: " + selectedCells.Count);
     }
     public void SelectAllMinionsFromCells()
@@ -470,18 +493,23 @@ public class ActionHolder : ScriptableObject
         */
         var grid = GridManager.Instance.GetGrid();
         List<Transform> selectableCells = new List<Transform>();
+        HashSet<Vector2Int> selectableIndexes = new HashSet<Vector2Int>();
         int rowIndex = 2;
+        selectedcell = null;
         foreach (var cell in grid)
         {
             if (cell.index.y == rowIndex)
             {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(true);
                 selectableCells.Add(cell.cellObj.transform);
+                selectableIndexes.Add(cell.index);
             }
-            else
-            {
-                cell.cellObj.GetComponent<CellController>().selectable.SetSelectable(false);
-            }
+        }
+
+        if (GridCellSelectionManager.Instance != null)
+        {
+            GridCellSelectionManager.Instance.BeginSelection(
+                selectableIndexes,
+                hovered => selectableIndexes.Where(i => i.x == hovered.x));
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -501,15 +529,13 @@ public class ActionHolder : ScriptableObject
 
             yield return null;
         }
+        if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
         if (cancelRequested) yield break;
 
         selectedMinions.Clear();
 
         foreach (var cell in grid)
         {
-            cell.cellObj.GetComponent<CellController>()
-                .selectable.SetSelectable(false);
-
             if (cell.obj != null && cell.obj.transform.position.x == selectedcell.position.x)
             {
                 selectedMinions.Add(cell.obj.GetComponent<MinionController>());
