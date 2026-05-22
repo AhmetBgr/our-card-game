@@ -24,7 +24,7 @@ MonoBehaviour:
   armor: 0
   canMove: 1
   type: 1
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b, type: 2}
   isUpgraded: 0
   defHealth: 3
   OnPlay:
@@ -130,5 +130,11 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

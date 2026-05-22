@@ -36,6 +36,8 @@ public class ActionHolder : ScriptableObject
     public static CardSO thisCardSO = null;
     public static CardController thisCard = null;
 
+    public static int DiedMinionAmount = 0;
+
     public static Queue<IEnumerator> curActionsList = new Queue<IEnumerator>();
 
     public sealed class Snapshot
@@ -52,6 +54,7 @@ public class ActionHolder : ScriptableObject
         private readonly CardSO _thisCardSO;
         private readonly CardController _thisCard;
         private readonly Queue<IEnumerator> _curActionsList;
+        private readonly int _diedMinionAmount = 0;
 
         internal Snapshot(
             bool cancelRequested,
@@ -65,7 +68,7 @@ public class ActionHolder : ScriptableObject
             MinionController thisMinion,
             CardSO thisCardSO,
             CardController thisCard,
-            Queue<IEnumerator> curActionsList)
+            Queue<IEnumerator> curActionsList, int diedMinionAmount)
         {
             _cancelRequested = cancelRequested;
             _selectedCell = selectedCell;
@@ -79,6 +82,7 @@ public class ActionHolder : ScriptableObject
             _thisCardSO = thisCardSO;
             _thisCard = thisCard;
             _curActionsList = curActionsList;
+            _diedMinionAmount = diedMinionAmount;
         }
 
         public void Restore()
@@ -95,6 +99,7 @@ public class ActionHolder : ScriptableObject
             ActionHolder.thisCardSO = _thisCardSO;
             ActionHolder.thisCard = _thisCard;
             ActionHolder.curActionsList = new Queue<IEnumerator>(_curActionsList);
+            ActionHolder.DiedMinionAmount = _diedMinionAmount;
         }
     }
 
@@ -112,7 +117,8 @@ public class ActionHolder : ScriptableObject
             thisMinion,
             thisCardSO,
             thisCard,
-            new Queue<IEnumerator>(curActionsList));
+            new Queue<IEnumerator>(curActionsList), 
+            DiedMinionAmount);
     }
 
     public static event Action<SelectableParameters> OnSelect;
@@ -229,17 +235,23 @@ public class ActionHolder : ScriptableObject
 
         //Debug.Log("selected cell");
     }
+    public void SelectCollumn()
+    {
+        if (GameManager.Instance.isTesting) return;
 
+        curActionsList.Enqueue(_SelectCollumn());
+    }
     public IEnumerator _SelectCollumn()
     {
         var grid = GridManager.Instance.GetGrid();
         List<Transform> selectableCells = new List<Transform>();
         HashSet<Vector2Int> selectableIndexes = new HashSet<Vector2Int>();
+
         int rowIndex = 2;
         selectedcell = null;
         foreach (var cell in grid)
         {
-            if (cell.index.y == rowIndex && cell.obj == null)
+            if (cell.index.y == rowIndex)
             {
                 selectableCells.Add(cell.cellObj.transform);
                 selectableIndexes.Add(cell.index);
@@ -250,7 +262,12 @@ public class ActionHolder : ScriptableObject
         {
             GridCellSelectionManager.Instance.BeginSelection(
                 selectableIndexes,
-                hovered => selectableIndexes.Where(i => i.y == hovered.y));
+                hovered => new[]
+                {
+                    hovered,
+                    new Vector2Int(hovered.x, hovered.y - 1),
+                    new Vector2Int(hovered.x, hovered.y - 2),
+                });
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -276,14 +293,19 @@ public class ActionHolder : ScriptableObject
         if (cancelRequested) yield break;
 
         selectedCells.Clear();
-        selectedCells.Add(selectedcell);
-
-        foreach (var cell in grid)
+        Vector2Int centerIndex = GridManager.Instance.PosToGridIndex(selectedcell.position);
+        HashSet<Vector2Int> areaIndexes = new HashSet<Vector2Int>
         {
-            if (cell.cellObj.transform.position.y == selectedcell.position.y)
-            {
-                selectedCells.Add(cell.cellObj.transform);
-            }
+            centerIndex,
+            new Vector2Int(centerIndex.x, centerIndex.y - 1),
+            new Vector2Int(centerIndex.x, centerIndex.y - 2),
+        };
+
+        foreach (var areaIndex in areaIndexes)
+        {
+            if (GridManager.Instance.IsOutSideOfGrid(areaIndex)) continue;
+            Transform t = GetCellTransform(areaIndex);
+            if (t != null) selectedCells.Add(t);
         }
 
         //Debug.Log("selected collumn");
@@ -366,6 +388,7 @@ public class ActionHolder : ScriptableObject
 
         Debug.Log("selected cells count: " + selectedCells.Count);
     }
+
     public void SelectAllMinionsFromCells()
     {
         if (GameManager.Instance.isTesting) return;
@@ -823,7 +846,18 @@ public class ActionHolder : ScriptableObject
         yield return null;
     }
 
+    public void DrawCardForEachDiedMinion()
+    {
+        Debug.Log("try draw card for each died minion: " + DiedMinionAmount);
 
+        if (GameManager.Instance.isTesting) return;
+
+        var agentToDraw = selectedAgent;
+        for (int i = 0; i < DiedMinionAmount; i++)
+        {
+            curActionsList.Enqueue(_DrawCard());
+        }
+    }
     public void DrawCard()
     {
         Debug.Log("try draw card");
@@ -979,14 +1013,17 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _ChangeMinionHealth(int value)
     {
         Debug.Log("try change minions health: " + selectedMinions.Count);
-
+        DiedMinionAmount = 0;
         foreach (var minion in selectedMinions)
         {
             Debug.Log("minion should change health: "+ minion.card.cardName);
 
             if (value < 0)
             {
-                minion.TakeDamage(Mathf.Abs(value));
+                bool isDied = minion.TakeDamage(Mathf.Abs(value));
+
+                if (isDied)
+                    DiedMinionAmount++;
             }
             else
             {
@@ -994,7 +1031,7 @@ public class ActionHolder : ScriptableObject
                 minion.view.UpdateView(minion.modal);
             }
         }
-
+        Debug.Log("died minion amount: " + DiedMinionAmount);
         /*if (selectedMinion != null)
         {
             if (value < 0)

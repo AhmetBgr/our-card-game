@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 public class MinionController : MonoBehaviour
 {
@@ -243,7 +242,7 @@ public class MinionController : MonoBehaviour
 
         yield break;
     }
-    public void TakeDamage(int damage)
+    public bool TakeDamage(int damage)
     {
         int effectiveDamage = Mathf.Max(damage - modal.armor, 0);
         modal.health -= effectiveDamage;
@@ -272,6 +271,12 @@ public class MinionController : MonoBehaviour
                 GameManager.Instance.opponent.minions.Remove(this);
             }
             Invoke("PlayDeathAnimation", 1f);
+
+            return true;
+        }
+        else
+        {
+            return false;
         }
 
     }

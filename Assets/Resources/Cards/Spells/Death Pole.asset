@@ -12,11 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Death Pole
   m_EditorClassIdentifier: 
-  art:
-  - {fileID: 0}
-  - {fileID: 0}
-  frame: {fileID: 0}
-  name: 'Death Pole '
+  actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+  minionArt: {fileID: 0}
+  cardArt: {fileID: 0}
+  cardName: Death Pole
   desc: 'deal 3 damage to all minions in selected collumn
 
 '
@@ -24,11 +23,12 @@ MonoBehaviour:
   health: 0
   cost: 3
   range: 0
+  armor: 0
+  canMove: 1
   type: 2
   upgradedVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0
-  effectValues: 
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -65,18 +65,18 @@ MonoBehaviour:
   OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls: []
-  OnSpellPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnMinionPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnThisMoved:
-    m_PersistentCalls:
-      m_Calls: []
-  OnAnyMoved:
+  OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrawedCard:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

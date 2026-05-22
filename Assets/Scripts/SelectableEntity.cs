@@ -54,10 +54,10 @@ public class SelectableEntity : MonoBehaviour
     public void SetSelectable(bool value)
     {
         iSselectable = value;
-        if (!iSselectable)
+        /*if (!iSselectable)
         {
             _isHoverPreview = false;
-        }
+        }*/
 
         UpdateVisuals();
 
@@ -105,23 +105,8 @@ public class SelectableEntity : MonoBehaviour
     */
     private void UpdateVisuals()
     {
-        if (highlight == null) return;
-
-        if (_isHoverPreview)
-        {
-            hover.enabled = true;
-            highlight.enabled = false;
-
-            return;
-        }
-
-        if (iSselectable)
-        {
-            highlight.enabled = true;
-            hover.enabled = false;
-            return;
-        }
-
-        highlight.enabled = false;
+        //if (highlight == null) return;
+        hover.enabled = _isHoverPreview;
+        highlight.enabled = iSselectable;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GridCellSelectionManager : MonoBehaviour
@@ -65,9 +66,11 @@ public class GridCellSelectionManager : MonoBehaviour
         IEnumerable<Vector2Int> area = _hoverAreaProvider.Invoke(index);
         if (area == null) return;
 
+        Debug.Log("area: " + area.Count());
+
         foreach (var areaIndex in area)
         {
-            if (!_selectableIndexes.Contains(areaIndex)) continue;
+            //if (!_selectableIndexes.Contains(areaIndex)) continue;
             _hoverPreviewIndexes.Add(areaIndex);
             SetCellHoverPreview(areaIndex, true);
         }
@@ -123,15 +126,29 @@ public class GridCellSelectionManager : MonoBehaviour
 
     private static void SetCellHoverPreview(Vector2Int index, bool value)
     {
+        Debug.Log("try show hover 1");
+
         if (GridManager.Instance == null) return;
+        
+        Debug.Log("try show hover 2");
+
         if (GridManager.Instance.IsOutSideOfGrid(index)) return;
 
+        Debug.Log("try show hover 3");
+
+
         var cell = GridManager.Instance.GetCell(index);
+        
+        
         if (cell.cellObj == null) return;
+
+        Debug.Log("try show hover 4");
 
         var controller = cell.cellObj.GetComponent<CellController>();
         if (controller == null || controller.selectable == null) return;
 
+
+        Debug.Log("show cell hovered");
         controller.selectable.SetHoverPreview(value);
     }
 }

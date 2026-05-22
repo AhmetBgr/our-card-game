@@ -34,6 +34,7 @@ public class CardSO : ScriptableObject
     public UnityEvent OnTurnStart; 
     public UnityEvent OnOwnerTurnEnd; //
     public UnityEvent OnAnyMinionSummoned;
+    //public UnityEvent OnAnyMinionDied;
     public UnityEvent OnOwnerDrawedCard; //
     public UnityEvent OnMinionCollided; //
     public UnityEvent OnTookDamage; //
