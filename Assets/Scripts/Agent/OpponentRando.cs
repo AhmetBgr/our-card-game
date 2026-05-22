@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class OpponentRando : Agent
 {
-    public override void UpdateAvailableActions()
+    public override IEnumerator UpdateAvailableActions()
     {
         availableActions.Clear();
 
@@ -28,21 +28,21 @@ public class OpponentRando : Agent
                         selectableTargets.Add(minion);
                     }
                 }
-                if(selectableTargets.Count > 0)
+                if (selectableTargets.Count > 0)
                 {
                     availableActions.Add(item.Attack(GameManager.Instance.player, selectableTargets[UnityEngine.Random.Range(0, selectableTargets.Count)]));
                 }
             }
         }
-
+        yield return null;
         foreach (var card in hand)
         {
             bool canPlay = false;
-            Debug.Log("testing: ");
-            StartCoroutine(card.CanPlay(this, result => 
-            {
+            yield return StartCoroutine(card.CanPlay(this, result => {
+
                 canPlay = result;
-                Debug.Log("canplay result: " + result);
+
+
             }));
 
             if (canPlay)
@@ -81,7 +81,7 @@ public class OpponentRando : Agent
         yield return new WaitForSeconds(5);
 
         card.modal.isPlayerMinion = false;*/
-
+        Debug.Log("opponent should play card");
         yield return StartCoroutine(GameManager.Instance.PlayCard(card, this));
 
     }
@@ -89,12 +89,12 @@ public class OpponentRando : Agent
     public override IEnumerator PlayTurn()
     {
         UpdateHand();
-        UpdateAvailableActions();
+        yield return StartCoroutine(UpdateAvailableActions());
 
         while (availableActions.Count > 0)
         {
             UpdateHand();
-            UpdateAvailableActions();
+            yield return StartCoroutine(UpdateAvailableActions());
 
             if (availableActions.Count == 0)
                 yield break;

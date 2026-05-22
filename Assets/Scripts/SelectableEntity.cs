@@ -72,17 +72,18 @@ public class SelectableEntity : MonoBehaviour
     public void PlayBreathAnimation()
     {
         KillBreathAnimation();
-        highlight.DOFade(0f, 1f).SetLoops(-1, LoopType.Yoyo);
-        /*breathSequence = DOTween.Sequence();
+        //highlight.DOFade(0f, 1f).SetLoops(-1, LoopType.Yoyo);
+        breathSequence = DOTween.Sequence();
+        breathSequence.AppendInterval(0.5f);
         //breathSequence.Append(highlight.DOColor(selectableColor, 1f));
-        breathSequence.Append(highlight.DOColor(Color.white * 0f, 1f));
-        breathSequence.Append(highlight.DOColor(selectableColor, 1f));
-
-        breathSequence.SetLoops(-1);*/
+        breathSequence.Append(highlight.DOColor(Color.clear, 0.5f));
+        //breathSequence.Append(highlight.DOColor(selectableColor, 1f));
+        breathSequence.SetLoops(-1, LoopType.Yoyo);
     }
     private void KillBreathAnimation()
     {
-        breathSequence.Kill();
+        if (breathSequence != null && breathSequence.IsActive())
+            breathSequence.Kill();
     }
     public void SetHoverPreview(bool value)
     {

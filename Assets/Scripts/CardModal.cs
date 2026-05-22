@@ -52,7 +52,7 @@ public class CardModal : MonoBehaviour
         isUpgraded = card.isUpgraded;
 
         // Copy event templates from CardSO into this runtime modal.
-        // (These are assigned by reference; gameplay should invoke events on the modal instance.)
+        // Most are reference-copied (gameplay invokes via the modal).
         OnPlay = card.OnPlay;
         OnDeath = card.OnDeath;
         OnTurnStart = card.OnTurnStart;
@@ -60,8 +60,17 @@ public class CardModal : MonoBehaviour
         OnAnyMinionSummoned = card.OnAnyMinionSummoned;
         OnOwnerDrawedCard = card.OnOwnerDrawedCard;
         OnMinionCollided = card.OnMinionCollided;
-        OnTookDamage = card.OnTookDamage;
         BonusEvents = card.BonusEvents;
+
+        // OnTookDamage receives runtime AddListener calls (see ActionHolder.AddBonusEventsToMinionsOnTookDamage).
+        // Use a per-instance UnityEvent that relays into the SO's event, so runtime listeners
+        // don't accumulate on the shared CardSO asset across plays / matches.
+        OnTookDamage = new UnityEvent();
+        if (card.OnTookDamage != null)
+        {
+            var soOnTookDamage = card.OnTookDamage;
+            OnTookDamage.AddListener(soOnTookDamage.Invoke);
+        }
         //isPlayerMinion = GameManager.Instance.isPlayerTurn;
     }
 }

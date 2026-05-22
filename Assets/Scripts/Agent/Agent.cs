@@ -54,25 +54,10 @@ public class Agent : MonoBehaviour
 
     }
 
-    public virtual void UpdateAvailableActions()
+    public virtual IEnumerator UpdateAvailableActions()
     {
         availableActions.Clear();
-
-        /*foreach (var item in minions)
-        {
-            if (item.CanAttack())
-            {
-                availableActions.Add(item.Attack());
-            }
-        }
-
-        foreach (var card in hand)
-        {
-            if (card.CanPlay())
-            {
-                availableActions.Add(card.Play());
-            }
-        }*/
+        yield break;
     }
     public virtual IEnumerator PlayTurn()
     {

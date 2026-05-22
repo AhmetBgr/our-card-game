@@ -1,17 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering;
-using static UnityEngine.Rendering.DebugUI;
 
-public enum MinionType
-{
-    Any,Beast
-}
 public enum SelectionType
 {
     Any, Minion, Card, Cell
@@ -117,8 +110,57 @@ public class ActionHolder : ScriptableObject
             thisMinion,
             thisCardSO,
             thisCard,
-            new Queue<IEnumerator>(curActionsList), 
+            new Queue<IEnumerator>(curActionsList),
             DiedMinionAmount);
+    }
+
+    /// <summary>
+    /// Snapshots the current selection state (plus GameManager.isTesting) and restores it on Dispose.
+    /// Use with a `using` block around triggered-action execution so a thrown exception or early
+    /// return can't leak partial selection state into the outer play.
+    /// </summary>
+    public static IDisposable PushScope()
+    {
+        return new Scope(TakeSnapshot(),
+            GameManager.Instance != null ? GameManager.Instance.isTesting : false);
+    }
+
+    private sealed class Scope : IDisposable
+    {
+        private readonly Snapshot _snapshot;
+        private readonly bool _isTesting;
+        private bool _disposed;
+
+        public Scope(Snapshot snapshot, bool isTesting)
+        {
+            _snapshot = snapshot;
+            _isTesting = isTesting;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _snapshot.Restore();
+            if (GameManager.Instance != null)
+                GameManager.Instance.isTesting = _isTesting;
+        }
+    }
+
+    /// <summary>
+    /// Clears all per-play selection state. Call at the start of each new card-play or triggered-action
+    /// execution so callers can't forget a field.
+    /// </summary>
+    public static void ResetSelections()
+    {
+        selectedcell = null;
+        selectedMinion = null;
+        selectedTargetMinion = null;
+        selectedAgent = null;
+        selectedMinions.Clear();
+        selectedTargetMinions.Clear();
+        selectedCells.Clear();
+        selectedCards.Clear();
     }
 
     public static event Action<SelectableParameters> OnSelect;
@@ -138,7 +180,7 @@ public class ActionHolder : ScriptableObject
     public void SelectThisAgent()
     {
         //Debug.Log("adding select agent to list: " + curActionsList);
-
+        if (GameManager.Instance.isTesting) return;
         curActionsList.Enqueue(_SelectThisAgent());
     }
     public IEnumerator _SelectThisAgent()
@@ -222,7 +264,7 @@ public class ActionHolder : ScriptableObject
 
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null && !cancelRequested)
+        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
         {
             //Debug.Log("selecting cell");
 
@@ -282,7 +324,7 @@ public class ActionHolder : ScriptableObject
 
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null && !cancelRequested)
+        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
         {
             //Debug.Log("selecting cell");
 
@@ -360,7 +402,7 @@ public class ActionHolder : ScriptableObject
 
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null && !cancelRequested)
+        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
         {
             yield return null;
         }
@@ -463,7 +505,7 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
-        while (selectedMinion == null && !cancelRequested)
+        while (selectedMinion == null && !cancelRequested && !GameManager.Instance.isTesting)
         {
             //Debug.Log("selecting minion");
 
@@ -546,7 +588,7 @@ public class ActionHolder : ScriptableObject
 
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null && !cancelRequested)
+        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
         {
             //Debug.Log("selecting cell");
 
@@ -853,9 +895,25 @@ public class ActionHolder : ScriptableObject
         if (GameManager.Instance.isTesting) return;
 
         var agentToDraw = selectedAgent;
-        for (int i = 0; i < DiedMinionAmount; i++)
+        curActionsList.Enqueue(_DrawCardForEachDiedMinion());
+
+
+    }
+    public IEnumerator _DrawCardForEachDiedMinion()
+    {
+        //yield return null;
+        Debug.Log("should draw card");
+        if (selectedAgent == null)
         {
-            curActionsList.Enqueue(_DrawCard());
+            Debug.LogWarning("Agent is null, cannot draw card");
+        }
+        else
+        {
+            for (int i = 0; i < DiedMinionAmount; i++)
+            {
+                yield return new WaitForSeconds(1f);
+                selectedAgent.DrawCard();
+            }
         }
     }
     public void DrawCard()
@@ -974,29 +1032,19 @@ public class ActionHolder : ScriptableObject
         foreach (var minion in selectedMinions)
         {
             minion.modal.attack += minion.modal.attack;
-            minion.view.UpdateView(selectedMinion.modal);
-            //Debug.LogWarning("öinion attack changed to :" + selectedMinion.card.attack);
+            minion.view.UpdateView(minion.modal);
         }
 
         yield return null;
     }
-    public IEnumerator _ChangeMinionDefHealth( int value)
+    public IEnumerator _ChangeMinionDefHealth(int value)
     {
         foreach (var minion in selectedMinions)
         {
             minion.modal.health += value;
             minion.modal.defHealth += value;
-            minion.view.UpdateView(selectedMinion.modal);
-            //Debug.LogWarning("minion health changed to :" + selectedMinion.modal.defHealth);
+            minion.view.UpdateView(minion.modal);
         }
-
-        /*if (selectedMinion != null)
-        {
-            selectedMinion.modal.health += value;
-            selectedMinion.modal.defHealth += value;
-            selectedMinion.view.UpdateView(selectedMinion.modal);
-            Debug.LogWarning("minion health changed to :" + selectedMinion.modal.defHealth);
-        }*/
 
         yield return null;
     }
@@ -1091,7 +1139,7 @@ public class ActionHolder : ScriptableObject
     }
     public IEnumerator _DestroyCard()
     {
-        while (selectedMinion == null && !cancelRequested)
+        while (selectedMinion == null && !cancelRequested && !GameManager.Instance.isTesting)
         {
             //Debug.Log("selecting minion");
 
@@ -1113,7 +1161,7 @@ public class ActionHolder : ScriptableObject
 
     public IEnumerator _SetCanMove(bool value)
     {
-        while (selectedMinion == null && !cancelRequested)
+        while (selectedMinion == null && !cancelRequested && !GameManager.Instance.isTesting)
         {
             //Debug.Log("selecting minion");
             yield return null;
@@ -1124,6 +1172,8 @@ public class ActionHolder : ScriptableObject
     }
     public void Wait()
     {
+        if (GameManager.Instance.isTesting) return;
+
         curActionsList.Enqueue(_Wait());
     }
     public IEnumerator _Wait( )
@@ -1161,44 +1211,26 @@ public class ActionHolder : ScriptableObject
 
     public IEnumerator _AddBonusEventsToMinionsOnTookDamage()
     {
-        // Adds this card's OnPlay actions to selected minions' OnTookDamage triggers.
-        // Requires: ActionHolder.thisCard (current card controller) and selectedMinions (targets).
-        if (thisCard == null)
+        // Wires this card's BonusEvents into each selected minion's OnTookDamage trigger.
+        // Capture thisCard locally so the listener doesn't read a later-reassigned static.
+        var sourceCard = thisCard;
+        if (sourceCard == null || sourceCard.modal == null || sourceCard.modal.BonusEvents == null)
         {
-            Debug.LogWarning("AddToMinionsOnTookDamage: thisCard is null");
+            Debug.LogWarning("AddBonusEventsToMinionsOnTookDamage: source card / BonusEvents missing");
             yield break;
         }
 
-        if (thisCard.modal == null || thisCard.modal.OnPlay == null)
+        var bonusEvents = sourceCard.modal.BonusEvents;
+
+        foreach (var minion in selectedMinions)
         {
-            Debug.LogWarning("AddToMinionsOnTookDamage: thisCard.modal or thisCard.modal.OnPlay is null");
-            yield break;
-        }
-
-        /*if (selectedMinion == null || selectedMinion.modal == null)
-            continue;*/
-
-        if (selectedMinion.modal.OnTookDamage == null)
-            selectedMinion.modal.OnTookDamage = new UnityEvent();
-
-        // Runtime-only wiring: when the minion takes damage, run this card's OnPlay actions.
-        selectedMinion.modal.OnTookDamage.AddListener(thisCard.modal.BonusEvents.Invoke);
-        //selectedMinion.modal.OnTookDamage = thisCard.modal.BonusEvents;
-
-        Debug.Log("added to minions on took damage events: " + selectedMinion.modal.name);
-        /*foreach (var minion in selectedMinions)
-        {
-            if (minion == null || minion.modal == null)
-                continue;
+            if (minion == null || minion.modal == null) continue;
 
             if (minion.modal.OnTookDamage == null)
                 minion.modal.OnTookDamage = new UnityEvent();
 
-            // Runtime-only wiring: when the minion takes damage, run this card's OnPlay actions.
-            minion.modal.OnTookDamage.AddListener(thisCard.modal.BonusEvents.Invoke);
-        }*/
-
-
+            minion.modal.OnTookDamage.AddListener(bonusEvents.Invoke);
+        }
 
         yield return null;
     }

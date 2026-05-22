@@ -1,14 +1,9 @@
 using System; 
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using DG.Tweening;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.PlayerLoop;
-using UnityEngine.UI;
 
 public enum GameState { Setup, StartGame, PlayerTurn, OpponentTurn, EndGame }
 
@@ -525,7 +520,8 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log("card.modal.cost: " + card.modal.cost);
         //Debug.Log("agent.availibleMana: " + agent.availibleMana);
 
-        if ((currentState != GameState.PlayerTurn || isPlayingCard || card.modal.cost > agent.availibleMana) && !isTesting) yield break;
+        bool isPlayTurn = currentState == GameState.PlayerTurn || currentState == GameState.OpponentTurn;
+        if ((!isPlayTurn || isPlayingCard || card.modal.cost > agent.availibleMana) && !isTesting) yield break;
 
         ClearSelectables();
 
@@ -542,14 +538,10 @@ public class GameManager : Singleton<GameManager>
         //agent.availibleMana -= card.modal.cost;
         isPlayingCard = true;
         actionQueue.Clear();
-        ActionHolder.selectedcell = null;
-        ActionHolder.selectedMinion = null;
-        ActionHolder.selectedAgent = null;
+        ActionHolder.ResetSelections();
         //ActionHolder.thisMinion = null;
         ActionHolder.thisCardSO = card.card;
         ActionHolder.thisCard = card;
-        ActionHolder.selectedMinions.Clear();
-        ActionHolder.selectedCells.Clear();
         ActionHolder.curActionsList = actionQueue;
         card.modal.OnPlay.Invoke();
 
@@ -575,35 +567,37 @@ public class GameManager : Singleton<GameManager>
     {
         agent.availibleMana += cost;
     }
-    // checks if card can be played?
-    public void TestCard(CardController card)
+    // checks if card can be played? Runs the card's OnPlay queue with isTesting=true and reports
+    // failures via isTestingFailed. Must be a coroutine so actions run sequentially — otherwise
+    // selection-step coroutines yield-return null and the caller sees an empty queue before they
+    // ever set isTestingFailed.
+    public IEnumerator TestCard(CardController card)
     {
         isTestingFailed = false;
 
         actionQueue.Clear();
-        ActionHolder.selectedcell = null;
-        ActionHolder.selectedMinion = null;
+        ActionHolder.ResetSelections();
         ActionHolder.thisCardSO = card.card;
         ActionHolder.thisCard = card;
-        ActionHolder.selectedMinions.Clear();
-        ActionHolder.selectedCells.Clear();
         //ActionHolder.thisMinion = null;
-        ActionHolder.selectedAgent = null;
         ActionHolder.curActionsList = actionQueue;
 
+        bool prevIsTesting = isTesting;
         isTesting = true;
-        card.modal.OnPlay.Invoke();
-        
-        //yield return StartCoroutine(ExecuteActions(card));
-
-        //Debug.Log("executeing card actions");
-        while (actionQueue.Count > 0)
+        try
         {
-            //Debug.Log("executeing action");
-            IEnumerator action = actionQueue.Dequeue();
-            StartCoroutine(action);
-        }
+            card.modal.OnPlay.Invoke();
 
+            while (actionQueue.Count > 0)
+            {
+                IEnumerator action = actionQueue.Dequeue();
+                yield return StartCoroutine(action);
+            }
+        }
+        finally
+        {
+            isTesting = prevIsTesting;
+        }
     }
 
     public IEnumerator ExecuteActions(CardController card)
@@ -836,38 +830,33 @@ public class GameManager : Singleton<GameManager>
     }
     private IEnumerator InvokeOnMinionDeathActions(MinionController minion)
     {
-        var snapshot = ActionHolder.TakeSnapshot();
-        var isTesting = this.isTesting;
-        try
+        // PushScope() snapshots selection state + isTesting; Dispose restores both.
+        // FinishTriggeredAction runs after Dispose so the outer trigger queue resumes against
+        // restored state.
+        using (ActionHolder.PushScope())
         {
-            _executingTriggeredActions = true;
+            try
+            {
+                _executingTriggeredActions = true;
 
-            onMinionDeathActions.Clear();
-            ActionHolder.selectedcell = null;
-            ActionHolder.selectedMinion = null;
-            ActionHolder.selectedTargetMinion = null;
-            ActionHolder.thisMinion = minion;
-            ActionHolder.thisCardSO = minion.card;
-            ActionHolder.thisCard = null;
-            ActionHolder.selectedMinions.Clear();
-            ActionHolder.selectedCells.Clear();
-            ActionHolder.selectedAgent = minion.owner;
-            ActionHolder.curActionsList = onMinionDeathActions;
+                onMinionDeathActions.Clear();
+                ActionHolder.ResetSelections();
+                ActionHolder.thisMinion = minion;
+                ActionHolder.thisCardSO = minion.card;
+                ActionHolder.thisCard = null;
+                ActionHolder.selectedAgent = minion.owner;
+                ActionHolder.curActionsList = onMinionDeathActions;
 
-            this.isTesting = false;
-            minion.modal.OnDeath.Invoke();
+                this.isTesting = false;
+                minion.modal.OnDeath.Invoke();
 
-            Debug.LogWarning("executing on death actions: " + minion.card.cardName);
-            yield return StartCoroutine(ExecuteActions(onMinionDeathActions));
-            Debug.LogWarning("executed on death actions");
+                yield return StartCoroutine(ExecuteActions(onMinionDeathActions));
+            }
+            finally
+            {
+                FinishTriggeredAction();
+            }
         }
-        finally
-        {
-            snapshot.Restore();
-            FinishTriggeredAction();
-        }
-
-        this.isTesting = isTesting;
     }
 
     private void OnMinionDied(MinionController minion)
@@ -909,72 +898,58 @@ public class GameManager : Singleton<GameManager>
     }
     private IEnumerator InvokeOnMinionTookDamageActions(MinionController minion, int damage)
     {
-        var snapshot = ActionHolder.TakeSnapshot();
-        var isTesting = this.isTesting;
-
-        Debug.Log("try invoke on too kdamage events: " + minion.card.cardName);
-        try
+        using (ActionHolder.PushScope())
         {
-            _executingTriggeredActions = true;
+            try
+            {
+                _executingTriggeredActions = true;
 
-            onMinionTookDamageActions.Clear();
-            ActionHolder.selectedcell = null;
-            ActionHolder.selectedMinion = null;
-            ActionHolder.selectedTargetMinion = null;
-            ActionHolder.thisMinion = minion;
-            ActionHolder.thisCardSO = minion.card;
-            ActionHolder.thisCard = null;
-            ActionHolder.selectedMinions.Clear();
-            //ActionHolder.selectedMinions.Add(minion);
-            ActionHolder.selectedCells.Clear();
-            ActionHolder.selectedAgent = minion.owner;
-            ActionHolder.curActionsList = onMinionTookDamageActions;
-            this.isTesting = false;
-            minion.modal.OnTookDamage.Invoke();
-            Debug.LogWarning($"executing on took damage actions (damage: {damage})");
+                onMinionTookDamageActions.Clear();
+                ActionHolder.ResetSelections();
+                ActionHolder.thisMinion = minion;
+                ActionHolder.thisCardSO = minion.card;
+                ActionHolder.thisCard = null;
+                ActionHolder.selectedAgent = minion.owner;
+                ActionHolder.curActionsList = onMinionTookDamageActions;
 
-            yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
+                this.isTesting = false;
+                minion.modal.OnTookDamage.Invoke();
 
-            Debug.LogWarning("executed on took damage actions");
+                yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
+            }
+            finally
+            {
+                FinishTriggeredAction();
+            }
         }
-        finally
-        {
-            snapshot.Restore();
-            FinishTriggeredAction();
-        }
-        this.isTesting = isTesting;
-
     }
 
     private IEnumerator InvokeOnMinionCollidedActions(MinionController minion, MinionController collidedMinion)
     {
-        var snapshot = ActionHolder.TakeSnapshot();
-        try
+        using (ActionHolder.PushScope())
         {
-            _executingTriggeredActions = true;
+            try
+            {
+                _executingTriggeredActions = true;
 
-            onMinionCollidedActions.Clear();
-            ActionHolder.selectedcell = null;
-            ActionHolder.selectedMinion = null;
-            ActionHolder.selectedTargetMinion = collidedMinion;
-            ActionHolder.thisMinion = minion;
-            ActionHolder.thisCardSO = minion.card;
-            ActionHolder.thisCard = null;
-            ActionHolder.selectedMinions.Clear();
-            ActionHolder.selectedCells.Clear();
-            ActionHolder.selectedAgent = minion.owner;
-            ActionHolder.curActionsList = onMinionCollidedActions;
+                onMinionCollidedActions.Clear();
+                ActionHolder.ResetSelections();
+                ActionHolder.selectedTargetMinion = collidedMinion;
+                ActionHolder.thisMinion = minion;
+                ActionHolder.thisCardSO = minion.card;
+                ActionHolder.thisCard = null;
+                ActionHolder.selectedAgent = minion.owner;
+                ActionHolder.curActionsList = onMinionCollidedActions;
 
-            minion.modal.OnMinionCollided.Invoke();
+                this.isTesting = false;
+                minion.modal.OnMinionCollided.Invoke();
 
-            Debug.LogWarning("executing minion collision actions");
-            yield return StartCoroutine(ExecuteActions(onMinionCollidedActions));
-            Debug.LogWarning("executed minion collision actions");
-        }
-        finally
-        {
-            snapshot.Restore();
-            FinishTriggeredAction();
+                yield return StartCoroutine(ExecuteActions(onMinionCollidedActions));
+            }
+            finally
+            {
+                FinishTriggeredAction();
+            }
         }
     }
 }

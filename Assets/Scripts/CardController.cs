@@ -61,7 +61,7 @@ public class CardController : MonoBehaviour// , IPointerEnterHandler,IPointerExi
             yield break;
         }
 
-        GameManager.Instance.TestCard(this);
+        yield return StartCoroutine(GameManager.Instance.TestCard(this));
 
         if (GameManager.Instance.isTestingFailed)
         {
@@ -116,7 +116,7 @@ public class CardController : MonoBehaviour// , IPointerEnterHandler,IPointerExi
         //GameManager.Instance.player.handManager.AddToHand(transform, curslot);
         //transform.localPosition = Vector3.zero;
         transform.localScale = Vector3.one;
-        Debug.Log("index in hand: " + indexinhand);
+        //Debug.Log("index in hand: " + indexinhand);
         GameManager.Instance.player.cardHandLayout.RemoveCard(GameManager.Instance.player.cardHandLayout.cardplaceholder);
         GameManager.Instance.player.cardHandLayout.cardplaceholder.SetParent(transform.parent.parent);
         GameManager.Instance.player.cardHandLayout.AddCard(transform, indexinhand);
