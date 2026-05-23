@@ -12,9 +12,7 @@ public class CardBrowserWindow : EditorWindow
     {
         public string search = "";
 
-        public bool costEnabled = false;
-        public int costMin = 0;
-        public int costMax = 10;
+        public List<int> selectedCosts = new List<int>();
 
         public bool upgradedOnly = false;
         public bool baseOnly = false;
@@ -120,12 +118,8 @@ public class CardBrowserWindow : EditorWindow
             );
         }
 
-        if (_filters.costEnabled)
-        {
-            int min = Math.Min(_filters.costMin, _filters.costMax);
-            int max = Math.Max(_filters.costMin, _filters.costMax);
-            query = query.Where(c => c.cost >= min && c.cost <= max);
-        }
+        if (_filters.selectedCosts.Count > 0)
+            query = query.Where(c => _filters.selectedCosts.Contains(c.cost));
 
         if (_filters.upgradedOnly)
             query = query.Where(c => c.isUpgraded);
@@ -286,19 +280,23 @@ public class CardBrowserWindow : EditorWindow
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                bool nextCostEnabled = EditorGUILayout.ToggleLeft("Filter Cost", _filters.costEnabled, GUILayout.Width(100));
-                int nextMin = EditorGUILayout.IntField(_filters.costMin, GUILayout.Width(44));
-                GUILayout.Label("to", GUILayout.Width(16));
-                int nextMax = EditorGUILayout.IntField(_filters.costMax, GUILayout.Width(44));
-
-                if (nextCostEnabled != _filters.costEnabled || nextMin != _filters.costMin || nextMax != _filters.costMax)
+                GUILayout.Label("Cost", GUILayout.Width(32));
+                bool changed = false;
+                for (int cost = 0; cost <= 10; cost++)
                 {
-                    _filters.costEnabled = nextCostEnabled;
-                    _filters.costMin = nextMin;
-                    _filters.costMax = nextMax;
-                    ApplyFilters();
-                    SavePrefs();
+                    bool isOn = _filters.selectedCosts.Contains(cost);
+                    GUIStyle style = cost == 0 ? EditorStyles.miniButtonLeft
+                                   : cost == 10 ? EditorStyles.miniButtonRight
+                                   : EditorStyles.miniButtonMid;
+                    bool next = GUILayout.Toggle(isOn, cost.ToString(), style, GUILayout.Width(26));
+                    if (next != isOn)
+                    {
+                        if (next) _filters.selectedCosts.Add(cost);
+                        else _filters.selectedCosts.Remove(cost);
+                        changed = true;
+                    }
                 }
+                if (changed) { ApplyFilters(); SavePrefs(); }
             }
 
             using (new EditorGUILayout.HorizontalScope())
@@ -396,6 +394,8 @@ public class CardBrowserWindow : EditorWindow
                 GUIContent content = new GUIContent($"{DisplayName(card)}   (Cost {card.cost})", icon);
 
                 Rect r = GUILayoutUtility.GetRect(content, _listItemStyle, GUILayout.Height(20));
+                int id = GUIUtility.GetControlID(FocusType.Passive);
+
                 if (isSelected)
                     EditorGUI.DrawRect(r, new Color(0.2f, 0.4f, 0.85f, 0.25f));
 
@@ -403,8 +403,64 @@ public class CardBrowserWindow : EditorWindow
                 whiteText.normal.textColor = Color.white;
                 whiteText.hover.textColor = Color.white;
 
-                if (GUI.Button(r, content, whiteText))
-                    Select(card);
+                switch (Event.current.GetTypeForControl(id))
+                {
+                    case EventType.MouseDown:
+                        if (r.Contains(Event.current.mousePosition) && Event.current.button == 0)
+                        {
+                            GUIUtility.hotControl = id;
+                            Event.current.Use();
+                        }
+                        break;
+                    case EventType.MouseUp:
+                        if (GUIUtility.hotControl == id)
+                        {
+                            GUIUtility.hotControl = 0;
+                            if (r.Contains(Event.current.mousePosition))
+                                Select(card);
+                            Event.current.Use();
+                        }
+                        break;
+                    case EventType.MouseDrag:
+                        if (GUIUtility.hotControl == id)
+                        {
+                            DragAndDrop.PrepareStartDrag();
+                            DragAndDrop.objectReferences = new UnityEngine.Object[] { card };
+                            DragAndDrop.StartDrag(card.name);
+                            GUIUtility.hotControl = 0;
+                            Event.current.Use();
+                        }
+                        break;
+                    case EventType.Repaint:
+                        whiteText.Draw(r, content, r.Contains(Event.current.mousePosition), GUIUtility.hotControl == id, isSelected, false);
+                        break;
+                }
+
+                // Upgrade toggle — only visible for the selected card
+                if (isSelected)
+                {
+                    CardSO upgradeTarget = null;
+                    string upgradeLabel = null;
+                    string upgradeTooltip = null;
+                    if (card.upgradedVersion != null)
+                    {
+                        upgradeTarget = card.upgradedVersion;
+                        upgradeLabel = "▲";
+                        upgradeTooltip = "Switch to upgraded version";
+                    }
+                    else if (card.isUpgraded)
+                    {
+                        upgradeTarget = FindBaseCard(card);
+                        upgradeLabel = "▼";
+                        upgradeTooltip = "Switch to base version";
+                    }
+
+                    if (upgradeTarget != null)
+                    {
+                        if (GUILayout.Button(new GUIContent(upgradeLabel, upgradeTooltip), GUILayout.Width(20), GUILayout.Height(20)))
+                            Select(upgradeTarget);
+                    }
+                }
 
                 // Right-click context menu.
                 if (Event.current.type == EventType.ContextClick && r.Contains(Event.current.mousePosition))
@@ -425,6 +481,11 @@ public class CardBrowserWindow : EditorWindow
                 }
             }
         }
+    }
+
+    private CardSO FindBaseCard(CardSO upgraded)
+    {
+        return _allCards.FirstOrDefault(c => c.upgradedVersion == upgraded);
     }
 
     private void DrawRightPane()
