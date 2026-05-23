@@ -25,16 +25,6 @@ public class CardBrowserWindow : EditorWindow
         public bool showTypeNone = true;
         public bool showTypeBuff = true;
         public bool showTypeDebuff = true;
-
-        public SortMode sort = SortMode.NameAsc;
-    }
-
-    private enum SortMode
-    {
-        NameAsc,
-        NameDesc,
-        CostAsc,
-        CostDesc
     }
 
     private const string PrefsKey = "CardBrowserWindow.FilterState.v1";
@@ -92,6 +82,7 @@ public class CardBrowserWindow : EditorWindow
         string[] guids = AssetDatabase.FindAssets("t:CardSO");
         _allCards = guids
             .Select(AssetDatabase.GUIDToAssetPath)
+            .Where(path => { var p = path.ToLowerInvariant(); return p.Contains("/cards/") && !p.Contains("/test/"); })
             .Select(path => AssetDatabase.LoadAssetAtPath<CardSO>(path))
             .Where(c => c != null)
             .ToList();
@@ -138,14 +129,6 @@ public class CardBrowserWindow : EditorWindow
 
         query = query.Where(c => MatchesTypeFilter(c.type));
 
-        query = _filters.sort switch
-        {
-            SortMode.NameAsc => query.OrderBy(c => DisplayName(c)),
-            SortMode.NameDesc => query.OrderByDescending(c => DisplayName(c)),
-            SortMode.CostAsc => query.OrderBy(c => c.cost).ThenBy(c => DisplayName(c)),
-            SortMode.CostDesc => query.OrderByDescending(c => c.cost).ThenBy(c => DisplayName(c)),
-            _ => query
-        };
 
         _visibleCards = query.ToList();
 
@@ -271,12 +254,7 @@ public class CardBrowserWindow : EditorWindow
     {
         using (new EditorGUILayout.VerticalScope("box"))
         {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                _filters.sort = (SortMode)EditorGUILayout.EnumPopup("Sort", _filters.sort);
-            }
 
-            EditorGUILayout.Space(4);
 
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -375,110 +353,100 @@ public class CardBrowserWindow : EditorWindow
             return;
         }
 
+        bool grouped = !_filters.upgradedOnly && !_filters.baseOnly;
+
         for (int i = 0; i < _visibleCards.Count; i++)
         {
             CardSO card = _visibleCards[i];
             if (card == null)
                 continue;
 
-            bool isSelected = card == _selected;
+            if (grouped && card.isUpgraded)
+                continue;
 
-            using (new EditorGUILayout.HorizontalScope())
+            DrawCardRow(card, 0);
+
+            if (grouped && card.upgradedVersion != null)
+                DrawCardRow(card.upgradedVersion, 16);
+        }
+    }
+
+    private void DrawCardRow(CardSO card, float indent)
+    {
+        bool isSelected = card == _selected;
+
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            if (indent > 0)
+                GUILayout.Space(indent);
+
+            Texture icon = null;
+            if (card.cardArt != null)
+                icon = AssetPreview.GetAssetPreview(card.cardArt) ?? AssetPreview.GetMiniThumbnail(card.cardArt);
+            if (icon == null)
+                icon = AssetPreview.GetMiniThumbnail(card);
+
+            GUIContent content = new GUIContent($"{DisplayName(card)}   (Cost {card.cost})", icon);
+
+            Rect r = GUILayoutUtility.GetRect(content, _listItemStyle, GUILayout.Height(20));
+            int id = GUIUtility.GetControlID(FocusType.Passive);
+
+            if (isSelected)
+                EditorGUI.DrawRect(r, new Color(0.2f, 0.4f, 0.85f, 0.25f));
+
+            GUIStyle whiteText = new GUIStyle(GUIStyle.none);
+            whiteText.normal.textColor = Color.white;
+            whiteText.hover.textColor = Color.white;
+
+            switch (Event.current.GetTypeForControl(id))
             {
-                Texture icon = null;
-                if (card.cardArt != null)
-                    icon = AssetPreview.GetAssetPreview(card.cardArt) ?? AssetPreview.GetMiniThumbnail(card.cardArt);
-                if (icon == null)
-                    icon = AssetPreview.GetMiniThumbnail(card);
-
-                GUIContent content = new GUIContent($"{DisplayName(card)}   (Cost {card.cost})", icon);
-
-                Rect r = GUILayoutUtility.GetRect(content, _listItemStyle, GUILayout.Height(20));
-                int id = GUIUtility.GetControlID(FocusType.Passive);
-
-                if (isSelected)
-                    EditorGUI.DrawRect(r, new Color(0.2f, 0.4f, 0.85f, 0.25f));
-
-                GUIStyle whiteText = new GUIStyle(GUIStyle.none);
-                whiteText.normal.textColor = Color.white;
-                whiteText.hover.textColor = Color.white;
-
-                switch (Event.current.GetTypeForControl(id))
-                {
-                    case EventType.MouseDown:
-                        if (r.Contains(Event.current.mousePosition) && Event.current.button == 0)
-                        {
-                            GUIUtility.hotControl = id;
-                            Event.current.Use();
-                        }
-                        break;
-                    case EventType.MouseUp:
-                        if (GUIUtility.hotControl == id)
-                        {
-                            GUIUtility.hotControl = 0;
-                            if (r.Contains(Event.current.mousePosition))
-                                Select(card);
-                            Event.current.Use();
-                        }
-                        break;
-                    case EventType.MouseDrag:
-                        if (GUIUtility.hotControl == id)
-                        {
-                            DragAndDrop.PrepareStartDrag();
-                            DragAndDrop.objectReferences = new UnityEngine.Object[] { card };
-                            DragAndDrop.StartDrag(card.name);
-                            GUIUtility.hotControl = 0;
-                            Event.current.Use();
-                        }
-                        break;
-                    case EventType.Repaint:
-                        whiteText.Draw(r, content, r.Contains(Event.current.mousePosition), GUIUtility.hotControl == id, isSelected, false);
-                        break;
-                }
-
-                // Upgrade toggle — only visible for the selected card
-                if (isSelected)
-                {
-                    CardSO upgradeTarget = null;
-                    string upgradeLabel = null;
-                    string upgradeTooltip = null;
-                    if (card.upgradedVersion != null)
+                case EventType.MouseDown:
+                    if (r.Contains(Event.current.mousePosition) && Event.current.button == 0)
                     {
-                        upgradeTarget = card.upgradedVersion;
-                        upgradeLabel = "▲";
-                        upgradeTooltip = "Switch to upgraded version";
+                        GUIUtility.hotControl = id;
+                        Event.current.Use();
                     }
-                    else if (card.isUpgraded)
+                    break;
+                case EventType.MouseUp:
+                    if (GUIUtility.hotControl == id)
                     {
-                        upgradeTarget = FindBaseCard(card);
-                        upgradeLabel = "▼";
-                        upgradeTooltip = "Switch to base version";
+                        GUIUtility.hotControl = 0;
+                        if (r.Contains(Event.current.mousePosition))
+                            Select(card);
+                        Event.current.Use();
                     }
-
-                    if (upgradeTarget != null)
+                    break;
+                case EventType.MouseDrag:
+                    if (GUIUtility.hotControl == id)
                     {
-                        if (GUILayout.Button(new GUIContent(upgradeLabel, upgradeTooltip), GUILayout.Width(20), GUILayout.Height(20)))
-                            Select(upgradeTarget);
+                        DragAndDrop.PrepareStartDrag();
+                        DragAndDrop.objectReferences = new UnityEngine.Object[] { card };
+                        DragAndDrop.StartDrag(card.name);
+                        GUIUtility.hotControl = 0;
+                        Event.current.Use();
                     }
-                }
+                    break;
+                case EventType.Repaint:
+                    whiteText.Draw(r, content, r.Contains(Event.current.mousePosition), GUIUtility.hotControl == id, isSelected, false);
+                    break;
+            }
 
-                // Right-click context menu.
-                if (Event.current.type == EventType.ContextClick && r.Contains(Event.current.mousePosition))
+            // Right-click context menu.
+            if (Event.current.type == EventType.ContextClick && r.Contains(Event.current.mousePosition))
+            {
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Select in Project"), false, () =>
                 {
-                    GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Select in Project"), false, () =>
-                    {
-                        Selection.activeObject = card;
-                        EditorGUIUtility.PingObject(card);
-                    });
-                    menu.AddItem(new GUIContent("Open Inspector"), false, () =>
-                    {
-                        Selection.activeObject = card;
-                        EditorGUIUtility.PingObject(card);
-                    });
-                    menu.ShowAsContext();
-                    Event.current.Use();
-                }
+                    Selection.activeObject = card;
+                    EditorGUIUtility.PingObject(card);
+                });
+                menu.AddItem(new GUIContent("Open Inspector"), false, () =>
+                {
+                    Selection.activeObject = card;
+                    EditorGUIUtility.PingObject(card);
+                });
+                menu.ShowAsContext();
+                Event.current.Use();
             }
         }
     }

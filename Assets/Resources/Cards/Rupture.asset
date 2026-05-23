@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  cardArt: {fileID: 1937201814, guid: 3844e53af7a1fa04490b9bb86ee6402b, type: 3}
   cardName: Rupture
   desc: 
   attack: 0
@@ -24,7 +24,8 @@ MonoBehaviour:
   armor: 0
   canMove: 0
   type: 0
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: 5a1515f69f9219840b123db9a3580727, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0
   OnPlay:
@@ -49,5 +50,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

@@ -15,7 +15,7 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: -458737074, guid: 5da0e0bc23284074b9ada81d85fc5139, type: 3}
   cardArt: {fileID: 420565769, guid: 5da0e0bc23284074b9ada81d85fc5139, type: 3}
-  cardName: totem
+  cardName: Totem
   desc: 'When played, give all adjacent minions +2 Attack
 
 '
