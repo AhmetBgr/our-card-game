@@ -272,6 +272,8 @@ public class MinionController : MonoBehaviour
             }
             Invoke("PlayDeathAnimation", 1f);
 
+            GridManager.Instance.GetCell(transform.position).cellObj.GetComponent<CellController>().AddToMinionsDiedHere(card, modal.isPlayerMinion);
+
             return true;
         }
         else

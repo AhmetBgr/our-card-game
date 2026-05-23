@@ -5,6 +5,8 @@ using UnityEngine;
 public class CellController : MonoBehaviour
 {
     public SelectableEntity selectable;
+    public List<CardSO> PlayerMinionsDiedHere = new();
+    public List<CardSO> EnemyMinionsDiedHere = new();
 
     private void OnMouseDown()
     {
@@ -33,5 +35,15 @@ public class CellController : MonoBehaviour
 
         Vector2Int index = GridManager.Instance.PosToGridIndex(transform.position);
         GridCellSelectionManager.Instance.OnCellHoverExit(index);
+    }
+
+    public void AddToMinionsDiedHere(CardSO minionCard, bool isPlayerMinion)
+    {
+        if(isPlayerMinion)
+            PlayerMinionsDiedHere.Add(minionCard);
+        else
+        {
+            EnemyMinionsDiedHere.Add(minionCard);
+        }
     }
 }

@@ -1022,6 +1022,8 @@ public class ActionHolder : ScriptableObject
     }
     public void DoubleMinionAttack()
     {
+        if (GameManager.Instance.isTesting) return;
+
         //GameManager.Instance.Addtoactions(_ChangeMinionAttack(minion, value));
         curActionsList.Enqueue(_DoubleMinionAttack());
 
@@ -1032,6 +1034,21 @@ public class ActionHolder : ScriptableObject
         foreach (var minion in selectedMinions)
         {
             minion.modal.attack += minion.modal.attack;
+            minion.view.UpdateView(minion.modal);
+        }
+
+        yield return null;
+    }
+    public void DoubleMinionHealth()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_DoubleMinionHealth());
+    }
+    public IEnumerator _DoubleMinionHealth()
+    {
+        foreach (var minion in selectedMinions)
+        {
+            minion.modal.health += minion.modal.health;
             minion.view.UpdateView(minion.modal);
         }
 
@@ -1230,6 +1247,37 @@ public class ActionHolder : ScriptableObject
                 minion.modal.OnTookDamage = new UnityEvent();
 
             minion.modal.OnTookDamage.AddListener(bonusEvents.Invoke);
+        }
+
+        yield return null;
+    }
+    public void SummonFriendlyMinionsDiedInSelectedCells()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SummonFriendlyMinionsDiedInSelectedCells());
+    }
+
+    public IEnumerator _SummonFriendlyMinionsDiedInSelectedCells()
+    {
+        foreach (var item in selectedCells)
+        {
+            var cell = GridManager.Instance.GetCell(item.transform.position);
+            var obj = cell.obj;
+
+            if (obj != null) continue;
+
+            var cellController = cell.cellObj.GetComponent<CellController>();
+
+            var deadMinionsList = selectedAgent.IsPlayer() ? cellController.PlayerMinionsDiedHere : cellController.EnemyMinionsDiedHere;
+
+            if (deadMinionsList.Count == 0) continue;
+
+            var minionCard = deadMinionsList[deadMinionsList.Count -1];
+
+            GameManager.Instance.SummonMinion(minionCard, cell.cellObj.transform.position);
+
+            yield return new WaitForSeconds(0.5f);
         }
 
         yield return null;

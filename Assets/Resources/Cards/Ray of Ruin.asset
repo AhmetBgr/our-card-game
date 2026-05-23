@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -854863945, guid: a92278457bd989b46b18ffed0a6c3b52, type: 3}
   cardArt: {fileID: 1331121491, guid: a92278457bd989b46b18ffed0a6c3b52, type: 3}
   cardName: Ray of Ruin
-  desc: Deal 3 damage to all minions in selected column.
+  desc: Deal 2 damage to all minions in selected column.
   attack: 0
   health: 0
   cost: 4
@@ -25,6 +25,7 @@ MonoBehaviour:
   canMove: 0
   type: 2
   upgradedVersion: {fileID: 0}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0
   OnPlay:
@@ -61,7 +62,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: -3
+          m_IntArgument: -2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

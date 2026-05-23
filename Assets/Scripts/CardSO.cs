@@ -24,6 +24,8 @@ public class CardSO : ScriptableObject
     public Type type;
 
     public CardSO upgradedVersion;
+    public CardSO normalVersion;
+
     public bool isUpgraded = false;
 
     [HideInInspector] public int defHealth;
