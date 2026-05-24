@@ -640,19 +640,16 @@ public class GameManager : Singleton<GameManager>
             //Debug.Log("execution complete3");
 
             //player.handManager.RemoveFromHand(card);
-            if (card != null) { 
-                player.cardHandLayout.RemoveCard(card.transform);
-                card.transform.DOScale(0f, 0.25f).OnComplete(() => 
+            if (card != null) {
+                player.RemoveCardFromHand(card);
+                card.transform.DOScale(0f, 0.25f).OnComplete(() =>
                 {
-                    if(card.modal.upgradedVerdion!= null)
+                    if (card.modal.upgradedVerdion != null)
                     {
                         player.SpawnCardToDeck(card.modal.upgradedVerdion, true);
                     }
-                    player.hand.Remove(card);
-
                     card.transform.SetParent(discardPile);
                     card.gameObject.SetActive(false);
-                    //Destroy(card.gameObject);
                 });
             }
         }
@@ -662,8 +659,7 @@ public class GameManager : Singleton<GameManager>
 
             //opponent.handManager.RemoveFromHand(card);
             if (card != null) {
-                opponent.cardHandLayout.RemoveCard(card.transform);
-                //Destroy(card.gameObject);
+                opponent.RemoveCardFromHand(card);
 
                 card.transform.SetParent(opponent.cardHandLayout.transform.parent);
                 card.transform.SetSiblingIndex(opponent.cardHandLayout.transform.parent.childCount - 1);
@@ -684,8 +680,6 @@ public class GameManager : Singleton<GameManager>
                         {
                             opponent.SpawnCardToDeck(card.modal.upgradedVerdion, true);
                         }
-                        //Destroy(card.gameObject);
-                        opponent.hand.Remove(card);
                         card.transform.SetParent(discardPile);
                         card.gameObject.SetActive(false);
                     });
@@ -754,7 +748,7 @@ public class GameManager : Singleton<GameManager>
 
             layout.RemoveCard(playingCard.transform);
             int insertIndex = playingCardHandLayoutIndex >= 0 ? playingCardHandLayoutIndex : 0;
-            layout.AddCard(playingCard.transform, insertIndex);
+            layout.InsertCardAt(playingCard.transform, insertIndex);
 
             playingCard.transform.localRotation = Quaternion.identity;
             playingCard.transform.localScale = Vector3.one;

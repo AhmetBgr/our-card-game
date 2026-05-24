@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using DG.Tweening;
-using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 public class Agent : MonoBehaviour
@@ -17,7 +15,6 @@ public class Agent : MonoBehaviour
     public CardHandLayout cardHandLayout;
     public DeckViewHandler deckViewHandler;
 
-
     public CardController cardPrefab;
     public Transform cardPlayPos;
 
@@ -25,17 +22,17 @@ public class Agent : MonoBehaviour
 
     protected int _availibleMana;
 
-    public virtual int availibleMana 
-    { 
+    public virtual int availibleMana
+    {
         get { return _availibleMana; }
         set { _availibleMana = value; }
     }
+
     protected virtual void Awake()
     {
-        // Shuffle Deck
         for (int i = deck.Count - 1; i > 0; i--)
         {
-            int randomIndex = Random.Range(0, i + 1); // UnityEngine.Random
+            int randomIndex = Random.Range(0, i + 1);
             var temp = deck[i];
             deck[i] = deck[randomIndex];
             deck[randomIndex] = temp;
@@ -43,6 +40,7 @@ public class Agent : MonoBehaviour
 
         deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
     }
+
     private void Start()
     {
         MinionController.OnDied += UpdateMinions;
@@ -50,8 +48,7 @@ public class Agent : MonoBehaviour
 
     private void OnDestroy()
     {
-        MinionController.OnDied += UpdateMinions;
-
+        MinionController.OnDied -= UpdateMinions;
     }
 
     public virtual IEnumerator UpdateAvailableActions()
@@ -59,13 +56,13 @@ public class Agent : MonoBehaviour
         availableActions.Clear();
         yield break;
     }
+
     public virtual IEnumerator PlayTurn()
     {
         while (GameManager.Instance.isPlayerTurn)
-        {
             yield return null;
-        }
     }
+
     public virtual IEnumerator SkipTurn()
     {
         yield break;
@@ -73,72 +70,66 @@ public class Agent : MonoBehaviour
 
     public void UpdateHand()
     {
-        for (int i = hand.Count -1; i >= 0; i--)
+        for (int i = hand.Count - 1; i >= 0; i--)
         {
-            if(hand[i] == null)
+            if (hand[i] == null)
             {
                 hand.RemoveAt(i);
-                //cardHandLayout.RemoveCard(hand[i].transform);
             }
         }
+        // Layout's own null-sweep runs in UpdateCardPositions each frame.
     }
+
     public void UpdateMinions(MinionController minion)
     {
         if (!minions.Contains(minion)) return;
-
         minions.Remove(minion);
     }
+
     public void DrawCard()
     {
         UpdateHand();
-        //handManager.UpdateSlots();
 
-        if(deck.Count == 0 | hand.Count >= 7) return;
+        if (deck.Count == 0 || hand.Count >= 7) return;
 
-        CardSO card = deck[deck.Count-1]; //Random.Range(0, deck.Count)
-        if(card == null)
-        {
-            Debug.Log("card is null");
-        }
+        CardSO cardSO = deck[deck.Count - 1];
         deck.RemoveAt(deck.Count - 1);
-        CardController cardObj = Instantiate(cardPrefab);
-        cardObj.gameObject.name = card.cardName;
-        cardObj.card = card;
-        cardObj.modal.isPlayerMinion = IsPlayer();
-        cardObj.modal.UpdateModal(card);
-        cardObj.view.UpdateView(cardObj.modal);
+
+        CardController cardObj = InstantiateCard(cardSO);
         hand.Add(cardObj);
-        //handManager.AddToHand(cardObj.transform, handManager.GetEmptyHandSlot());
         cardHandLayout.AddCard(cardObj.transform);
+
         StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
-        deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : card.isUpgraded);
+        deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
     }
-    public void AddCard(CardSO card, Transform startPos = null)
+
+    public void AddCard(CardSO cardSO, Transform startPos = null)
     {
         UpdateHand();
 
-        if (deck.Count == 0 | hand.Count >= 7) return;
+        if (hand.Count >= 7) return;
 
-        if (card == null)
+        if (cardSO == null)
         {
-
-            Debug.Log("card is null");
+            Debug.LogWarning("Agent.AddCard called with null CardSO");
+            return;
         }
 
-        Debug.Log("add card: " + card);
-
-        CardController cardObj = Instantiate(cardPrefab);
-        cardObj.gameObject.name = card.cardName;
-        cardObj.card = card;
-        cardObj.modal.isPlayerMinion = IsPlayer();
-        cardObj.modal.UpdateModal(card);
-        cardObj.view.UpdateView(cardObj.modal);
+        CardController cardObj = InstantiateCard(cardSO);
         hand.Add(cardObj);
-        //handManager.AddToHand(cardObj.transform, handManager.GetEmptyHandSlot());
         cardHandLayout.AddCard(cardObj.transform, startPos);
+
         StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
-        deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : card.isUpgraded);
+        deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
     }
+
+    public void RemoveCardFromHand(CardController card)
+    {
+        if (card == null) return;
+        cardHandLayout.RemoveCard(card.transform);
+        hand.Remove(card);
+    }
+
     public void SpawnCardToDeck(CardSO card, bool isPlayerCard)
     {
         deck.Insert(Random.Range(0, Mathf.Max(0, deck.Count - 1)), card);
@@ -159,21 +150,14 @@ public class Agent : MonoBehaviour
         sequence.Append(DOVirtual.DelayedCall(0.5f, () => { }));
         sequence.Append(cardObj.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f, 50f, 1, 0.5f));
         sequence.Join(cardObj.transform.DOScale(cardHandLayout.cardinitialScale, 0.5f));
-
         sequence.Join(cardObj.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
         {
             cardObj.modal.isPlayerMinion = false;
             cardObj.view.UpdateView(cardObj.modal);
-            cardObj.transform.DORotate(Vector3.up * 0, 0.15f).OnComplete(() =>
-            {
-
-            });
+            cardObj.transform.DORotate(Vector3.up * 0, 0.15f);
         }));
-        sequence.Append(cardObj.transform.DOMove(cardHandLayout.deckPosition.GetChild(cardHandLayout.deckPosition.childCount -1).position, 0.5f));
-        sequence.OnComplete(() =>
-        {
-            Destroy(cardObj.gameObject);
-        });
+        sequence.Append(cardObj.transform.DOMove(cardHandLayout.deckPosition.GetChild(cardHandLayout.deckPosition.childCount - 1).position, 0.5f));
+        sequence.OnComplete(() => Destroy(cardObj.gameObject));
 
         deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
     }
@@ -182,10 +166,21 @@ public class Agent : MonoBehaviour
     {
         if (deck.Count == 0) return null;
 
-        var randomIndex = Random.Range(0, deck.Count);
-        var card = deck[randomIndex];
+        int randomIndex = Random.Range(0, deck.Count);
+        CardSO card = deck[randomIndex];
         deck.RemoveAt(randomIndex);
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : card.isUpgraded);
         return card;
+    }
+
+    private CardController InstantiateCard(CardSO cardSO)
+    {
+        CardController cardObj = Instantiate(cardPrefab);
+        cardObj.gameObject.name = cardSO.cardName;
+        cardObj.card = cardSO;
+        cardObj.modal.isPlayerMinion = IsPlayer();
+        cardObj.modal.UpdateModal(cardSO);
+        cardObj.view.UpdateView(cardObj.modal);
+        return cardObj;
     }
 }

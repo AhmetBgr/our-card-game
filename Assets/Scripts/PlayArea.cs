@@ -28,14 +28,17 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
             Debug.Log("canplay result: " + result);
 
 
-            GameManager.Instance.player.cardHandLayout.RemoveCard(GameManager.Instance.player.cardHandLayout.cardplaceholder);
-            GameManager.Instance.player.cardHandLayout.cardplaceholder.SetParent(transform.parent.parent);
+            droppedItem.handLayout.CancelPeek();
             Debug.Log($"canplay {canPlay}, isplaying card {GameManager.Instance.isPlayingCard}");
             if (canPlay && !GameManager.Instance.isPlayingCard)
             {
                 Debug.Log("shoıuld play");
                 droppedItem.isPeeking = false;
                 droppedItem.canPeek = false;
+
+                // Take the card out of the layout so its UpdateCardPositions Lerp
+                // doesn't fight DOMove and pull the card back to the fan.
+                droppedItem.handLayout.RemoveCard(droppedItem.transform);
 
                 droppedItem.draggableItem.ParentAfterDrag = transform;
                 droppedItem.transform.DOMove(cardPos.position, 0.25f);

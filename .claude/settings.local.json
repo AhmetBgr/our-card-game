@@ -10,7 +10,9 @@
       "Bash(grep -E \"\\\\.\\(cs\\)$\")",
       "mcp__unity-mcp__Unity_ReadResource",
       "Bash(python -c ' *)",
-      "mcp__unity-mcp__Unity_RunCommand"
+      "mcp__unity-mcp__Unity_RunCommand",
+      "Bash(Get-ChildItem -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\\\\Assets\\\\Scripts\" -Recurse -Filter \"*.cs\")",
+      "Bash(Sort-Object)"
     ]
   }
 }

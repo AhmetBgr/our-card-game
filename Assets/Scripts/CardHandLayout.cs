@@ -1,14 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
-using Unity.VisualScripting.Antlr3.Runtime;
 
 public class CardHandLayout : MonoBehaviour
 {
     public List<Transform> cards = new List<Transform>();
 
-    public float radius = 5f;             // Arc radius
-    public float maxAngle = 30f;          // Total fan angle (in degrees)
+    public float radius = 5f;
+    public float maxAngle = 30f;
     public float animationSpeed = 10f;
     public float minAngleStep = 200f;
 
@@ -16,24 +15,30 @@ public class CardHandLayout : MonoBehaviour
     public Transform cardmovePosition;
     public Transform cardplaceholder;
 
-
     public float cardinitialScale;
+
+    private Transform _peekCard;
+    private int _peekIndex = -1;
+
     void Update()
     {
         UpdateCardPositions();
     }
 
+    // Adds a freshly-drawn card with the flip animation. Inserted into the visual list only
+    // after the flip completes (player cards) or immediately (opponent cards).
     public void AddCard(Transform card, Transform startPos = null)
     {
         card.SetParent(transform);
         card.localScale = Vector3.one * cardinitialScale;
 
         CardController cardCont = card.GetComponent<CardController>();
-        bool isplayerCard = cardCont.modal.isPlayerMinion;
+        cardCont.handLayout = this;
+        bool isPlayerCard = cardCont.modal.isPlayerMinion;
 
         card.position = startPos == null ? deckPosition.position : startPos.position;
 
-        if (isplayerCard )
+        if (isPlayerCard)
         {
             cardCont.canPeek = false;
             card.DOMove(cardmovePosition.position, 0.25f);
@@ -41,58 +46,95 @@ public class CardHandLayout : MonoBehaviour
 
             cardCont.modal.isPlayerMinion = false;
             card.rotation = Quaternion.Euler(0f, 180f, 0f);
-            card.DORotate(Vector3.up * 90, 0.15f).OnComplete(()=> 
+            card.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
             {
-
-                cardCont.modal.isPlayerMinion = isplayerCard;
+                cardCont.modal.isPlayerMinion = isPlayerCard;
                 cardCont.view.UpdateView(cardCont.modal);
                 card.DORotate(Vector3.up * 0, 0.15f).OnComplete(() =>
                 {
-                    //card.DOScale(1f, 0.25f);
-
-                    DOVirtual.DelayedCall(0.5f, () => 
+                    DOVirtual.DelayedCall(0.5f, () =>
                     {
                         cardCont.canPeek = true;
-
                         cards.Insert(0, card);
                     });
-                     // Insert at the front
-
                 });
             });
         }
         else
         {
-            cards.Insert(0, card); // Insert at the front
-            //card.DOScale(1f, 0.25f);
+            cards.Insert(0, card);
         }
-
     }
 
-    public void AddCard(Transform card, int index)
+    // Inserts a card (or the placeholder) at a specific index without animation.
+    public void InsertCardAt(Transform card, int index)
     {
         card.SetParent(transform);
-        card.SetSiblingIndex(Mathf.Clamp(transform.childCount -  index - 1, 0, transform.childCount - 1));
-        //card.localScale = Vector3.one * cardinitialScale;
+        card.SetSiblingIndex(Mathf.Clamp(transform.childCount - index - 1, 0, transform.childCount - 1));
+        cards.Insert(index < 0 ? 0 : index, card);
 
-        //CardController cardCont = card.GetComponent<CardController>();
-        //bool isplayerCard = cardCont.modal.isPlayerMinion;
-        cards.Insert(index < 0 ? 0 : index, card); // Insert at the front
-
-        //card.position = deckPosition.position;
+        CardController cardCont = card.GetComponent<CardController>();
+        if (cardCont != null) cardCont.handLayout = this;
     }
 
     public int RemoveCard(Transform card)
     {
-
-        int index = cards.IndexOf(card);    
+        int index = cards.IndexOf(card);
         cards.Remove(card);
-
         return index;
+    }
+
+    public bool BeginPeek(CardController card)
+    {
+        if (_peekCard != null) return false;
+
+        int index = RemoveCard(card.transform);
+        if (index < 0) return false;
+
+        InsertCardAt(cardplaceholder, index);
+        _peekCard = card.transform;
+        _peekIndex = index;
+        return true;
+    }
+
+    public void EndPeek()
+    {
+        if (_peekCard == null) return;
+
+        RemoveCard(cardplaceholder);
+        cardplaceholder.SetParent(transform.parent);
+        InsertCardAt(_peekCard, _peekIndex);
+
+        _peekCard = null;
+        _peekIndex = -1;
+    }
+
+    // Removes the placeholder without re-inserting the peeking card — used when the
+    // card is being taken over by another system (drag, card play) and should stay
+    // out of the layout's `cards` list.
+    public void CancelPeek()
+    {
+        if (_peekCard == null) return;
+
+        RemoveCard(cardplaceholder);
+        cardplaceholder.SetParent(transform.parent);
+
+        _peekCard = null;
+        _peekIndex = -1;
+    }
+
+    public bool IsPeeking(CardController card)
+    {
+        return _peekCard == card.transform;
     }
 
     void UpdateCardPositions()
     {
+        for (int i = cards.Count - 1; i >= 0; i--)
+        {
+            if (cards[i] == null) cards.RemoveAt(i);
+        }
+
         int count = cards.Count;
         if (count == 0) return;
 
@@ -106,7 +148,6 @@ public class CardHandLayout : MonoBehaviour
         }
         else
         {
-            // Dynamic angleStep with min spacing
             angleStep = Mathf.Min(maxAngle / (count - 1), minAngleStep);
             float totalAngle = angleStep * (count - 1);
             startAngle = -totalAngle / 2f;
@@ -122,70 +163,11 @@ public class CardHandLayout : MonoBehaviour
 
             Vector3 targetPos = new Vector3(x, y, 0);
             Quaternion targetRot = Quaternion.Euler(0, 0, angleDeg);
-            Vector3 targetScale = Vector3.one;
 
             Transform card = cards[i];
             card.localPosition = Vector3.Lerp(card.localPosition, targetPos, Time.deltaTime * animationSpeed);
             card.localRotation = Quaternion.Lerp(card.localRotation, targetRot, Time.deltaTime * animationSpeed);
-            card.localScale = Vector3.Lerp(card.localScale, targetScale, Time.deltaTime * animationSpeed);
+            card.localScale = Vector3.Lerp(card.localScale, Vector3.one, Time.deltaTime * animationSpeed);
         }
     }
-
 }
-
-/*using UnityEngine;
-using System.Collections.Generic;
-
-public class CardHandLayout : MonoBehaviour
-{
-    public List<Transform> cards = new List<Transform>();
-    public float radius = 2.0f;
-    public float angleRange = 90f;
-    public float spacing = 1.5f;
-    public float cardYOffset = 0.2f;
-
-    public float animationSpeed = 10f;
-
-    void Update()
-    {
-        UpdateCardPositions();
-    }
-
-    public void AddCard(Transform card)
-    {
-        cards.Add(card);
-        card.SetParent(transform);
-    }
-
-    public void RemoveCard(Transform card)
-    {
-        cards.Remove(card);
-        Destroy(card.gameObject);
-
-    }
-
-    void UpdateCardPositions()
-    {
-        int count = cards.Count;
-        float angleStep = (count > 1) ? angleRange / (count - 1) : 0;
-        float startAngle = -angleRange / 2;
-
-        for (int i = 0; i < count; i++)
-        {
-            float angle = startAngle + angleStep * i;
-            float rad = angle * Mathf.Deg2Rad;
-
-            Vector3 targetPos = new Vector3(
-                Mathf.Sin(rad) * radius,
-                -Mathf.Cos(rad) * radius,
-                0
-            ) + transform.position;
-
-            Quaternion targetRot = Quaternion.Euler(0, 0, angle);
-
-            // Smooth transition
-            cards[i].localPosition = Vector3.Lerp(cards[i].localPosition, targetPos, Time.deltaTime * animationSpeed);
-            cards[i].localRotation = Quaternion.Lerp(cards[i].localRotation, targetRot, Time.deltaTime * animationSpeed);
-        }
-    }
-}*/
