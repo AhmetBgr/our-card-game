@@ -23,14 +23,16 @@ public class CardHandLayout : MonoBehaviour
         UpdateCardPositions();
     }
 
-    public void AddCard(Transform card)
+    public void AddCard(Transform card, Transform startPos = null)
     {
         card.SetParent(transform);
         card.localScale = Vector3.one * cardinitialScale;
 
         CardController cardCont = card.GetComponent<CardController>();
         bool isplayerCard = cardCont.modal.isPlayerMinion;
-        
+
+        card.position = startPos == null ? deckPosition.position : startPos.position;
+
         if (isplayerCard )
         {
             cardCont.canPeek = false;
@@ -63,10 +65,8 @@ public class CardHandLayout : MonoBehaviour
         {
             cards.Insert(0, card); // Insert at the front
             //card.DOScale(1f, 0.25f);
-
         }
 
-        card.position = deckPosition.position;
     }
 
     public void AddCard(Transform card, int index)

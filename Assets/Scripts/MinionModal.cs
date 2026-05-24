@@ -50,7 +50,7 @@ public class MinionModal
         OnDeath = card.OnDeath;
         OnTurnStart = card.OnTurnStart;
         OnOwnerTurnEnd = card.OnOwnerTurnEnd;
-        OnOwnerDrawedCard = card.OnOwnerDrawedCard;
+        OnOwnerDrawedCard = card.OnOwnerDrewCard;
         BonusEvents = card.BonusEvents;
     }
 }

@@ -24,7 +24,8 @@ MonoBehaviour:
   armor: 0
   canMove: 0
   type: 0
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: e8510371441fb2e4a94dd766ef90a6e3, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0
   OnPlay:
@@ -49,5 +50,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

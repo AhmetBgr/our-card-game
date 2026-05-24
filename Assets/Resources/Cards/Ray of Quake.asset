@@ -27,7 +27,7 @@ MonoBehaviour:
   type: 2
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
-  isUpgraded: 0
+  isUpgraded: 1
   defHealth: 0
   OnPlay:
     m_PersistentCalls:

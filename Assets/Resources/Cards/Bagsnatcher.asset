@@ -10,23 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: Arcane Scout
+  m_Name: Bagsnatcher
   m_EditorClassIdentifier: 
-  art:
-  - {fileID: 0}
-  - {fileID: 0}
-  frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
-  name: Arcane Scout
+  actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+  minionArt: {fileID: 0}
+  cardArt: {fileID: 0}
+  cardName: Bagsnatcher
   desc: 'On summon: Draw a card.'
   attack: 1
   health: 1
   cost: 2
   range: 2
+  armor: 0
+  canMove: 1
   type: 0
   upgradedVersion: {fileID: 11400000, guid: 1f43b131741daf541b2bd7eed7f3b725, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 1
-  effectValues: 
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -35,8 +36,8 @@ MonoBehaviour:
         m_MethodName: SelectCell
         m_Mode: 3
         m_Arguments:
-          m_ObjectArgument: {fileID: 11400000}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
@@ -44,7 +45,31 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: summonminion
+        m_MethodName: SelectThisAgent
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: PayCardCost
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SummonMinion
         m_Mode: 2
         m_Arguments:
           m_ObjectArgument: {fileID: 11400000}
@@ -87,18 +112,18 @@ MonoBehaviour:
   OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls: []
-  OnSpellPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnMinionPlayed:
-    m_PersistentCalls:
-      m_Calls: []
-  OnThisMoved:
-    m_PersistentCalls:
-      m_Calls: []
-  OnAnyMoved:
+  OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrawedCard:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

@@ -24,7 +24,7 @@ MonoBehaviour:
   armor: 0
   canMove: 0
   type: 2
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: d6d5b051c2c38014bb1e58922921d6ed, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0

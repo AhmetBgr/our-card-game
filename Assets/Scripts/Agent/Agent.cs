@@ -98,7 +98,6 @@ public class Agent : MonoBehaviour
         CardSO card = deck[deck.Count-1]; //Random.Range(0, deck.Count)
         if(card == null)
         {
-
             Debug.Log("card is null");
         }
         deck.RemoveAt(deck.Count - 1);
@@ -114,7 +113,32 @@ public class Agent : MonoBehaviour
         StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : card.isUpgraded);
     }
+    public void AddCard(CardSO card, Transform startPos = null)
+    {
+        UpdateHand();
 
+        if (deck.Count == 0 | hand.Count >= 7) return;
+
+        if (card == null)
+        {
+
+            Debug.Log("card is null");
+        }
+
+        Debug.Log("add card: " + card);
+
+        CardController cardObj = Instantiate(cardPrefab);
+        cardObj.gameObject.name = card.cardName;
+        cardObj.card = card;
+        cardObj.modal.isPlayerMinion = IsPlayer();
+        cardObj.modal.UpdateModal(card);
+        cardObj.view.UpdateView(cardObj.modal);
+        hand.Add(cardObj);
+        //handManager.AddToHand(cardObj.transform, handManager.GetEmptyHandSlot());
+        cardHandLayout.AddCard(cardObj.transform, startPos);
+        StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
+        deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : card.isUpgraded);
+    }
     public void SpawnCardToDeck(CardSO card, bool isPlayerCard)
     {
         deck.Insert(Random.Range(0, Mathf.Max(0, deck.Count - 1)), card);
@@ -152,5 +176,16 @@ public class Agent : MonoBehaviour
         });
 
         deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
+    }
+
+    public CardSO RemoveRandomCardFromDeck()
+    {
+        if (deck.Count == 0) return null;
+
+        var randomIndex = Random.Range(0, deck.Count);
+        var card = deck[randomIndex];
+        deck.RemoveAt(randomIndex);
+        deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : card.isUpgraded);
+        return card;
     }
 }

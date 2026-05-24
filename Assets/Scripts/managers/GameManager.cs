@@ -265,16 +265,16 @@ public class GameManager : Singleton<GameManager>
                         ActionHolder.selectedMinion = null;
                         ActionHolder.thisMinion = minion;
                         ActionHolder.thisCardSO = minion.card;
-                    ActionHolder.thisCard = null;
-                    ActionHolder.selectedMinions.Clear();
-                    ActionHolder.selectedMinions.Add(minion);
-                    ActionHolder.selectedCells.Clear();
-                    ActionHolder.selectedAgent = minion.owner;
-                    ActionHolder.curActionsList = onCardDrawActions;
+                        ActionHolder.thisCard = null;
+                        ActionHolder.selectedMinions.Clear();
+                        ActionHolder.selectedMinions.Add(minion);
+                        ActionHolder.selectedCells.Clear();
+                        ActionHolder.selectedAgent = minion.owner;
+                        ActionHolder.curActionsList = onCardDrawActions;
 
-                    minion.modal.OnOwnerDrawedCard.Invoke();
+                        minion.modal.OnOwnerDrawedCard.Invoke();
 
-                    yield return StartCoroutine(ExecuteActions(onCardDrawActions));
+                        yield return StartCoroutine(ExecuteActions(onCardDrawActions));
                     }
                     finally
                     {

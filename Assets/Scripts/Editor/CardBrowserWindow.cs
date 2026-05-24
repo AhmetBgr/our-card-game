@@ -369,6 +369,17 @@ public class CardBrowserWindow : EditorWindow
             if (grouped && card.upgradedVersion != null)
                 DrawCardRow(card.upgradedVersion, 16);
         }
+
+        if (grouped)
+        {
+            foreach (CardSO card in _visibleCards)
+            {
+                if (card == null || !card.isUpgraded)
+                    continue;
+                if (FindBaseCard(card) == null)
+                    DrawCardRow(card, 0);
+            }
+        }
     }
 
     private void DrawCardRow(CardSO card, float indent)

@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Daisy
   m_EditorClassIdentifier: 
-  actionHolder: {fileID: 0}
+  actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
-  cardArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
-  frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
+  cardArt: {fileID: -1407081494, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
   cardName: daisy
   desc: When Played, +1 mana this turn
   attack: 0
@@ -23,13 +22,12 @@ MonoBehaviour:
   cost: 1
   range: 1
   armor: 0
+  canMove: 1
   type: 0
   upgradedVersion: {fileID: 11400000, guid: 866bd5bc3e3b56349aefde718fdf3957, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 1
-  OnPlayInitialize:
-    m_PersistentCalls:
-      m_Calls: []
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -118,5 +116,14 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrawedCard:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

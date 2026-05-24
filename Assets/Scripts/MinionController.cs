@@ -189,13 +189,14 @@ public class MinionController : MonoBehaviour
         Debug.Log("selectiable minion count: " + selectableminions.Count);
 
         OnSelectingMinionForAttack?.Invoke(selectableminions);
+        Debug.Log("target: " + target);
         if(target != null)
         {
             selectedMinion = target;
         }
         while (selectedMinion == null)
         {
-            //Debug.Log("selecting minion for attack");
+            Debug.Log("selecting minion for attack");
 
             yield return null;
         }

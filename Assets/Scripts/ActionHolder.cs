@@ -684,6 +684,9 @@ public class ActionHolder : ScriptableObject
     }
     public void SelectRandomEnemyMinionInRange()
     {
+        Debug.Log("try add SelectRandomEnemyMinionInRange event ");
+
+        if (GameManager.Instance.isTesting) return;
         Agent opponent = null;
 
         if (thisMinion != null)
@@ -727,14 +730,14 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _SelectRandomMinionInRange(Agent agent)
     {
         List<MinionController> minionsInRange = new List<MinionController>();
-        Debug.Log("opponent: " + agent.name);
+        //Debug.Log("opponent: " + agent.name);
 
         foreach (var minion in agent.minions)
         {
-            Debug.Log("checking if minion is in range: ");
+            //Debug.Log("checking if minion is in range: ");
             if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1 && minion != thisMinion)
             {
-                Debug.Log("minion is in range: ");
+                //Debug.Log("minion is in range: ");
 
                 minionsInRange.Add(minion);
             }
@@ -743,18 +746,16 @@ public class ActionHolder : ScriptableObject
 
         if (minionsInRange.Count > 0)
         {
-            selectedMinion = minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)];
+            selectedTargetMinion = minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)];
             selectedMinions.Add(selectedMinion);
-            Debug.Log("selected minion: " + selectedMinion.card.cardName);
-
+            //Debug.Log("selectedTargetMinion minion: " + selectedTargetMinion.card.cardName);
         }
         else
         {
-            selectedMinion = null;
+            selectedTargetMinion = null;
         }
-
             
-            yield return null;
+        yield return null;
     }
     public IEnumerator _SelectRandomFriendlyMinionInRange(Agent thisAgent)
     {
@@ -941,6 +942,43 @@ public class ActionHolder : ScriptableObject
         }
         else {
             selectedAgent.DrawCard();
+        }
+
+    }
+    public void DrawCardFromOpponentDeck()
+    {
+        Debug.Log("try draw card");
+
+        if (GameManager.Instance.isTesting) return;
+
+        var agentToDraw = selectedAgent;
+        curActionsList.Enqueue(_DrawCardFromOpponentDeck());
+    }
+
+    public IEnumerator _DrawCardFromOpponentDeck()
+    {
+        //yield return null;
+        Debug.Log("should draw card in 0.5 sec");
+
+        yield return new WaitForSeconds(0.5f);
+
+        Debug.Log("should draw card");
+        if (selectedAgent == null)
+        {
+            Debug.LogWarning("Agent is null, cannot draw card");
+        }
+        else
+        {
+            var opponent = selectedAgent.IsPlayer() ? GameManager.Instance.opponent : GameManager.Instance.player;
+
+            Debug.Log("opponent: " + opponent);
+
+
+            var card = opponent.RemoveRandomCardFromDeck();
+
+            Debug.Log("card to draw: " + card);
+
+            selectedAgent.AddCard(card, opponent.deckViewHandler.transform);
         }
 
     }

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Radiant Touch
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: -1687654404, guid: 18b4467d5b765e74fa3e121902d99212, type: 3}
-  cardArt: {fileID: -1074366209, guid: 18b4467d5b765e74fa3e121902d99212, type: 3}
+  minionArt: {fileID: -1074366209, guid: 18b4467d5b765e74fa3e121902d99212, type: 3}
+  cardArt: {fileID: -1687654404, guid: 18b4467d5b765e74fa3e121902d99212, type: 3}
   cardName: Radiant Touch
   desc: 'Give a minion +1 / +1. Draw a card
 
@@ -27,6 +27,7 @@ MonoBehaviour:
   canMove: 1
   type: 1
   upgradedVersion: {fileID: 11400000, guid: dd3b6b4521b2b7b46b85dbfcdf01a21f, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0
   OnPlay:

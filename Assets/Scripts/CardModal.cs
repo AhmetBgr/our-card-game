@@ -58,7 +58,7 @@ public class CardModal : MonoBehaviour
         OnTurnStart = card.OnTurnStart;
         OnOwnerTurnEnd = card.OnOwnerTurnEnd;
         OnAnyMinionSummoned = card.OnAnyMinionSummoned;
-        OnOwnerDrawedCard = card.OnOwnerDrawedCard;
+        OnOwnerDrawedCard = card.OnOwnerDrewCard;
         OnMinionCollided = card.OnMinionCollided;
         BonusEvents = card.BonusEvents;
 
