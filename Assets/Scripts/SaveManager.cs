@@ -151,7 +151,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
         saveData.Decks[0] = new DeckData
         {
             Name = "Default_Deck_0",
-            isLocked = true,
+            isLocked = false,
             Deck = new List<string>()
         };
 

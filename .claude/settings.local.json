@@ -12,7 +12,13 @@
       "Bash(python -c ' *)",
       "mcp__unity-mcp__Unity_RunCommand",
       "Bash(Get-ChildItem -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\\\\Assets\\\\Scripts\" -Recurse -Filter \"*.cs\")",
-      "Bash(Sort-Object)"
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Path \"Assets\\\\Scripts\\\\UI\" -Filter \"*.cs\")",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(grep \"--- !u!\" \"Assets/Scenes/Menu.unity\")",
+      "Bash(grep -B 5 -A 15 \"fileID: 1033209331\\\\$\" \"Assets/Scenes/Menu.unity\")",
+      "Bash(xargs grep -l \"Scroll\\\\|Pagination\\\\|Page\")",
+      "Bash(xargs wc -l)"
     ]
   }
 }

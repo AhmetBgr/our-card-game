@@ -4455,37 +4455,37 @@ PrefabInstance:
         type: 3}
       propertyPath: 'defaultDeck.Array.data[0]'
       value: 
-      objectReference: {fileID: 11400000, guid: 02616ea4041f7cc42b5a5033fdead468,
+      objectReference: {fileID: 11400000, guid: 12226c2444ddd534aba5a51e9feec345,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: 02616ea4041f7cc42b5a5033fdead468,
+      objectReference: {fileID: 11400000, guid: 12226c2444ddd534aba5a51e9feec345,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[2]'
       value: 
-      objectReference: {fileID: 11400000, guid: 02616ea4041f7cc42b5a5033fdead468,
+      objectReference: {fileID: 11400000, guid: 12226c2444ddd534aba5a51e9feec345,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[3]'
       value: 
-      objectReference: {fileID: 11400000, guid: 12226c2444ddd534aba5a51e9feec345,
+      objectReference: {fileID: 11400000, guid: 02616ea4041f7cc42b5a5033fdead468,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[4]'
       value: 
-      objectReference: {fileID: 11400000, guid: 12226c2444ddd534aba5a51e9feec345,
+      objectReference: {fileID: 11400000, guid: 02616ea4041f7cc42b5a5033fdead468,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[5]'
       value: 
-      objectReference: {fileID: 11400000, guid: 12226c2444ddd534aba5a51e9feec345,
+      objectReference: {fileID: 11400000, guid: 02616ea4041f7cc42b5a5033fdead468,
         type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9332,11 +9332,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 95344209609e87e418538287a9e5eda2,
         type: 2}
-    - target: {fileID: 9060544395095922235, guid: 29ef1783c50c9224085bb0da6684ebbc,
-        type: 3}
-      propertyPath: owner
-      value: 
-      objectReference: {fileID: 984600825}
     - target: {fileID: 9094578700623164042, guid: 29ef1783c50c9224085bb0da6684ebbc,
         type: 3}
       propertyPath: m_Sprite

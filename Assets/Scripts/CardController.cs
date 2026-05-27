@@ -16,8 +16,7 @@ public class CardController : MonoBehaviour
 
     void Start()
     {
-        modal.UpdateModal(card);
-        view.UpdateView(modal);
+
 
         DraggableItem.DragStarted += DisablePeek;
         DraggableItem.DragEnded += OnDragEnded;
@@ -34,7 +33,11 @@ public class CardController : MonoBehaviour
         if (!modal.isPlayerMinion) return;
         view.UpdateGearSpeed(modal);
     }
-
+    public void Initialize(Agent owner)
+    {
+        modal.UpdateModal(card, owner);
+        view.UpdateView(modal);
+    }
     public IEnumerator CanPlay(Agent owner, Action<bool> result)
     {
         if (modal.cost > owner.availibleMana)

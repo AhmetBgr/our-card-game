@@ -18,6 +18,7 @@ public class CardModal : MonoBehaviour
     public int armor;
 
     public int defHealth;
+    public Agent owner;
     public bool isPlayerMinion = true;
     public CardSO upgradedVerdion;
     public bool isUpgraded = false;
@@ -34,7 +35,7 @@ public class CardModal : MonoBehaviour
     public UnityEvent OnTookDamage;
     public UnityEvent BonusEvents; // Holds events to be added to another event
 
-    public void UpdateModal(CardSO card)
+    public void UpdateModal(CardSO card, Agent owner)
     {
         minionArt = card.minionArt;
         cardArt = card.cardArt;
@@ -71,6 +72,7 @@ public class CardModal : MonoBehaviour
             var soOnTookDamage = card.OnTookDamage;
             OnTookDamage.AddListener(soOnTookDamage.Invoke);
         }
+        this.owner = owner;
         //isPlayerMinion = GameManager.Instance.isPlayerTurn;
     }
 }

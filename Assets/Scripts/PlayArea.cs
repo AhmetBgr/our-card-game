@@ -20,13 +20,15 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
             return;
         }
 
+        var layout = droppedItem.handLayout;
+        int originalIndex = layout != null ? layout.cards.IndexOf(droppedItem.transform) : 0;
+
         bool canPlay = false;
         Debug.Log("testing: ");
         StartCoroutine(droppedItem.CanPlay(GameManager.Instance.player, result =>
         {
             canPlay = result;
             Debug.Log("canplay result: " + result);
-
 
             droppedItem.handLayout.CancelPeek();
             Debug.Log($"canplay {canPlay}, isplaying card {GameManager.Instance.isPlayingCard}");
@@ -48,10 +50,14 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
             }
             else
             {
+                int returnIndex = layout.RemoveCard(droppedItem.transform);
+                layout.InsertCardAt(droppedItem.transform, returnIndex >= 0 ? returnIndex : Mathf.Max(originalIndex, 0));
+                droppedItem.transform.DOComplete();
+                droppedItem.transform.localRotation = Quaternion.identity;
+                droppedItem.transform.localScale = Vector3.one;
+                droppedItem.draggableItem.ParentAfterDrag = layout.transform;
                 droppedItem.EnablePeek();
             }
-
-            // play card
         }));
 
 

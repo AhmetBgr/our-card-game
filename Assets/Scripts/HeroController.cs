@@ -5,6 +5,10 @@ using UnityEngine;
 using DG.Tweening;
 public class HeroController : MinionController
 {
+    protected override void Start()
+    {
+        Initialize(owner);
+    }
     protected override void OnMouseDown()
     {
         Debug.Log("here12");

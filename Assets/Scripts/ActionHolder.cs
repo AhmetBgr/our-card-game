@@ -211,7 +211,15 @@ public class ActionHolder : ScriptableObject
     }
     public IEnumerator _SelectOpponentAgent()
     {
-        selectedAgent = thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+        if (thisCard != null)
+        {
+            Debug.Log("selecting opponent agent");
+            selectedAgent = thisCard.modal.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player; 
+        }
+        else if(thisMinion != null)
+        {
+            selectedAgent = thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+        }
         Debug.Log("selected agent: " + selectedAgent.name);
         yield return null;
 
@@ -1445,6 +1453,46 @@ public class ActionHolder : ScriptableObject
 
         yield return null;
     }
+    public void HealAgent(int amount)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_HealAgent(amount));
+    }
+
+    public IEnumerator _HealAgent(int amount)
+    {
+        if (selectedAgent == null || selectedAgent.hero == null)
+        {
+            Debug.LogWarning("HealAgent: no selected agent or hero");
+            yield break;
+        }
+
+        var hero = selectedAgent.hero;
+        hero.modal.health = Mathf.Min(hero.modal.health + amount, hero.modal.defHealth);
+        hero.view.UpdateView(hero.modal);
+        yield return null;
+    }
+
+    public void DamageAgent(int amount)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_DamageAgent(amount));
+    }
+
+    public IEnumerator _DamageAgent(int amount)
+    {
+        if (selectedAgent == null || selectedAgent.hero == null)
+        {
+            Debug.LogWarning("DamageAgent: no selected agent or hero");
+            yield break;
+        }
+
+        selectedAgent.hero.TakeDamage(amount);
+        yield return null;
+    }
+
     public void SummonFriendlyMinionsDiedInSelectedCells()
     {
         if (GameManager.Instance.isTesting) return;

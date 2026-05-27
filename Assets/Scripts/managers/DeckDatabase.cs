@@ -1,13 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class DeckDatabase : Singleton<DeckDatabase>
 {
     public Dictionary<string, CardSO> cardsByName = new Dictionary<string, CardSO>();
     public Dictionary<string, CardSO> upgradedCardsByName = new Dictionary<string, CardSO>();
-
 
     public List<CardSO> AllCards = new List<CardSO>();
 
@@ -21,7 +24,17 @@ public class DeckDatabase : Singleton<DeckDatabase>
     {
         cardsByName.Clear();
 
-        CardSO[] cards = Resources.LoadAll<CardSO>("Cards");
+        CardSO[] cards;
+#if UNITY_EDITOR
+        cards = Array.ConvertAll(
+            AssetDatabase.FindAssets("t:CardSO", new[] { "Assets/Resources/Cards" }),
+            guid => AssetDatabase.LoadAssetAtPath<CardSO>(AssetDatabase.GUIDToAssetPath(guid))
+        );
+        cards = Array.FindAll(cards, c => c != null &&
+            Path.GetDirectoryName(AssetDatabase.GetAssetPath(c)).Replace('\\', '/') == "Assets/Resources/Cards");
+#else
+        cards = Resources.LoadAll<CardSO>("Cards");
+#endif
 
         foreach (CardSO card in cards)
         {
@@ -42,11 +55,9 @@ public class DeckDatabase : Singleton<DeckDatabase>
                 Debug.LogWarning($"Duplicate CardSO name found: {card.cardName}");
                 continue;
             }
-
             cardsByName.Add(card.cardName, card);
             AllCards.Add(card);
         }
-
         Debug.Log($"Loaded {cardsByName.Count} cards into CardDatabase.");
     }
 

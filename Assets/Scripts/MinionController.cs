@@ -49,15 +49,16 @@ public class MinionController : MonoBehaviour
         GameManager.OnTurnEnd -= OnTurnSwitch;
     }
 
-    void Start()
+    protected virtual void Start()
     {
-        modal.UpdateModal(card);
-        view.UpdateView(modal);
-
         /*if(showInfo != null) 
             showInfo.card = card;*/
     }
-
+    public void Initialize(Agent owner)
+    {
+        modal.UpdateModal(card, owner);
+        view.UpdateView(modal);
+    }
     private void OnTurnSwitch(GameState curState)
     {
         age++;

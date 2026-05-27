@@ -800,7 +800,7 @@ public class GameManager : Singleton<GameManager>
         MinionController minion = Instantiate(minionprefab, pos, Quaternion.identity).GetComponent<MinionController>();
         minion.card = card;
         //minion.modal = new MinionModal(card, minion);  
-        minion.modal.UpdateModal(minion.card);
+        minion.modal.UpdateModal(minion.card, isPlayerTurn ? player : opponent);
         minion.view.UpdateView(minion.modal);
         ActionHolder.thisMinion = minion;
         ActionHolder.thisCardSO = minion.card;
