@@ -15,7 +15,7 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 1376037665, guid: be9820cbaffd87b4f8c9087f5bd566cb, type: 3}
   cardArt: {fileID: -1392313864, guid: be9820cbaffd87b4f8c9087f5bd566cb, type: 3}
-  cardName: priest
+  cardName: Priest
   desc: 'On Death: Deal 2 damage to randon enemy minion.'
   attack: 5
   health: 3
@@ -25,6 +25,7 @@ MonoBehaviour:
   canMove: 1
   type: 1
   upgradedVersion: {fileID: 11400000, guid: e5c664c388df34749ae39a34fd09a3f4, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 3
   OnPlay:
@@ -138,12 +139,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

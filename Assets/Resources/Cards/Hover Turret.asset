@@ -36,8 +36,8 @@ MonoBehaviour:
         m_MethodName: SelectCell
         m_Mode: 3
         m_Arguments:
-          m_ObjectArgument: {fileID: 11400000}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
@@ -45,7 +45,31 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: summonminion
+        m_MethodName: SelectThisAgent
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: PayCardCost
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SummonMinion
         m_Mode: 2
         m_Arguments:
           m_ObjectArgument: {fileID: 11400000}
@@ -67,12 +91,24 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectRandomEnemyMinionInRange
+        m_MethodName: SelectThisMinion
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectAllEnemyMinionsInRangeAsTarget
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -89,7 +125,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: -1
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

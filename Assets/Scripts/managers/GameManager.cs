@@ -928,7 +928,8 @@ public class GameManager : Singleton<GameManager>
 
                 onMinionCollidedActions.Clear();
                 ActionHolder.ResetSelections();
-                ActionHolder.selectedTargetMinion = collidedMinion;
+                ActionHolder.selectedTargetMinions.Clear();
+                ActionHolder.selectedTargetMinions.Add(collidedMinion);
                 ActionHolder.thisMinion = minion;
                 ActionHolder.thisCardSO = minion.card;
                 ActionHolder.thisCard = null;

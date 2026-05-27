@@ -4445,13 +4445,13 @@ PrefabInstance:
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: defaultDeck.Array.size
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[0]'
       value: 
-      objectReference: {fileID: 11400000, guid: 7c6d5574d844bdb4e813a865eb837a92,
+      objectReference: {fileID: 11400000, guid: 444f8a9b60d7c8c4b87aef788441b616,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
@@ -4463,31 +4463,31 @@ PrefabInstance:
         type: 3}
       propertyPath: 'defaultDeck.Array.data[2]'
       value: 
-      objectReference: {fileID: 11400000, guid: 444f8a9b60d7c8c4b87aef788441b616,
+      objectReference: {fileID: 11400000, guid: 7c6d5574d844bdb4e813a865eb837a92,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[3]'
       value: 
-      objectReference: {fileID: 11400000, guid: 444f8a9b60d7c8c4b87aef788441b616,
+      objectReference: {fileID: 11400000, guid: 7c6d5574d844bdb4e813a865eb837a92,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[4]'
       value: 
-      objectReference: {fileID: 11400000, guid: 444f8a9b60d7c8c4b87aef788441b616,
+      objectReference: {fileID: 11400000, guid: b0cd6dd1cd4c94d4fae913759eab93aa,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[5]'
       value: 
-      objectReference: {fileID: 11400000, guid: 444f8a9b60d7c8c4b87aef788441b616,
+      objectReference: {fileID: 11400000, guid: b0cd6dd1cd4c94d4fae913759eab93aa,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}
       propertyPath: 'defaultDeck.Array.data[6]'
       value: 
-      objectReference: {fileID: 11400000, guid: 1f43b131741daf541b2bd7eed7f3b725,
+      objectReference: {fileID: 11400000, guid: 444f8a9b60d7c8c4b87aef788441b616,
         type: 2}
     - target: {fileID: 7846524198943846997, guid: e2bd68121a0f30d46ab80c4144ac6834,
         type: 3}

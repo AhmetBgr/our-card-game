@@ -23,7 +23,6 @@ public class ActionHolder : ScriptableObject
     public static List<CardController> selectedCards = new List<CardController>();
 
     public static MinionController selectedMinion = null;
-    public static MinionController selectedTargetMinion = null;
     public static Agent selectedAgent = null;
     public static MinionController thisMinion = null;
     public static CardSO thisCardSO = null;
@@ -41,7 +40,7 @@ public class ActionHolder : ScriptableObject
         private readonly List<MinionController> _selectedMinions;
         private readonly List<CardController> _selectedCards;
         private readonly MinionController _selectedMinion;
-        private readonly MinionController _selectedTargetMinion;
+        private readonly List<MinionController> _selectedTargetMinions;
         private readonly Agent _selectedAgent;
         private readonly MinionController _thisMinion;
         private readonly CardSO _thisCardSO;
@@ -56,7 +55,7 @@ public class ActionHolder : ScriptableObject
             List<MinionController> selectedMinions,
             List<CardController> selectedCards,
             MinionController selectedMinion,
-            MinionController selectedTargetMinion,
+            List<MinionController> selectedTargetMinions,
             Agent selectedAgent,
             MinionController thisMinion,
             CardSO thisCardSO,
@@ -69,7 +68,7 @@ public class ActionHolder : ScriptableObject
             _selectedMinions = selectedMinions;
             _selectedCards = selectedCards;
             _selectedMinion = selectedMinion;
-            _selectedTargetMinion = selectedTargetMinion;
+            _selectedTargetMinions = selectedTargetMinions;
             _selectedAgent = selectedAgent;
             _thisMinion = thisMinion;
             _thisCardSO = thisCardSO;
@@ -86,7 +85,7 @@ public class ActionHolder : ScriptableObject
             ActionHolder.selectedMinions = new List<MinionController>(_selectedMinions);
             ActionHolder.selectedCards = new List<CardController>(_selectedCards);
             ActionHolder.selectedMinion = _selectedMinion;
-            ActionHolder.selectedTargetMinion = _selectedTargetMinion;
+            ActionHolder.selectedTargetMinions = new List<MinionController>(_selectedTargetMinions);
             ActionHolder.selectedAgent = _selectedAgent;
             ActionHolder.thisMinion = _thisMinion;
             ActionHolder.thisCardSO = _thisCardSO;
@@ -105,7 +104,7 @@ public class ActionHolder : ScriptableObject
             new List<MinionController>(selectedMinions),
             new List<CardController>(selectedCards),
             selectedMinion,
-            selectedTargetMinion,
+            new List<MinionController>(selectedTargetMinions),
             selectedAgent,
             thisMinion,
             thisCardSO,
@@ -155,7 +154,6 @@ public class ActionHolder : ScriptableObject
     {
         selectedcell = null;
         selectedMinion = null;
-        selectedTargetMinion = null;
         selectedAgent = null;
         selectedMinions.Clear();
         selectedTargetMinions.Clear();
@@ -705,6 +703,72 @@ public class ActionHolder : ScriptableObject
 
         curActionsList.Enqueue(_SelectRandomMinionInRange(opponent));
     }
+    public void SelectAllEnemyMinionsInRange()
+    {
+        if (GameManager.Instance.isTesting) return;
+        Agent opponent = null;
+
+        if (thisMinion != null)
+        {
+            opponent = thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+        }
+        else
+        {
+            opponent = GameManager.Instance.isPlayerTurn ? GameManager.Instance.opponent : GameManager.Instance.player;
+        }
+
+        curActionsList.Enqueue(_SelectAllEnemyMinionsInRange(opponent));
+    }
+    public IEnumerator _SelectAllEnemyMinionsInRange(Agent opponent)
+    {
+        selectedMinions.Clear();
+
+        if (thisMinion == null) yield break;
+
+        foreach (var minion in opponent.minions)
+        {
+            if (minion == thisMinion) continue;
+            if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1)
+            {
+                selectedMinions.Add(minion);
+            }
+        }
+
+        yield return null;
+    }
+    public void SelectAllEnemyMinionsInRangeAsTarget()
+    {
+        if (GameManager.Instance.isTesting) return;
+        Agent opponent = null;
+
+        if (thisMinion != null)
+        {
+            opponent = thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+        }
+        else
+        {
+            opponent = GameManager.Instance.isPlayerTurn ? GameManager.Instance.opponent : GameManager.Instance.player;
+        }
+
+        curActionsList.Enqueue(_SelectAllEnemyMinionsInRangeAsTarget(opponent));
+    }
+    public IEnumerator _SelectAllEnemyMinionsInRangeAsTarget(Agent opponent)
+    {
+        selectedTargetMinions.Clear();
+
+        if (thisMinion != null) {
+
+            foreach (var minion in opponent.minions)
+            {
+                if (minion == thisMinion) continue;
+                if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1)
+                {
+                    selectedTargetMinions.Add(minion);
+                }
+            }
+            yield return null;
+        } 
+    }
     public void SelectRandomFriendlyMinionInRange()
     {
         Agent player = null;
@@ -743,18 +807,13 @@ public class ActionHolder : ScriptableObject
             }
         }
         selectedMinions.Clear();
+        selectedTargetMinions.Clear();
 
         if (minionsInRange.Count > 0)
         {
-            selectedTargetMinion = minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)];
-            selectedMinions.Add(selectedMinion);
-            //Debug.Log("selectedTargetMinion minion: " + selectedTargetMinion.card.cardName);
+            selectedTargetMinions.Add(minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)]);
         }
-        else
-        {
-            selectedTargetMinion = null;
-        }
-            
+
         yield return null;
     }
     public IEnumerator _SelectRandomFriendlyMinionInRange(Agent thisAgent)
@@ -791,9 +850,9 @@ public class ActionHolder : ScriptableObject
     }
     public IEnumerator _SelectThisMinionsLastTargetAsTarget()
     {
-        selectedTargetMinion = thisMinion.LastTarget;
         selectedTargetMinions.Clear();
-        selectedTargetMinions.Add(selectedTargetMinion);
+        if (thisMinion.LastTarget != null)
+            selectedTargetMinions.Add(thisMinion.LastTarget);
         yield return null;
     }
 
@@ -903,6 +962,40 @@ public class ActionHolder : ScriptableObject
         }
     }
 
+    public void SummonRandomMinion(int cost)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SummonRandomMinion(cost));
+    }
+    public IEnumerator _SummonRandomMinion(int cost)
+    {
+        if (DeckDatabase.Instance == null || DeckDatabase.Instance.AllCards == null)
+        {
+            Debug.LogWarning("SummonRandomMinion: DeckDatabase unavailable");
+            yield break;
+        }
+
+        var candidates = DeckDatabase.Instance.AllCards
+            .Where(c => c != null && c.cost == cost && c.health > 0)
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            Debug.LogWarning("SummonRandomMinion: no minion with cost " + cost);
+            yield break;
+        }
+
+        CardSO picked = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+
+        foreach (var cell in selectedCells)
+        {
+            GameManager.Instance.SummonMinion(picked, cell.position);
+        }
+
+        yield return null;
+    }
+
     public void SummonMinion(CardSO card)
     {
         //Debug.LogWarning("before summon ");
@@ -939,10 +1032,13 @@ public class ActionHolder : ScriptableObject
 
     public IEnumerator _Attack()
     {
-        //Debug.Log("should attack minion: " + thisMinion.modal.name + " : " + selectedMinion.modal.name);
-        thisMinion.StartAttack(selectedMinion.owner, selectedTargetMinion);
-        thisMinion.isAttackedThisTurn = false;
-        yield return null;
+        foreach (var target in selectedTargetMinions)
+        {
+            if (target == null) continue;
+            thisMinion.StartAttack(target.owner, target);
+            thisMinion.isAttackedThisTurn = false;
+            yield return new WaitForSeconds(1f);
+        }
     }
 
     public void DrawCardForEachDiedMinion()
@@ -1227,14 +1323,18 @@ public class ActionHolder : ScriptableObject
     }
     public IEnumerator _ChangeTargetMinionHealth(int value)
     {
-        if (value < 0)
+        foreach (var minion in selectedTargetMinions)
         {
-            selectedTargetMinion.TakeDamage(Mathf.Abs(value));
-        }
-        else
-        {
-            selectedTargetMinion.modal.health += value;
-            selectedTargetMinion.view.UpdateView(selectedTargetMinion.modal);
+            if (minion == null) continue;
+            if (value < 0)
+            {
+                minion.TakeDamage(Mathf.Abs(value));
+            }
+            else
+            {
+                minion.modal.health += value;
+                minion.view.UpdateView(minion.modal);
+            }
         }
         yield return new WaitForSeconds(1);
     }
