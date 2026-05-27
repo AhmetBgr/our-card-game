@@ -847,6 +847,62 @@ public class ActionHolder : ScriptableObject
         yield return null;
     }
 
+    public void CreateCard(CardSO card)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_CreateCard(card));
+    }
+    public IEnumerator _CreateCard(CardSO card)
+    {
+        if (card == null)
+        {
+            Debug.LogWarning("CreateCard called with null CardSO");
+            yield break;
+        }
+
+        var agent = selectedAgent != null
+            ? selectedAgent
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
+        CardController cardObj = agent.InstantiateCard(card);
+
+        selectedCards.Clear();
+        selectedCards.Add(cardObj);
+
+        yield return null;
+    }
+
+    public void AddToDeck()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_AddToDeck());
+    }
+    public IEnumerator _AddToDeck()
+    {
+        if (selectedCards == null || selectedCards.Count == 0)
+        {
+            Debug.LogWarning("AddToDeck called with empty selectedCards");
+            yield break;
+        }
+
+        var agent = selectedAgent != null
+            ? selectedAgent
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
+        var cardsToAdd = new List<CardController>(selectedCards);
+
+        foreach (var card in cardsToAdd)
+        {
+            if (card == null || card.card == null) continue;
+
+            agent.AddCardToDeck(card);
+
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
     public void SummonMinion(CardSO card)
     {
         //Debug.LogWarning("before summon ");

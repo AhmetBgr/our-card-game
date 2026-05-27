@@ -44,6 +44,11 @@ public class CardBrowserWindow : EditorWindow
 
     private GUIStyle _listItemStyle;
 
+    // Pixel distance the mouse must move from the press point before a list-item
+    // drag begins. Anything below this is treated as a click (selection).
+    private const float DragStartThreshold = 8f;
+    private Vector2 _mouseDownPos;
+
     [MenuItem("Tools/Cards/Card Browser")]
     public static void Open()
     {
@@ -415,6 +420,7 @@ public class CardBrowserWindow : EditorWindow
                     if (r.Contains(Event.current.mousePosition) && Event.current.button == 0)
                     {
                         GUIUtility.hotControl = id;
+                        _mouseDownPos = Event.current.mousePosition;
                         Event.current.Use();
                     }
                     break;
@@ -428,7 +434,8 @@ public class CardBrowserWindow : EditorWindow
                     }
                     break;
                 case EventType.MouseDrag:
-                    if (GUIUtility.hotControl == id)
+                    if (GUIUtility.hotControl == id &&
+                        (Event.current.mousePosition - _mouseDownPos).sqrMagnitude >= DragStartThreshold * DragStartThreshold)
                     {
                         DragAndDrop.PrepareStartDrag();
                         DragAndDrop.objectReferences = new UnityEngine.Object[] { card };

@@ -162,6 +162,54 @@ public class Agent : MonoBehaviour
         deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
     }
 
+    public void AddCardToDeck(CardController card)
+    {
+        if (card == null || card.card == null)
+        {
+            Debug.LogWarning("Agent.AddCardToDeck called with null card");
+            return;
+        }
+
+        int insertIndex = Random.Range(0, Mathf.Max(0, deck.Count - 1));
+        deck.Insert(insertIndex, card.card);
+
+        if (deckViewHandler != null)
+            deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
+
+        RemoveCardFromHand(card);
+
+        Transform deckTarget = cardHandLayout != null && cardHandLayout.deckPosition != null && cardHandLayout.deckPosition.childCount > 0
+            ? cardHandLayout.deckPosition.GetChild(cardHandLayout.deckPosition.childCount - 1)
+            : (cardHandLayout != null ? cardHandLayout.deckPosition : null);
+
+        if (deckTarget == null)
+        {
+            Destroy(card.gameObject);
+            return;
+        }
+
+        card.transform.SetParent(cardHandLayout.transform.parent);
+        card.transform.SetSiblingIndex(0);
+
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(card.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f, 50f, 1, 0.5f));
+        sequence.Join(card.transform.DOScale(cardHandLayout.cardinitialScale, 0.5f));
+        sequence.Join(card.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
+        {
+            if (card != null && card.modal != null && card.view != null)
+            {
+                card.modal.isPlayerMinion = false;
+                card.view.UpdateView(card.modal);
+                card.transform.DORotate(Vector3.zero, 0.15f);
+            }
+        }));
+        sequence.Append(card.transform.DOMove(deckTarget.position, 0.5f));
+        sequence.OnComplete(() =>
+        {
+            if (card != null) Destroy(card.gameObject);
+        });
+    }
+
     public CardSO RemoveRandomCardFromDeck()
     {
         if (deck.Count == 0) return null;
@@ -173,7 +221,7 @@ public class Agent : MonoBehaviour
         return card;
     }
 
-    private CardController InstantiateCard(CardSO cardSO)
+    public CardController InstantiateCard(CardSO cardSO)
     {
         CardController cardObj = Instantiate(cardPrefab);
         cardObj.gameObject.name = cardSO.cardName;

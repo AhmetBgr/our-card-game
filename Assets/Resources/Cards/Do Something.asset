@@ -10,44 +10,104 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: Repaired Crossbow
+  m_Name: Do Something
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: -1055013767, guid: fa485ecfc35ca4e4dbad294ce13e43e0, type: 3}
-  cardArt: {fileID: 941647230, guid: fa485ecfc35ca4e4dbad294ce13e43e0, type: 3}
-  cardName: Repaired Crossbow
-  desc: "Whenever you draw a card, repeat this minion\u2019s last attack.\n(If  in
-    range)\n"
-  attack: 3
-  health: 4
-  cost: 5
-  range: 2
+  minionArt: {fileID: 0}
+  cardArt: {fileID: 0}
+  cardName: Do Something
+  desc: "Draw 2 card. \nAdd a 'Do Nothing' to your deck."
+  attack: 0
+  health: 0
+  cost: 1
+  range: 0
   armor: 0
-  canMove: 1
+  canMove: 0
   type: 0
   upgradedVersion: {fileID: 0}
-  normalVersion: {fileID: 11400000, guid: 0917abf24b59c1348aa490b12d36dc99, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 1
-  defHealth: 4
+  defHealth: 0
   OnPlay:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectCell
-        m_Mode: 3
+        m_MethodName: SelectThisAgent
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 2
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisAgent
-        m_Mode: 0
+        m_MethodName: DrawCard
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: DrawCard
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: Wait
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: Wait
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: CreateCard
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: 377e9f3361b21724a8e31f9651265cde,
+            type: 2}
+          m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: AddToDeck
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -62,19 +122,7 @@ MonoBehaviour:
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SummonMinion
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000}
-          m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -94,43 +142,7 @@ MonoBehaviour:
       m_Calls: []
   OnOwnerDrewCard:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisMinion
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisMinionsLastTargetAsTarget
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: Attack
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []
