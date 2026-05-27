@@ -245,7 +245,12 @@ public class GameManager : Singleton<GameManager>
         yield break;
     }
 
-    public IEnumerator InvokeOnCardDrawActions()
+    public void TriggerCardDrawActions()
+    {
+        EnqueueTriggeredAction(() => StartCoroutine(InvokeOnCardDrawActions()));
+    }
+
+    private IEnumerator InvokeOnCardDrawActions()
     {
         for (int x = 0; x < GridManager.Instance.GridWidth; x++)
         {
@@ -257,28 +262,30 @@ public class GameManager : Singleton<GameManager>
 
                 if (cell.obj != null && cell.obj.TryGetComponent(out minion) && ((minion.owner == player && isPlayerTurn) || (minion.owner == opponent && !isPlayerTurn)))
                 {
-                    var snapshot = ActionHolder.TakeSnapshot();
-                    try
+                    using (ActionHolder.PushScope())
                     {
-                        onCardDrawActions.Clear();
-                        ActionHolder.selectedcell = null;
-                        ActionHolder.selectedMinion = null;
-                        ActionHolder.thisMinion = minion;
-                        ActionHolder.thisCardSO = minion.card;
-                        ActionHolder.thisCard = null;
-                        ActionHolder.selectedMinions.Clear();
-                        ActionHolder.selectedMinions.Add(minion);
-                        ActionHolder.selectedCells.Clear();
-                        ActionHolder.selectedAgent = minion.owner;
-                        ActionHolder.curActionsList = onCardDrawActions;
+                        try
+                        {
+                            _executingTriggeredActions = true;
 
-                        minion.modal.OnOwnerDrawedCard.Invoke();
+                            onCardDrawActions.Clear();
+                            ActionHolder.ResetSelections();
+                            ActionHolder.thisMinion = minion;
+                            ActionHolder.thisCardSO = minion.card;
+                            ActionHolder.thisCard = null;
+                            ActionHolder.selectedMinions.Add(minion);
+                            ActionHolder.selectedAgent = minion.owner;
+                            ActionHolder.curActionsList = onCardDrawActions;
 
-                        yield return StartCoroutine(ExecuteActions(onCardDrawActions));
-                    }
-                    finally
-                    {
-                        snapshot.Restore();
+                            this.isTesting = false;
+                            minion.modal.OnOwnerDrawedCard.Invoke();
+
+                            yield return StartCoroutine(ExecuteActions(onCardDrawActions));
+                        }
+                        finally
+                        {
+                            FinishTriggeredAction();
+                        }
                     }
                 }
             }
@@ -301,30 +308,30 @@ public class GameManager : Singleton<GameManager>
 
                 if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == player)
                 {
-                    var snapshot = ActionHolder.TakeSnapshot();
-                    try
+                    using (ActionHolder.PushScope())
                     {
-                        onTurnEndActions.Clear();
-                        ActionHolder.selectedcell = null;
-                        ActionHolder.selectedMinion = null;
-                        ActionHolder.thisMinion = minion;
-                        ActionHolder.thisCardSO = minion.card;
-                        ActionHolder.thisCard = null;
-                        ActionHolder.selectedMinions.Clear();
-                        ActionHolder.selectedMinions.Add(minion);
-                        ActionHolder.selectedCells.Clear();
-                        ActionHolder.selectedAgent = player;
-                        ActionHolder.curActionsList = onTurnEndActions;
+                        try
+                        {
+                            _executingTriggeredActions = true;
 
-                        minion.modal.OnOwnerTurnEnd.Invoke();
+                            onTurnEndActions.Clear();
+                            ActionHolder.ResetSelections();
+                            ActionHolder.thisMinion = minion;
+                            ActionHolder.thisCardSO = minion.card;
+                            ActionHolder.thisCard = null;
+                            ActionHolder.selectedMinions.Add(minion);
+                            ActionHolder.selectedAgent = player;
+                            ActionHolder.curActionsList = onTurnEndActions;
 
-                        yield return StartCoroutine(ExecuteActions(onTurnEndActions));
-                    }
-                    finally
-                    {
-                        snapshot.Restore();
-                        FinishTriggeredAction();
+                            this.isTesting = false;
+                            minion.modal.OnOwnerTurnEnd.Invoke();
 
+                            yield return StartCoroutine(ExecuteActions(onTurnEndActions));
+                        }
+                        finally
+                        {
+                            FinishTriggeredAction();
+                        }
                     }
                 }
             }
@@ -398,31 +405,30 @@ public class GameManager : Singleton<GameManager>
 
                 if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == opponent)
                 {
-                    var snapshot = ActionHolder.TakeSnapshot();
-                    try
+                    using (ActionHolder.PushScope())
                     {
-                        _executingTriggeredActions = true;
+                        try
+                        {
+                            _executingTriggeredActions = true;
 
-                        onTurnEndActions.Clear();
-                        ActionHolder.selectedcell = null;
-                        ActionHolder.selectedMinion = null;
-                        ActionHolder.thisMinion = minion;
-                        ActionHolder.thisCardSO = minion.card;
-                        ActionHolder.thisCard = null;
-                        ActionHolder.selectedMinions.Clear();
-                        ActionHolder.selectedCells.Clear();
-                        ActionHolder.selectedAgent = opponent;
-                        ActionHolder.curActionsList = onTurnEndActions;
+                            onTurnEndActions.Clear();
+                            ActionHolder.ResetSelections();
+                            ActionHolder.thisMinion = minion;
+                            ActionHolder.thisCardSO = minion.card;
+                            ActionHolder.thisCard = null;
+                            ActionHolder.selectedMinions.Add(minion);
+                            ActionHolder.selectedAgent = opponent;
+                            ActionHolder.curActionsList = onTurnEndActions;
 
-                        minion.modal.OnOwnerTurnEnd.Invoke();
+                            this.isTesting = false;
+                            minion.modal.OnOwnerTurnEnd.Invoke();
 
-                        yield return StartCoroutine(ExecuteActions(onTurnEndActions));
-                    }
-                    finally
-                    {
-                        snapshot.Restore();
-                        FinishTriggeredAction();
-
+                            yield return StartCoroutine(ExecuteActions(onTurnEndActions));
+                        }
+                        finally
+                        {
+                            FinishTriggeredAction();
+                        }
                     }
                 }
             }

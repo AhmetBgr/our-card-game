@@ -99,7 +99,7 @@ public class Agent : MonoBehaviour
         hand.Add(cardObj);
         cardHandLayout.AddCard(cardObj.transform);
 
-        StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
+        GameManager.Instance.TriggerCardDrawActions();
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
     }
 
@@ -119,7 +119,7 @@ public class Agent : MonoBehaviour
         hand.Add(cardObj);
         cardHandLayout.AddCard(cardObj.transform, startPos);
 
-        StartCoroutine(GameManager.Instance.InvokeOnCardDrawActions());
+        GameManager.Instance.TriggerCardDrawActions();
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
     }
 
