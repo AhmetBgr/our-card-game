@@ -1,5 +1,3 @@
-using NUnit.Framework.Constraints;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +7,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
     public string saveDataKey = "DeckData";
 
     public SaveData saveData;
-    public List<CardSO> defaultDeck = new List<CardSO>();
+    public DeckSO defaultDeck;
     public int DeckSize = 10;
 
     protected override void Awake()
@@ -150,17 +148,18 @@ public class SaveManager : PermanentSingleton<SaveManager>
         };
         saveData.Decks[0] = new DeckData
         {
-            Name = "Default_Deck_0",
+            Name = defaultDeck != null ? defaultDeck.deckName : "Default_Deck_0",
             isLocked = false,
             Deck = new List<string>()
         };
 
-        for (int i = 0; i < defaultDeck.Count; i++)
+        if (defaultDeck != null)
         {
-            if (i > DeckSize) break;
-
-            saveData.Decks[0].Deck.Add(defaultDeck[i].cardName);
-
+            for (int i = 0; i < defaultDeck.cards.Count && saveData.Decks[0].Deck.Count < DeckSize; i++)
+            {
+                if (defaultDeck.cards[i] != null)
+                    saveData.Decks[0].Deck.Add(defaultDeck.cards[i].cardName);
+            }
         }
 
 

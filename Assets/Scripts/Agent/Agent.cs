@@ -7,6 +7,7 @@ public class Agent : MonoBehaviour
 {
     public List<IEnumerator> availableActions = new List<IEnumerator>();
 
+    public DeckSO deckSO;
     public List<CardSO> deck = new List<CardSO>();
     public List<CardController> hand = new List<CardController>();
     public List<MinionController> minions = new List<MinionController>();
@@ -30,6 +31,12 @@ public class Agent : MonoBehaviour
 
     protected virtual void Awake()
     {
+        if (deckSO != null)
+        {
+            deck.Clear();
+            deck.AddRange(deckSO.cards);
+        }
+
         for (int i = deck.Count - 1; i > 0; i--)
         {
             int randomIndex = Random.Range(0, i + 1);

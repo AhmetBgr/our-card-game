@@ -194,7 +194,7 @@ public class GameManager : Singleton<GameManager>
     public IEnumerator InvokeOnTurnStarted()
     {
         OnTurnStarted?.Invoke(currentState);
-        int opponentCornerDamage = (opponent.hero.modal.defHealth - opponent.hero.modal.health) / 10 + 1;
+        /*int opponentCornerDamage = (opponent.hero.modal.defHealth - opponent.hero.modal.health) / 10 + 1;
         int playerCornerCornerDamage = (player.hero.modal.defHealth - player.hero.modal.health) / 10 + 1;
 
         if (currentState == GameState.PlayerTurn)
@@ -241,7 +241,7 @@ public class GameManager : Singleton<GameManager>
         foreach (var item in opponentCornerDamageTexts)
         {
             item.text = "-"+opponentCornerDamage.ToString();
-        }
+        }*/
         yield break;
     }
 
@@ -551,7 +551,7 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.curActionsList = actionQueue;
         card.modal.OnPlay.Invoke();
 
-        Debug.LogWarning("playing card");
+        Debug.LogWarning("playing card: " + card.card.cardName);
 
         yield return StartCoroutine(ExecuteActions(card));
 

@@ -23,6 +23,14 @@ public class CardSO : ScriptableObject
 
     public Type type;
 
+    [Header("AI Hints")]
+    [Tooltip("Beneficial = buff/heal a minion; Harmful = damage/destroy; Neutral = summon, draw, self-only.")]
+    public CardIntent aiIntent = CardIntent.Neutral;
+    [Tooltip("Absolute magnitude of the dominant ChangeMinionHealth/Attack/DefHealth call (e.g., 3 for ChangeMinionHealth(-3)). 0 if not applicable.")]
+    public int aiEffectMagnitude = 0;
+    [Tooltip("True for SwitchSide, destroy-target, banish — anything that removes the targeted minion from its owner's board.")]
+    public bool aiRemovesTarget = false;
+
     public CardSO upgradedVersion;
     public CardSO normalVersion;
 
@@ -59,5 +67,8 @@ public class CardSO : ScriptableObject
         None, Buff, Debuff
     }
 
-
+    public enum CardIntent
+    {
+        Neutral, Beneficial, Harmful
+    }
 }

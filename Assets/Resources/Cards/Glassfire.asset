@@ -17,14 +17,18 @@ MonoBehaviour:
   cardArt: {fileID: 0}
   cardName: Glassfire
   desc: 
-  attack: 3
+  attack: 4
   health: 1
   cost: 3
-  range: 2
+  range: 1
   armor: 0
   canMove: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 1
   OnPlay:
@@ -90,12 +94,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

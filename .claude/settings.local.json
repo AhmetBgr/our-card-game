@@ -18,7 +18,9 @@
       "Bash(grep \"--- !u!\" \"Assets/Scenes/Menu.unity\")",
       "Bash(grep -B 5 -A 15 \"fileID: 1033209331\\\\$\" \"Assets/Scenes/Menu.unity\")",
       "Bash(xargs grep -l \"Scroll\\\\|Pagination\\\\|Page\")",
-      "Bash(xargs wc -l)"
+      "Bash(xargs wc -l)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\\\\Assets\\\\Scripts\" -Recurse -Name *.cs)",
+      "Bash(Select-String -Pattern \"\\(SaveManager|CardSO|Deck\\)\")"
     ]
   }
 }

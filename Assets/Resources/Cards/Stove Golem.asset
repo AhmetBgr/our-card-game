@@ -15,7 +15,7 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
-  cardName: stovegolem
+  cardName: Stove Golem
   desc: 
   attack: 5
   health: 7
@@ -24,7 +24,11 @@ MonoBehaviour:
   armor: 0
   canMove: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 7
   OnPlay:
@@ -90,12 +94,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

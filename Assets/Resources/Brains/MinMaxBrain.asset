@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a998ef07c6bf28469313d2c45407d77, type: 3}
+  m_Name: MinMaxBrain
+  m_EditorClassIdentifier: Assembly-CSharp::MinMaxBrain
+  manaEfficiencyWeight: 10
+  minionTempoBonus: 20
+  perEnemyMinionBonus: 8
+  removalSpellBonus: 30
+  buffSpellBonus: 15
+  perFriendlyForBuff: 5
+  favorableTradeBonus: 80
+  cleanTradeBonus: 40
+  suicidePenalty: -60
+  tempoValueWeight: 5
+  targetHealthDanger: 3
+  heroAttackBonus: 50
+  heroBiasWhenClear: 70
+  harmfulHighAttackWeight: 4
+  harmfulLethalBonus: 35
+  harmfulOnFriendlyPenalty: -100
+  beneficialHighAttackWeight: 3
+  beneficialCanAttackBonus: 20
+  beneficialOnEnemyPenalty: -100
+  aoeEnemyWeight: 20
+  aoeFriendlyPenalty: -25
+  beneficialFriendlyWeight: 15
+  beneficialAttackWeight: 2

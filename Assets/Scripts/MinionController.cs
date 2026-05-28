@@ -197,7 +197,7 @@ public class MinionController : MonoBehaviour
         }
         while (selectedMinion == null)
         {
-            Debug.Log("selecting minion for attack");
+            //Debug.Log("selecting minion for attack");
 
             yield return null;
         }

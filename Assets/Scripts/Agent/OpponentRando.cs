@@ -148,7 +148,7 @@ public class OpponentRando : Agent
             filteredList = minions;
         }
 
-        ActionHolder.selectedMinion = filteredList[UnityEngine.Random.Range(0, filteredList.Count)];
+        ActionHolder.selectedMinion = filteredList.Count == 0 ? null : filteredList[UnityEngine.Random.Range(0, filteredList.Count)];
     }
     public void SelectCell(List<Transform> cells, CardSO card)
     {

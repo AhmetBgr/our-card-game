@@ -7,6 +7,8 @@ using UnityEngine;
 
 public class CardBrowserWindow : EditorWindow
 {
+    private enum SortMode { Name, Cost, Attack, Health, Type }
+
     [Serializable]
     private class FilterState
     {
@@ -25,6 +27,9 @@ public class CardBrowserWindow : EditorWindow
         public bool showTypeNone = true;
         public bool showTypeBuff = true;
         public bool showTypeDebuff = true;
+
+        public SortMode sortMode = SortMode.Name;
+        public bool sortAscending = true;
     }
 
     private const string PrefsKey = "CardBrowserWindow.FilterState.v1";
@@ -134,6 +139,14 @@ public class CardBrowserWindow : EditorWindow
 
         query = query.Where(c => MatchesTypeFilter(c.type));
 
+        query = _filters.sortMode switch
+        {
+            SortMode.Cost    => _filters.sortAscending ? query.OrderBy(c => c.cost).ThenBy(c => DisplayName(c))    : query.OrderByDescending(c => c.cost).ThenBy(c => DisplayName(c)),
+            SortMode.Attack  => _filters.sortAscending ? query.OrderBy(c => c.attack).ThenBy(c => DisplayName(c))  : query.OrderByDescending(c => c.attack).ThenBy(c => DisplayName(c)),
+            SortMode.Health  => _filters.sortAscending ? query.OrderBy(c => c.health).ThenBy(c => DisplayName(c))  : query.OrderByDescending(c => c.health).ThenBy(c => DisplayName(c)),
+            SortMode.Type    => _filters.sortAscending ? query.OrderBy(c => c.type).ThenBy(c => DisplayName(c))    : query.OrderByDescending(c => c.type).ThenBy(c => DisplayName(c)),
+            _                => _filters.sortAscending ? query.OrderBy(c => DisplayName(c))                         : query.OrderByDescending(c => DisplayName(c)),
+        };
 
         _visibleCards = query.ToList();
 
@@ -343,6 +356,38 @@ public class CardBrowserWindow : EditorWindow
                     _filters.showTypeNone = nextNone;
                     _filters.showTypeBuff = nextBuff;
                     _filters.showTypeDebuff = nextDebuff;
+                    ApplyFilters();
+                    SavePrefs();
+                }
+            }
+
+            EditorGUILayout.Space(4);
+
+            GUILayout.Label("Sort", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                SortMode[] modes = (SortMode[])System.Enum.GetValues(typeof(SortMode));
+                for (int i = 0; i < modes.Length; i++)
+                {
+                    GUIStyle style = i == 0 ? EditorStyles.miniButtonLeft
+                                   : i == modes.Length - 1 ? EditorStyles.miniButtonRight
+                                   : EditorStyles.miniButtonMid;
+                    bool isActive = _filters.sortMode == modes[i];
+                    bool next = GUILayout.Toggle(isActive, modes[i].ToString(), style);
+                    if (next && !isActive)
+                    {
+                        _filters.sortMode = modes[i];
+                        ApplyFilters();
+                        SavePrefs();
+                    }
+                }
+
+                GUILayout.Space(6);
+
+                string dirLabel = _filters.sortAscending ? "▲ Asc" : "▼ Desc";
+                if (GUILayout.Button(dirLabel, EditorStyles.miniButton, GUILayout.Width(54)))
+                {
+                    _filters.sortAscending = !_filters.sortAscending;
                     ApplyFilters();
                     SavePrefs();
                 }

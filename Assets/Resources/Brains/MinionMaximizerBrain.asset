@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 251f6814784ecf7438dbedc9dbbf32a0, type: 3}
+  m_Name: MinionMaximizerBrain
+  m_EditorClassIdentifier: Assembly-CSharp::MinionMaximizerBrain
+  minionCardBonus: 50
+  spellPenalty: -10
+  costUseBonus: 2
+  killPenalty: -100
+  chipDamageBonus: 5
+  heroDamageBonus: 30
+  adjacentMinionBonus: 10
+  harmfulAreaEnemyBonus: 15
+  harmfulAreaFriendlyPenalty: -30
+  beneficialAreaFriendlyBonus: 20
+  beneficialAreaEnemyPenalty: -10
+  survivableTargetBonus: 20
+  survivalHealthThreshold: 1
+  beneficialOnFriendlyBonus: 30
+  beneficialOnEnemyPenalty: -40
+  harmfulOnEnemyBonus: 25
+  harmfulOnFriendlyPenalty: -50
+  lethalHarmfulPenalty: -200
+  removeTargetPenalty: -200

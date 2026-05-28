@@ -519,7 +519,7 @@ public class ActionHolder : ScriptableObject
         }
         if (cancelRequested) yield break;
         selectedMinions.Clear();
-        selectedMinions.Add(selectedMinion.GetComponent<MinionController>());
+        selectedMinions.Add(selectedMinion);
         foreach (var cell in grid)
         {
             cell.obj?.GetComponent<MinionController>()
@@ -634,6 +634,8 @@ public class ActionHolder : ScriptableObject
     }
     public void SelectAllMinionsInHand()
     {
+        if (GameManager.Instance.isTesting) return; 
+
         curActionsList.Enqueue(_SelectAllMinionsInHand());
 
     }
@@ -672,6 +674,8 @@ public class ActionHolder : ScriptableObject
     }
     public void SelectRandomEnemyMinion()
     {
+        if (GameManager.Instance.isTesting) return;
+
         Agent opponent = null;
 
         if(thisMinion != null)
@@ -1175,6 +1179,7 @@ public class ActionHolder : ScriptableObject
     public void ChangeMinionAttack(int value)
     {
         //GameManager.Instance.Addtoactions( _ChangeMinionAttack(selectedMinion, value));
+        if (GameManager.Instance.isTesting) return;
         Debug.LogWarning("change attack added to actions");
         curActionsList.Enqueue(_ChangeMinionAttack(value));
     }
