@@ -33,9 +33,9 @@ public class CardController : MonoBehaviour
         if (!modal.isPlayerMinion) return;
         view.UpdateGearSpeed(modal);
     }
-    public void Initialize(Agent owner)
+    public void Initialize(Agent owner, bool isPlayerCard)
     {
-        modal.UpdateModal(card, owner);
+        modal.UpdateModal(card, owner, isPlayerCard);
         view.UpdateView(modal);
     }
     public IEnumerator CanPlay(Agent owner, Action<bool> result)

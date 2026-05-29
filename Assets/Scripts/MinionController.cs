@@ -54,9 +54,9 @@ public class MinionController : MonoBehaviour
         /*if(showInfo != null) 
             showInfo.card = card;*/
     }
-    public void Initialize(Agent owner)
+    public void Initialize(Agent owner, bool isPlayerMinion)
     {
-        modal.UpdateModal(card, owner);
+        modal.UpdateModal(card, owner, isPlayerMinion);
         view.UpdateView(modal);
         PlayAppearAnimation();
     }
@@ -97,7 +97,7 @@ public class MinionController : MonoBehaviour
         }
 
     }
-    protected void OnMouseEnter()
+    protected virtual void OnMouseEnter()
     {
         if (GameManager.Instance.currentState == GameState.EndGame)
             return;

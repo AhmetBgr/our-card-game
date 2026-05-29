@@ -147,8 +147,7 @@ public class Agent : MonoBehaviour
 
         cardObj.transform.position = cardPlayPos.position;
         cardObj.card = card;
-        cardObj.modal.isPlayerMinion = isPlayerCard;
-        cardObj.modal.UpdateModal(card, this);
+        cardObj.modal.UpdateModal(card, this, isPlayerCard);
         cardObj.view.UpdateView(cardObj.modal);
         cardObj.transform.localScale = Vector3.zero;
 
@@ -233,8 +232,7 @@ public class Agent : MonoBehaviour
         CardController cardObj = Instantiate(cardPrefab);
         cardObj.gameObject.name = cardSO.cardName;
         cardObj.card = cardSO;
-        cardObj.modal.isPlayerMinion = IsPlayer();
-        cardObj.modal.UpdateModal(cardSO, this);
+        cardObj.modal.UpdateModal(cardSO, this, IsPlayer());
         cardObj.view.UpdateView(cardObj.modal);
         return cardObj;
     }

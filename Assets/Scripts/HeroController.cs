@@ -1,18 +1,33 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using DG.Tweening;
 public class HeroController : MinionController
 {
     protected override void Start()
     {
-        Initialize(owner);
+        Initialize(owner, owner == GameManager.Instance.player);
     }
 
     protected override void PlayAppearAnimation()
     {
         view.PlayHeroAppearAnimation();
+    }
+    protected override void OnMouseEnter()
+    {
+        if (GameManager.Instance.currentState == GameState.EndGame)
+            return;
+
+        GameManager.Instance.player.handManager.ShowInfoCard(card);
+        Debug.Log("shouldshow range");
+
+        if (GameManager.Instance.player.curState == Player.State.SelectingMinionForAttack)
+        {
+            // show weapon image 
+        }
+        else
+        {
+            var index = modal.isPlayerMinion ? new Vector2Int(-1, -1) : new Vector2Int(-2, -2);
+            MinionRangeHandler.Instance.ShowRange(index, modal.range);
+
+        }
     }
 
     // OnMouseDown and SetReadyToAttack are intentionally NOT overridden here:

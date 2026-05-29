@@ -74,14 +74,14 @@ public class DeckPanelController : Singleton<DeckPanelController>
         var card  = DeckDatabase.Instance.GetCard(cardName);
         //mouseHoverCard.card = card;
         var modal = mouseHoverCard.GetComponent<CardModal>();
-        modal.UpdateModal(card, null);
+        modal.UpdateModal(card, null, true);
         mouseHoverCard.GetComponent<CardView>().UpdateView(modal);
         mouseHoverCard.gameObject.SetActive(true);
 
         if (card.upgradedVersion == null) return;
 
         var modal2 = upgradedMouseHoverCard.GetComponent<CardModal>();
-        modal2.UpdateModal(card.upgradedVersion, null);
+        modal2.UpdateModal(card.upgradedVersion, null, true);
         upgradedMouseHoverCard.GetComponent<CardView>().UpdateView(modal2);
         upgradedMouseHoverCard.gameObject.SetActive(true);
 

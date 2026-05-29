@@ -37,7 +37,7 @@ public class CardModal : MonoBehaviour
     public UnityEvent OnTookDamage;
     public UnityEvent BonusEvents; // Holds events to be added to another event
 
-    public void UpdateModal(CardSO card, Agent owner)
+    public void UpdateModal(CardSO card, Agent owner, bool isPlayerMinion)
     {
         minionArt = card.minionArt;
         cardArt = card.cardArt;
@@ -77,6 +77,6 @@ public class CardModal : MonoBehaviour
             OnTookDamage.AddListener(soOnTookDamage.Invoke);
         }
         this.owner = owner;
-        //isPlayerMinion = GameManager.Instance.isPlayerTurn;
+        this.isPlayerMinion = isPlayerMinion;
     }
 }

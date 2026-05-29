@@ -24,8 +24,7 @@ public class HandManager : MonoBehaviour
     {
         infoCard.gameObject.SetActive(true);
         infoCard.card = card;
-        infoCard.modal.UpdateModal(card, null);
-        infoCard.modal.isPlayerMinion = true;
+        infoCard.modal.UpdateModal(card, null, true);
         infoCard.view.UpdateView(infoCard.modal);
     }
 

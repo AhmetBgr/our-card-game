@@ -855,7 +855,8 @@ public class GameManager : Singleton<GameManager>
         MinionController minion = Instantiate(minionprefab, pos, Quaternion.identity).GetComponent<MinionController>();
         minion.card = card;
         //minion.modal = new MinionModal(card, minion);  
-        minion.modal.UpdateModal(minion.card, isPlayerTurn ? player : opponent);
+        // fix: setting isplayerminion like this might set as wrong if you summon minion on opponents turn or vice versa
+        minion.modal.UpdateModal(minion.card, isPlayerTurn ? player : opponent, isPlayerTurn); 
         minion.view.UpdateView(minion.modal);
         minion.view.PlayAppearAnimation();
         ActionHolder.thisMinion = minion;
