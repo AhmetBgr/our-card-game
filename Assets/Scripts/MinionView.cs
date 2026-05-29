@@ -17,6 +17,9 @@ public class MinionView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI healthtext;
 
     [SerializeField] private SpriteRenderer enemyInline;
+    [SerializeField] private float heroDropDelay = 0.2f;
+
+    private float heroDropHeight = 10f;
 
     public void UpdateView(CardModal modal)
     {
@@ -54,6 +57,19 @@ public class MinionView : MonoBehaviour
             frame.sprite = rangedFrames[index];
 
         }
+    }
+
+    public void PlayAppearAnimation()
+    {
+        transform.localScale = Vector3.zero;
+        transform.DOScale(Vector3.one, 0.5f).SetDelay(0.25f).SetEase(Ease.OutBack);
+    }
+
+    public void PlayHeroAppearAnimation()
+    {
+        Vector3 target = transform.localPosition;
+        transform.localPosition = target + Vector3.up * heroDropHeight;
+        transform.DOLocalMove(target, 1f).SetDelay(heroDropDelay).SetEase(Ease.OutExpo);
     }
 
     public void FadeOutArtImage(float dur)

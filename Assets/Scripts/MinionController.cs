@@ -58,6 +58,12 @@ public class MinionController : MonoBehaviour
     {
         modal.UpdateModal(card, owner);
         view.UpdateView(modal);
+        PlayAppearAnimation();
+    }
+
+    protected virtual void PlayAppearAnimation()
+    {
+        view.PlayAppearAnimation();
     }
     private void OnTurnSwitch(GameState curState)
     {
@@ -119,7 +125,7 @@ public class MinionController : MonoBehaviour
 
     public virtual void SetReadyToAttack()
     {
-        if (isAttackedThisTurn || age < 1)
+        if (!modal.canAttack || !modal.canAttackManually || isAttackedThisTurn || age < 1)
         {
             canAttack = false;
         }
@@ -147,7 +153,7 @@ public class MinionController : MonoBehaviour
     }
     public virtual bool CanAttack(Agent opponent)
     {
-        if (isAttackedThisTurn || age == 0) return false;
+        if (!modal.canAttack || !modal.canAttackManually || isAttackedThisTurn || age == 0) return false;
 
         //var grid = GridManager.Instance.GetGrid();
         List<MinionController> targets = new List<MinionController>();
@@ -171,6 +177,10 @@ public class MinionController : MonoBehaviour
     public virtual IEnumerator Attack(Agent opponent, MinionController target = null)
     {
         Debug.Log("starting Attack");
+
+        // Cards flagged canAttack = false can never attack (manual selection or triggered/auto attacks).
+        if (!modal.canAttack) yield break;
+
         List<MinionController> selectableminions = new List<MinionController>();
         List<MinionController> targets = new List<MinionController>();
         targets.AddRange(opponent.minions);
@@ -184,6 +194,7 @@ public class MinionController : MonoBehaviour
                 Debug.Log(" minion is selectable selectable");
                 minion.attackingMinion = this;
                 minion.selectable.SetSelectable(true);
+                selectableminions.Add(minion);
             }
         }
 
@@ -234,6 +245,17 @@ public class MinionController : MonoBehaviour
         isAttackedThisTurn = true;
         selectedMinion = null;
         canAttack = false;
+
+        // Clear the attack-target selection: every minion we lit up as a potential target
+        // (not just the one we hit) must be de-highlighted and have its attackingMinion link
+        // cleared once the attack resolves, otherwise they stay selectable after the attack.
+        foreach (var minion in selectableminions)
+        {
+            if (minion == null) continue;
+            minion.attackingMinion = null;
+            minion.selectable.SetSelectable(false);
+        }
+
         if(GameManager.Instance.isPlayerTurn)
         {
             GameManager.Instance.player.curState = Player.State.Waiting;
@@ -261,21 +283,7 @@ public class MinionController : MonoBehaviour
         if (modal.health <= 0)
         {
             Debug.Log("minion died: " + modal.name);
-            OnDied?.Invoke(this);
-            selectable.SetSelectable(false);
-            gridEntity.RemoveFromGridCell();
-            if (GameManager.Instance.isPlayerTurn)
-            {
-                GameManager.Instance.player.minions.Remove(this);
-            }
-            else
-            {
-                GameManager.Instance.opponent.minions.Remove(this);
-            }
-            Invoke("PlayDeathAnimation", 1f);
-
-            GridManager.Instance.GetCell(transform.position).cellObj.GetComponent<CellController>().AddToMinionsDiedHere(card, modal.isPlayerMinion);
-
+            Die();
             return true;
         }
         else
@@ -283,6 +291,24 @@ public class MinionController : MonoBehaviour
             return false;
         }
 
+    }
+
+    protected virtual void Die()
+    {
+        OnDied?.Invoke(this);
+        selectable.SetSelectable(false);
+        gridEntity.RemoveFromGridCell();
+        if (GameManager.Instance.isPlayerTurn)
+        {
+            GameManager.Instance.player.minions.Remove(this);
+        }
+        else
+        {
+            GameManager.Instance.opponent.minions.Remove(this);
+        }
+        Invoke("PlayDeathAnimation", 1f);
+
+        GridManager.Instance.GetCell(transform.position).cellObj.GetComponent<CellController>().AddToMinionsDiedHere(card, modal.isPlayerMinion);
     }
 
     protected virtual void PlayDeathAnimation()
@@ -328,6 +354,26 @@ public class MinionController : MonoBehaviour
 
         GridManager.Instance.InvokeGridChanged();
     }
+
+    // True if the cell directly in front of this minion (toward the enemy side) is in-grid and empty.
+    // Used by spawn-on-occupied-cell logic: a start cell is only valid if its occupant can be pushed.
+    public bool CanBePushedForward()
+    {
+        Vector3Int dir = modal.isPlayerMinion ? Vector3Int.up : Vector3Int.down;
+        Vector3Int target = Vector3Int.RoundToInt(transform.position) + dir;
+        Vector2Int idx = GridManager.Instance.PosToGridIndex(target);
+        if (GridManager.Instance.IsOutSideOfGrid(idx)) return false;
+        return GridManager.Instance.GetCell(idx).obj == null;
+    }
+
+    // Move this minion one cell forward, bypassing age/canMove gating (Move() itself does no checks).
+    public void PushForward()
+    {
+        Vector3Int dir = modal.isPlayerMinion ? Vector3Int.up : Vector3Int.down;
+        Vector3Int target = Vector3Int.RoundToInt(transform.position) + dir;
+        Move(target);
+    }
+
     public virtual void FailedMove(Vector3 dir, MinionController  collidedEntity = null)
     {
         Debug.Log("failed move");

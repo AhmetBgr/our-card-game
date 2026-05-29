@@ -28,6 +28,7 @@ public class GameManager : Singleton<GameManager>
 
     public List<SelectableEntity> selectables = new List<SelectableEntity>();
     private Queue<IEnumerator> actionQueue = new Queue<IEnumerator>();
+    private Queue<IEnumerator> onTurnStartActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onTurnEndActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onCardDrawActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionDeathActions = new Queue<IEnumerator>();
@@ -194,55 +195,91 @@ public class GameManager : Singleton<GameManager>
     public IEnumerator InvokeOnTurnStarted()
     {
         OnTurnStarted?.Invoke(currentState);
-        /*int opponentCornerDamage = (opponent.hero.modal.defHealth - opponent.hero.modal.health) / 10 + 1;
-        int playerCornerCornerDamage = (player.hero.modal.defHealth - player.hero.modal.health) / 10 + 1;
 
-        if (currentState == GameState.PlayerTurn)
+        Agent currentAgent = currentState == GameState.PlayerTurn ? (Agent)player : opponent;
+
+        bool iterateForward = currentState == GameState.PlayerTurn;
+
+        int xStart = iterateForward ? 0 : GridManager.Instance.GridWidth - 1;
+        int xEnd = iterateForward ? GridManager.Instance.GridWidth : -1;
+        int xStep = iterateForward ? 1 : -1;
+
+        int yStart = iterateForward ? 0 : GridManager.Instance.GridHeight - 1;
+        int yEnd = iterateForward ? GridManager.Instance.GridHeight : -1;
+        int yStep = iterateForward ? 1 : -1;
+
+        for (int x = xStart; x != xEnd; x += xStep)
         {
-            List<MinionController> minionsToDamage = new List<MinionController>();
-
-            foreach (var minion in opponent.minions)
+            for (int y = yStart; y != yEnd; y += yStep)
             {
-                Vector2Int index = minion.gridEntity.GetGridIndex();
-                if (index.x % 2 == 0 && index.y % 2 == 0 && index.y == 2)
+                Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
+
+                MinionController minion;
+
+                // Skip the hero here: it is handled by the dedicated hero block below. The hero's
+                // GridEntity is type Obj so it occupies a grid cell, and without this guard its
+                // OnTurnStart would fire twice (once here, once in the dedicated block).
+                if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == currentAgent && minion != currentAgent.hero)
                 {
-                    Debug.Log("minion shoudl take damage");
-                    minionsToDamage.Add(minion);
-                    //minion.TakeDamage((opponent.hero.modal.health - opponent.hero.modal.health) / 10 + 1);
+                    using (ActionHolder.PushScope())
+                    {
+                        try
+                        {
+                            _executingTriggeredActions = true;
+
+                            onTurnStartActions.Clear();
+                            ActionHolder.ResetSelections();
+                            ActionHolder.thisMinion = minion;
+                            ActionHolder.thisCardSO = minion.card;
+                            ActionHolder.thisCard = null;
+                            ActionHolder.selectedMinions.Add(minion);
+                            ActionHolder.selectedAgent = currentAgent;
+                            ActionHolder.curActionsList = onTurnStartActions;
+
+                            this.isTesting = false;
+                            minion.modal.OnTurnStart.Invoke();
+
+                            yield return StartCoroutine(ExecuteActions(onTurnStartActions));
+                        }
+                        finally
+                        {
+                            FinishTriggeredAction();
+                        }
+                    }
                 }
             }
-            foreach (var minion in minionsToDamage)
-            {
-                minion.TakeDamage(playerCornerCornerDamage);
-            }
         }
-        else
-        {
-            List<MinionController> minionsToDamage = new List<MinionController>();
-            foreach (var minion in player.minions)
-            {
-                Vector2Int index = minion.gridEntity.GetGridIndex();
-                if (index.x % 2 == 0 && index.y % 2 == 0 && index.y == 0)
-                {
-                    minionsToDamage.Add(minion);
 
+        // Hero turn start
+        MinionController hero = currentAgent.hero;
+        if (hero != null)
+        {
+            using (ActionHolder.PushScope())
+            {
+                try
+                {
+                    _executingTriggeredActions = true;
+
+                    onTurnStartActions.Clear();
+                    ActionHolder.ResetSelections();
+                    ActionHolder.thisMinion = hero;
+                    ActionHolder.thisCardSO = hero.card;
+                    ActionHolder.thisCard = null;
+                    ActionHolder.selectedMinions.Add(hero);
+                    ActionHolder.selectedAgent = currentAgent;
+                    ActionHolder.curActionsList = onTurnStartActions;
+
+                    this.isTesting = false;
+                    hero.modal.OnTurnStart.Invoke();
+
+                    yield return StartCoroutine(ExecuteActions(onTurnStartActions));
+                }
+                finally
+                {
+                    FinishTriggeredAction();
                 }
             }
-
-            foreach (var minion in minionsToDamage)
-            {
-                minion.TakeDamage(opponentCornerDamage);
-            }
         }
-        foreach (var item in playerCornerDamageTexts)
-        {
-            item.text = "-"+playerCornerCornerDamage.ToString();
-        }
-        foreach (var item in opponentCornerDamageTexts)
-        {
-            item.text = "-"+opponentCornerDamage.ToString();
-        }*/
-        yield break;
     }
 
     public void TriggerCardDrawActions()
@@ -493,6 +530,12 @@ public class GameManager : Singleton<GameManager>
         {
             item.SetReadyToAttack();
             item.selectable.SetSelectable(item.canAttack);
+        }
+
+        if (player.hero != null)
+        {
+            player.hero.SetReadyToAttack();
+            player.hero.selectable.SetSelectable(player.hero.canAttack);
         }
     }
 
@@ -797,11 +840,24 @@ public class GameManager : Singleton<GameManager>
 
     public void SummonMinion(CardSO card, Vector3 pos)
     {
+        // If the target cell is already occupied, push the occupant forward one cell first so the new
+        // minion spawns in the vacated cell. _SelectCell only offers pushable cells, so the guard holds.
+        Vector2Int destIndex = GridManager.Instance.PosToGridIndex(pos);
+        GameObject occupantObj = GridManager.Instance.GetCell(destIndex).obj;
+        if (occupantObj != null && occupantObj.TryGetComponent(out MinionController occupant))
+        {
+            if (occupant.CanBePushedForward())
+            {
+                occupant.PushForward();
+            }
+        }
+
         MinionController minion = Instantiate(minionprefab, pos, Quaternion.identity).GetComponent<MinionController>();
         minion.card = card;
         //minion.modal = new MinionModal(card, minion);  
         minion.modal.UpdateModal(minion.card, isPlayerTurn ? player : opponent);
         minion.view.UpdateView(minion.modal);
+        minion.view.PlayAppearAnimation();
         ActionHolder.thisMinion = minion;
         ActionHolder.thisCardSO = minion.card;
 

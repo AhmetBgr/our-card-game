@@ -20,6 +20,10 @@ public class CardSO : ScriptableObject
 
     public int armor;
     public bool canMove = true;
+    [Tooltip("If false, this unit can never attack — not even via triggered/automatic card actions.")]
+    public bool canAttack = true;
+    [Tooltip("If false, this unit cannot be selected to attack manually (player click / AI choice), but can still attack via triggered/automatic card actions when canAttack is true.")]
+    public bool canAttackManually = true;
 
     public Type type;
 

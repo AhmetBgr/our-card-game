@@ -13,16 +13,18 @@ MonoBehaviour:
   m_Name: PlayerHero
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 21300000, guid: 1c0ce752693613c47a7291b50ba4d932, type: 3}
-  cardArt: {fileID: 21300000, guid: 1c0ce752693613c47a7291b50ba4d932, type: 3}
+  minionArt: {fileID: 21300000, guid: 83eb8f595f282e942be332309e33200d, type: 3}
+  cardArt: {fileID: 21300000, guid: 83eb8f595f282e942be332309e33200d, type: 3}
   cardName: 
   desc: 
-  attack: 3
+  attack: 2
   health: 20
   cost: 0
-  range: 0
+  range: 1
   armor: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
   aiIntent: 0
   aiEffectMagnitude: 0
@@ -39,43 +41,7 @@ MonoBehaviour:
       m_Calls: []
   OnTurnStart:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisMinion
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectAllEnemyMinionsInRangeAsTarget
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: Attack
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls: []

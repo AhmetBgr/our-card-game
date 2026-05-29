@@ -7984,6 +7984,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4714209331994086334, guid: 29ef1783c50c9224085bb0da6684ebbc,
+        type: 3}
+      propertyPath: heroDropDelay
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5020583346079363931, guid: 29ef1783c50c9224085bb0da6684ebbc,
         type: 3}
       propertyPath: m_LocalPosition.x

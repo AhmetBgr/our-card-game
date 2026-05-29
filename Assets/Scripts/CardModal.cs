@@ -23,6 +23,8 @@ public class CardModal : MonoBehaviour
     public CardSO upgradedVerdion;
     public bool isUpgraded = false;
     public bool canMove = true;
+    public bool canAttack = true;
+    public bool canAttackManually = true;
 
     public UnityEvent OnPlay;
     public UnityEvent OnDeath;
@@ -48,7 +50,9 @@ public class CardModal : MonoBehaviour
         range = card.range;
         cost = card.cost;
         armor = card.armor;
-        canMove = card.canMove; 
+        canMove = card.canMove;
+        canAttack = card.canAttack;
+        canAttackManually = card.canAttackManually;
         upgradedVerdion = card.upgradedVersion;
         isUpgraded = card.isUpgraded;
 

@@ -245,7 +245,23 @@ public class ActionHolder : ScriptableObject
         }
         foreach (var cell in grid)
         {
-            if (cell.index.y == rowIndex && cell.obj == null)
+            if (cell.index.y != rowIndex) continue;
+
+            // A start cell is selectable if it's empty, OR it's occupied by a minion that can be
+            // pushed forward one cell (its immediate forward cell is empty and in-grid). A
+            // non-pushable occupant (minion already in front, or at the grid edge) blocks the cell.
+            bool selectable;
+            if (cell.obj == null)
+            {
+                selectable = true;
+            }
+            else
+            {
+                var occupant = cell.obj.GetComponent<MinionController>();
+                selectable = occupant != null && occupant.CanBePushedForward();
+            }
+
+            if (selectable)
             {
                 selectableCells.Add(cell.cellObj.transform);
                 selectableIndexes.Add(cell.index);

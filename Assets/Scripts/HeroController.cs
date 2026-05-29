@@ -9,28 +9,16 @@ public class HeroController : MinionController
     {
         Initialize(owner);
     }
-    protected override void OnMouseDown()
+
+    protected override void PlayAppearAnimation()
     {
-        Debug.Log("here12");
-        if (GameManager.Instance.player.curState == Player.State.SelectingMinion)
-        {
-            Debug.Log("here2");
-
-            ActionHolder.selectedMinion = this;
-        }
-        else if (GameManager.Instance.player.curState == Player.State.SelectingMinionForAttack)
-        {
-            Debug.Log("here3");
-
-            attackingMinion.selectedMinion = this;
-        }
+        view.PlayHeroAppearAnimation();
     }
 
-    public override void SetReadyToAttack()
-    {
-
-    }
-    public override bool CanAttack(Agent opponent)
+    // OnMouseDown and SetReadyToAttack are intentionally NOT overridden here:
+    // the hero reuses MinionController's full attack flow (selection + canAttack
+    // branch + StartAttack/Attack with counterattack and animations).
+    /*public override bool CanAttack(Agent opponent)
     {
         return false;
     }
@@ -40,6 +28,16 @@ public class HeroController : MinionController
         yield break;
     }
 
+    */
+    // Hero is off-grid (lives on Agent.hero, not in a grid cell), so it must NOT run the
+    // base minion death path, which removes the entity from a grid cell and records the dead
+    // card into that cell's CellController (semantically wrong for a hero, and throws if the
+    // cell has no cellObj). Game-over is detected separately by GameManager.CheckWinCondition()
+    // in Update() via hero.modal.health <= 0.
+    protected override void Die()
+    {
+        selectable.SetSelectable(false);
+    }
 
     protected override void PlayDeathAnimation()
     {
