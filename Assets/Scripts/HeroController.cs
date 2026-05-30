@@ -18,9 +18,9 @@ public class HeroController : MinionController
         GameManager.Instance.player.handManager.ShowInfoCard(card);
         Debug.Log("shouldshow range");
 
-        if (GameManager.Instance.player.curState == Player.State.SelectingMinionForAttack)
+        if (SelectionManager.Instance.HasActiveMinionRequest)
         {
-            // show weapon image 
+            // show weapon image
         }
         else
         {

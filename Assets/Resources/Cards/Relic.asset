@@ -16,14 +16,19 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   cardName: Relic
-  desc: Double the Attack of a friendly minion.
+  desc: Double the Attack of a minion.
   attack: 0
   health: 0
   cost: 4
   range: 0
   armor: 0
   canMove: 0
+  canAttack: 1
+  canAttackManually: 1
   type: 1
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: c17f69e52b8dd9d43b0a71d876fb8bd4, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0
@@ -91,7 +96,7 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:

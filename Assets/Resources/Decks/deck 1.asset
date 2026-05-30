@@ -15,12 +15,12 @@ MonoBehaviour:
   deckName: deck 1
   cards:
   - {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232, type: 2}
-  - {fileID: 11400000, guid: 213a597cb0aa10c42865a171a66d5d45, type: 2}
+  - {fileID: 11400000, guid: af207d2db347bbe43bb3b7790209d314, type: 2}
   - {fileID: 11400000, guid: 0917abf24b59c1348aa490b12d36dc99, type: 2}
-  - {fileID: 11400000, guid: 967c9c604df86b543bfda587c7418a85, type: 2}
-  - {fileID: 11400000, guid: b5698a2cd334e774396b31df186d0e7c, type: 2}
-  - {fileID: 11400000, guid: acbc78e5304db5f499e6732e9fc4a1ab, type: 2}
-  - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}
-  - {fileID: 11400000, guid: 7c6d5574d844bdb4e813a865eb837a92, type: 2}
   - {fileID: 11400000, guid: 1f960f83250ea8c48a0b2985788cbb53, type: 2}
+  - {fileID: 11400000, guid: b5698a2cd334e774396b31df186d0e7c, type: 2}
   - {fileID: 11400000, guid: de61890a59135bf4da9e4135d332026f, type: 2}
+  - {fileID: 11400000, guid: 213a597cb0aa10c42865a171a66d5d45, type: 2}
+  - {fileID: 11400000, guid: cae3f458df8c7d24a877ca70276e7f57, type: 2}
+  - {fileID: 11400000, guid: a8700cf5f777635498591cbf94bc0385, type: 2}
+  - {fileID: 11400000, guid: 377e9f3361b21724a8e31f9651265cde, type: 2}

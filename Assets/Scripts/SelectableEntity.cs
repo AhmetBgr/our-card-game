@@ -91,6 +91,19 @@ public class SelectableEntity : MonoBehaviour
         UpdateVisuals();
     }
 
+    // Hide the selectable highlight while keeping the entity clickable (collider stays enabled).
+    // Used for the attacker during its own attack-target selection: it must not look like a target,
+    // but must stay clickable so the player can click it again to cancel the attack.
+    public void SetClickableWithoutHighlight()
+    {
+        iSselectable = false;
+        UpdateVisuals();
+
+        if (col == null) return;
+
+        col.enabled = true;
+    }
+
     /*public void ClearVisuals()
     {
         iSselectable = false;

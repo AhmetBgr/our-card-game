@@ -28,6 +28,10 @@ public class GridCellSelectionManager : MonoBehaviour
         IEnumerable<Vector2Int> selectableIndexes,
         Func<Vector2Int, IEnumerable<Vector2Int>> hoverAreaProvider)
     {
+        // Starting a cell selection preempts any active minion/attack selection (mutual preempt with
+        // SelectionManager, which calls EndSelection() here when it begins a minion/attack request).
+        SelectionManager.Instance.Cancel();
+
         EndSelection();
 
         if (selectableIndexes != null)

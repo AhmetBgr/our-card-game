@@ -27,7 +27,7 @@ MonoBehaviour:
   canAttackManually: 1
   type: 2
   aiIntent: 2
-  aiEffectMagnitude: -2
+  aiEffectMagnitude: 2
   aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: d6d5b051c2c38014bb1e58922921d6ed, type: 2}
   normalVersion: {fileID: 0}

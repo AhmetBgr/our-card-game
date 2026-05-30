@@ -508,22 +508,14 @@ public class ActionHolder : ScriptableObject
         {
             MinionController minion = cell.obj?.GetComponent<MinionController>();
 
-
             if (minion == null) continue;
 
             selectableminions.Add(minion);
-            minion.selectable.SetSelectable(true);
         }
 
-        if (GameManager.Instance.isPlayerTurn)
-        {
-            GameManager.Instance.player.curState = Player.State.SelectingMinion;
-
-        }
-
-        List<MinionController> friendlyMinions = new List<MinionController>();
-
-        friendlyMinions = selectableminions.Where(minion => (!minion.modal.isPlayerMinion && !GameManager.Instance.isPlayerTurn) || (minion.modal.isPlayerMinion && GameManager.Instance.isPlayerTurn)).ToList();
+        // The SelectionManager owns highlighting + click routing for the player; it is inert on the
+        // AI's turn and while testing, where the result (selectedMinion) is written directly instead.
+        SelectionManager.Instance.BeginMinionRequest(selectableminions, picked => selectedMinion = picked);
 
         OnWaitingMinionSelect?.Invoke(selectableminions, thisCardSO);
 
@@ -541,14 +533,14 @@ public class ActionHolder : ScriptableObject
 
             yield return null;
         }
+
+        // Tear down the selection regardless of how the loop ended (resolved, cancelled, or testing) so
+        // every minion returns to correct resting state — a minion picked here stays attack-capable.
+        SelectionManager.Instance.Complete();
+
         if (cancelRequested) yield break;
         selectedMinions.Clear();
         selectedMinions.Add(selectedMinion);
-        foreach (var cell in grid)
-        {
-            cell.obj?.GetComponent<MinionController>()
-                .selectable.SetSelectable(false);
-        }
 
         //Debug.Log("selected minion");
 

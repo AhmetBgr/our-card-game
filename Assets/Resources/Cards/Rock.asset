@@ -15,19 +15,24 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 2071410874, guid: 17c69b4cf4d539e439fb996e084169ca, type: 3}
   cardArt: {fileID: -1650270546, guid: 17c69b4cf4d539e439fb996e084169ca, type: 3}
-  frame: {fileID: 0}
   cardName: Rock
   desc: 'Can only move when pushed. '
   attack: 0
-  health: 5
+  health: 4
   cost: 2
   range: 1
   armor: 0
   canMove: 0
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: 0e2d9d76b5a6edc47801766975ca2c23, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
-  defHealth: 5
+  defHealth: 4
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -91,9 +96,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

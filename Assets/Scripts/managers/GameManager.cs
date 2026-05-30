@@ -72,9 +72,12 @@ public class GameManager : Singleton<GameManager>
     {
         if (currentState == GameState.EndGame) return;
 
-        if (isPlayingCard && isPlayerTurn && Input.GetMouseButtonDown(1))
+        if (isPlayerTurn && Input.GetMouseButtonDown(1))
         {
-            CancelPlayingCard();
+            // Right-click backs out: cancel the card being played, otherwise cancel an active
+            // attack/minion selection.
+            if (isPlayingCard) CancelPlayingCard();
+            else SelectionManager.Instance.Cancel();
         }
 
         CheckWinCondition();
@@ -188,6 +191,8 @@ public class GameManager : Singleton<GameManager>
     }
     public IEnumerator InvokeOnTurnEnd()
     {
+        // A turn boundary aborts any in-progress selection so it can't leak into the next turn.
+        SelectionManager.Instance.Cancel();
         OnTurnEnd?.Invoke(currentState);
 
         yield break;
@@ -572,6 +577,10 @@ public class GameManager : Singleton<GameManager>
         bool isPlayTurn = currentState == GameState.PlayerTurn || currentState == GameState.OpponentTurn;
         if ((!isPlayTurn || isPlayingCard || card.modal.cost > agent.availibleMana) && !isTesting) yield break;
 
+        // Playing a card preempts any in-progress attack/minion selection (e.g. mid-attack), tearing it
+        // down so the played card's own selection steps start from a clean slate.
+        SelectionManager.Instance.Cancel();
+
         ClearSelectables();
 
         isTesting = false;
@@ -780,6 +789,7 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.selectedMinions.Clear();
         ActionHolder.selectedCells.Clear();
 
+        SelectionManager.Instance.Cancel();
         player.curState = Player.State.Waiting;
         ClearSelectables();
     }

@@ -26,10 +26,6 @@ public class MinionController : MonoBehaviour
     public bool canAttack = false;
     public int age = 0;
 
-    public MinionController attackingMinion;
-
-    public MinionController selectedMinion;
-
     public MinionController LastTarget;
 
     public SelectionType SelectionType { get => SelectionType.Minion; }
@@ -78,24 +74,23 @@ public class MinionController : MonoBehaviour
         if (GameManager.Instance.currentState == GameState.EndGame)
             return;
 
-        if (GameManager.Instance.player.curState == Player.State.SelectingMinion)
+        // Clicking the attacker again backs out of its own in-progress attack selection.
+        if (SelectionManager.Instance.ActiveAttacker == this)
         {
-            ActionHolder.selectedMinion = this;
-        }
-        else if (GameManager.Instance.player.curState == Player.State.SelectingMinionForAttack)
-        {
-            attackingMinion.selectedMinion = this; 
-        }
-        else if (canAttack)
-        {
-            foreach (var item in GameManager.Instance.player.minions)
-            {
-                item.selectable.SetSelectable(false);
-            }
-            GameManager.Instance.player.curState = Player.State.SelectingMinionForAttack;
-            StartAttack(GameManager.Instance.opponent);
+            SelectionManager.Instance.Cancel();
+            return;
         }
 
+        // An active selection (spell-target or attack-target) consumes the click; only when nothing
+        // is being selected does a click on an attack-ready minion begin a fresh attack.
+        if (SelectionManager.Instance.TryResolveClick(this))
+            return;
+
+        // Don't let a click start an attack while a card is resolving.
+        if (canAttack && !GameManager.Instance.isPlayingCard)
+        {
+            StartAttack(GameManager.Instance.opponent);
+        }
     }
     protected virtual void OnMouseEnter()
     {
@@ -105,9 +100,9 @@ public class MinionController : MonoBehaviour
         GameManager.Instance.player.handManager.ShowInfoCard(card);
         Debug.Log("shouldshow range");
 
-        if (GameManager.Instance.player.curState == Player.State.SelectingMinionForAttack)
+        if (SelectionManager.Instance.HasActiveMinionRequest)
         {
-            // show weapon image 
+            // show weapon image
         }
         else
         {
@@ -234,48 +229,59 @@ public class MinionController : MonoBehaviour
         targets.Add(opponent.hero);
         foreach (var minion in targets)
         {
-            Debug.Log("checking if minion selectable");
-
             if (RangeUtility.IsInRange(this, minion))
             {
-                Debug.Log(" minion is selectable selectable");
-                minion.attackingMinion = this;
-                minion.selectable.SetSelectable(true);
                 selectableminions.Add(minion);
             }
         }
 
         Debug.Log("selectiable minion count: " + selectableminions.Count);
 
-        OnSelectingMinionForAttack?.Invoke(selectableminions);
-        Debug.Log("target: " + target);
-        if(target != null)
-        {
-            selectedMinion = target;
-        }
-        while (selectedMinion == null)
-        {
-            //Debug.Log("selecting minion for attack");
+        MinionController chosen = null;
 
-            yield return null;
+        if (target != null)
+        {
+            // Triggered / AI attack: the target is already decided, so bypass the interactive
+            // selection request entirely (no highlights, no wait).
+            chosen = target;
         }
+        else
+        {
+            if (selectableminions.Count == 0) yield break; // nothing in range — don't open a dangling selection
+
+            // Interactive attack: the SelectionManager lights the valid targets and routes the click.
+            SelectionManager.Instance.BeginAttackRequest(this, selectableminions, picked => chosen = picked);
+            OnSelectingMinionForAttack?.Invoke(selectableminions);
+
+            while (chosen == null && SelectionManager.Instance.HasActiveMinionRequest && !GameManager.Instance.isTesting)
+            {
+                yield return null;
+            }
+
+            if (chosen == null)
+            {
+                // Cancelled (right-click / attacker re-click / spell preempt / turn end).
+                SelectionManager.Instance.Cancel();
+                yield break;
+            }
+        }
+
         Debug.Log("damaging minion");
 
-        Vector3 dir = (selectedMinion.transform.position - transform.position).normalized;
+        Vector3 dir = (chosen.transform.position - transform.position).normalized;
         transform.DOPunchPosition(dir*0.2f, 0.5f, vibrato: 1).SetEase(Ease.InOutBack).SetDelay(0.5f);
-        selectedMinion.selectable.SetSelectable(false);
-        selectedMinion.TakeDamage(modal.attack);
-        selectedMinion.transform.DOPunchPosition(dir * 0.03f, 0.15f, vibrato: 5).SetDelay(0.75f);
-        if (RangeUtility.IsInRange(selectedMinion, this)) // target retaliates if attacker is in ITS range
+        chosen.TakeDamage(modal.attack);
+        chosen.transform.DOPunchPosition(dir * 0.03f, 0.15f, vibrato: 5).SetDelay(0.75f);
+        if (RangeUtility.IsInRange(chosen, this)) // target retaliates if attacker is in ITS range
         {
-            TakeDamage(selectedMinion.modal.attack);
-            if (selectedMinion.modal.range < 2)
+            TakeDamage(chosen.modal.attack);
+            if (chosen.modal.range < 2)
             {
-                StartCoroutine(selectedMinion.animationController.PlaySlashAnimation(-dir, 0.5f));
+                StartCoroutine(chosen.animationController.PlaySlashAnimation(-dir, 0.5f));
             }
             else
             {
-                StartCoroutine(selectedMinion.animationController.PlayArrowAnimation(-dir, transform.position, 0.65f, animationController.PlayArrowHitAnimation));
+                StartCoroutine(chosen.animationController.PlayArrowAnimation(-dir, transform.position, 0.65f, animationController.PlayArrowHitAnimation));
             }
         }
 
@@ -283,31 +289,18 @@ public class MinionController : MonoBehaviour
         {
             StartCoroutine(animationController.PlaySlashAnimation(dir, 0.5f));
         }
-        else 
+        else
         {
-            StartCoroutine(animationController.PlayArrowAnimation(dir, selectedMinion.transform.position, 0.65f, selectedMinion.animationController.PlayArrowHitAnimation));
+            StartCoroutine(animationController.PlayArrowAnimation(dir, chosen.transform.position, 0.65f, chosen.animationController.PlayArrowHitAnimation));
         }
-        LastTarget = selectedMinion;
+        LastTarget = chosen;
         isAttackedThisTurn = true;
-        selectedMinion = null;
         canAttack = false;
 
-        // Clear the attack-target selection: every minion we lit up as a potential target
-        // (not just the one we hit) must be de-highlighted and have its attackingMinion link
-        // cleared once the attack resolves, otherwise they stay selectable after the attack.
-        foreach (var minion in selectableminions)
-        {
-            if (minion == null) continue;
-            minion.attackingMinion = null;
-            minion.selectable.SetSelectable(false);
-        }
-
-        if(GameManager.Instance.isPlayerTurn)
-        {
-            GameManager.Instance.player.curState = Player.State.Waiting;
-
-        }
-
+        // Tear down the selection (de-highlights every lit target) now that the attack resolved, then
+        // restore resting attack-readiness for the remaining minions. State is set above first so this
+        // minion is correctly recomputed as no-longer-attackable.
+        SelectionManager.Instance.Complete();
         GameManager.Instance.SetPlayerMinionsReadyToAttack();
 
         yield break;
@@ -394,7 +387,13 @@ public class MinionController : MonoBehaviour
     public virtual void Move(Vector3Int pos)
     {
         gridEntity.WorldPos = pos;
-        transform.DOMove(pos, 0.25f);
+        // Recompute attack-readiness once the move finishes: a changed position changes which targets
+        // are in range (both for this minion and for any minion that could reach it). We hook OnComplete
+        // because RangeUtility reads transform.position, which only reaches `pos` when the tween ends.
+        transform.DOMove(pos, 0.25f).OnComplete(() =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.SetPlayerMinionsReadyToAttack();
+        });
         plannedMoveDir = Vector3Int.zero;
         isMovementValidated = false;
 

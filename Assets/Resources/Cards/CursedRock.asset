@@ -18,15 +18,21 @@ MonoBehaviour:
   cardName: Cursed Rock
   desc: Can only move when pushed. Destroys the minion on the target tile.
   attack: 0
-  health: 8
+  health: 6
   cost: 4
   range: 1
   armor: 0
   canMove: 0
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
+  normalVersion: {fileID: 0}
   isUpgraded: 1
-  defHealth: 8
+  defHealth: 6
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -90,7 +96,7 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
@@ -133,5 +139,8 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []
