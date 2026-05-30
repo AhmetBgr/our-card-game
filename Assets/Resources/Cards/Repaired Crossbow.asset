@@ -18,13 +18,18 @@ MonoBehaviour:
   cardName: Repaired Crossbow
   desc: "Whenever you draw a card, repeat this minion\u2019s last attack.\n(If  in
     range)\n"
-  attack: 3
+  attack: 2
   health: 4
   cost: 5
   range: 2
   armor: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 11400000, guid: 0917abf24b59c1348aa490b12d36dc99, type: 2}
   isUpgraded: 1

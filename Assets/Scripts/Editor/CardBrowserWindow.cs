@@ -22,6 +22,9 @@ public class CardBrowserWindow : EditorWindow
         public bool minionsOnly = false;
         public bool spellsOnly = false;
 
+        public bool meleeOnly = false;
+        public bool rangedOnly = false;
+
         public bool noDescriptionsOnly = false;
 
         public bool showTypeNone = true;
@@ -133,6 +136,12 @@ public class CardBrowserWindow : EditorWindow
 
         if (_filters.spellsOnly)
             query = query.Where(IsSpellLike);
+
+        if (_filters.meleeOnly)
+            query = query.Where(c => c.range == 1);
+
+        if (_filters.rangedOnly)
+            query = query.Where(c => c.range == 2);
 
         if (_filters.noDescriptionsOnly)
             query = query.Where(c => string.IsNullOrWhiteSpace(c.desc));
@@ -330,6 +339,26 @@ public class CardBrowserWindow : EditorWindow
                 _filters.spellsOnly = nextSpellsOnly;
                 if (_filters.spellsOnly && _filters.minionsOnly)
                     _filters.minionsOnly = false;
+                ApplyFilters();
+                SavePrefs();
+            }
+
+            bool nextMeleeOnly = EditorGUILayout.ToggleLeft("Melee Only (range 1)", _filters.meleeOnly);
+            if (nextMeleeOnly != _filters.meleeOnly)
+            {
+                _filters.meleeOnly = nextMeleeOnly;
+                if (_filters.meleeOnly && _filters.rangedOnly)
+                    _filters.rangedOnly = false;
+                ApplyFilters();
+                SavePrefs();
+            }
+
+            bool nextRangedOnly = EditorGUILayout.ToggleLeft("Ranged Only (range 2)", _filters.rangedOnly);
+            if (nextRangedOnly != _filters.rangedOnly)
+            {
+                _filters.rangedOnly = nextRangedOnly;
+                if (_filters.rangedOnly && _filters.meleeOnly)
+                    _filters.meleeOnly = false;
                 ApplyFilters();
                 SavePrefs();
             }

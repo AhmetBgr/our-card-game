@@ -17,14 +17,20 @@ MonoBehaviour:
   cardArt: {fileID: 0}
   cardName: Nail Gun
   desc: 'At the end of your turn: Deal 2 damage to all enemy minions in range.'
-  attack: 8
+  attack: 5
   health: 6
   cost: 6
   range: 1
   armor: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
+  normalVersion: {fileID: 0}
   isUpgraded: 1
   defHealth: 6
   OnPlay:
@@ -126,12 +132,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

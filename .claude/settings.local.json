@@ -20,7 +20,12 @@
       "Bash(xargs grep -l \"Scroll\\\\|Pagination\\\\|Page\")",
       "Bash(xargs wc -l)",
       "Bash(Get-ChildItem -Path \"C:\\\\Unity\\\\Projects\\\\our-card-game\\\\Assets\\\\Scripts\" -Recurse -Name *.cs)",
-      "Bash(Select-String -Pattern \"\\(SaveManager|CardSO|Deck\\)\")"
+      "Bash(Select-String -Pattern \"\\(SaveManager|CardSO|Deck\\)\")",
+      "Read(//c/Users/Ahmet/Downloads/**)",
+      "Bash(python -c \"import openpyxl; print\\('ok'\\)\")",
+      "Bash(pip install *)",
+      "Bash(PYTHONIOENCODING=utf-8 python -c ' *)",
+      "Bash(PYTHONIOENCODING=utf-8 grep -nE \"modal|public CardModal|public MinionModal|CardController|cardModal\" Assets/Scripts/MinionController.cs)"
     ]
   }
 }

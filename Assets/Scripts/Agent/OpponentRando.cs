@@ -23,7 +23,7 @@ public class OpponentRando : Agent
                 targets.Add(GameManager.Instance.player.hero);
                 foreach (var minion in targets)
                 {
-                    if ((minion.transform.position - item.transform.position).magnitude < item.modal.range + 1)
+                    if (RangeUtility.IsInRange(item, minion))
                     {
                         selectableTargets.Add(minion);
                     }

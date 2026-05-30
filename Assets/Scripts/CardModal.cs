@@ -79,4 +79,34 @@ public class CardModal : MonoBehaviour
         this.owner = owner;
         this.isPlayerMinion = isPlayerMinion;
     }
+
+    // Copy everything from another modal (e.g. the played hand card's modal, which may carry in-hand
+    // buffs) EXCEPT the UnityEvents — those stay the per-instance ones wired up by UpdateModal from
+    // the CardSO (notably the OnTookDamage relay), so runtime listeners don't leak onto shared assets.
+    public void CopyFrom(CardModal source)
+    {
+        if (source == null) return;
+
+        minionArt = source.minionArt;
+        cardArt = source.cardArt;
+
+        name = source.name;
+        desc = source.desc;
+
+        attack = source.attack;
+        health = source.health;
+        cost = source.cost;
+        range = source.range;
+        armor = source.armor;
+        defHealth = source.defHealth;
+
+        owner = source.owner;
+        isPlayerMinion = source.isPlayerMinion;
+
+        upgradedVerdion = source.upgradedVerdion;
+        isUpgraded = source.isUpgraded;
+        canMove = source.canMove;
+        canAttack = source.canAttack;
+        canAttackManually = source.canAttackManually;
+    }
 }

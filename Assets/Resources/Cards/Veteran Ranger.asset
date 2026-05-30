@@ -17,16 +17,22 @@ MonoBehaviour:
   cardArt: {fileID: 251000710, guid: 9a3c3282bab329345a993640553965cb, type: 3}
   cardName: Veteran Ranger
   desc: Draw a card, when played.
-  attack: 4
-  health: 2
+  attack: 2
+  health: 3
   cost: 4
   range: 2
   armor: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
+  normalVersion: {fileID: 0}
   isUpgraded: 1
-  defHealth: 2
+  defHealth: 3
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -114,9 +120,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

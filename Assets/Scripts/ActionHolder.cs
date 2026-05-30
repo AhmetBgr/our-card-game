@@ -225,6 +225,13 @@ public class ActionHolder : ScriptableObject
 
     }
 
+    // Forward direction for the agent currently summoning: the player advances up the grid, the
+    // opponent advances down. Occupants are pushed this way regardless of their own allegiance.
+    public static Vector3Int SummonerPushDir()
+    {
+        return GameManager.Instance.isPlayerTurn ? Vector3Int.up : Vector3Int.down;
+    }
+
     public void SelectCell(int rowIndex = 2)
     {
         IEnumerator cor = _SelectCell(rowIndex);
@@ -247,9 +254,10 @@ public class ActionHolder : ScriptableObject
         {
             if (cell.index.y != rowIndex) continue;
 
-            // A start cell is selectable if it's empty, OR it's occupied by a minion that can be
-            // pushed forward one cell (its immediate forward cell is empty and in-grid). A
-            // non-pushable occupant (minion already in front, or at the grid edge) blocks the cell.
+            // A start cell is selectable if it's empty, OR it's occupied by a minion (friendly or
+            // enemy) that can be pushed one cell in the summoner's forward direction (that cell is
+            // empty and in-grid). A non-pushable occupant (minion already ahead, or at the grid edge)
+            // blocks the cell.
             bool selectable;
             if (cell.obj == null)
             {
@@ -258,7 +266,7 @@ public class ActionHolder : ScriptableObject
             else
             {
                 var occupant = cell.obj.GetComponent<MinionController>();
-                selectable = occupant != null && occupant.CanBePushedForward();
+                selectable = occupant != null && occupant.CanBePushedForward(SummonerPushDir());
             }
 
             if (selectable)
@@ -665,7 +673,37 @@ public class ActionHolder : ScriptableObject
 
             selectedCards.Add(item);
         }
-        
+
+        yield return null;
+    }
+
+    public void SelectRandomMinionFromHand()
+    {
+        //if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SelectRandomMinionFromHand());
+    }
+    public IEnumerator _SelectRandomMinionFromHand()
+    {
+        selectedCards.Clear();
+
+        if (selectedAgent == null) yield break;
+
+        List<CardController> minionsInHand = new List<CardController>();
+        foreach (var item in selectedAgent.hand)
+        {
+            if (item == null || item.card == null) continue;
+            if (item == thisCard) continue; // exclude the card currently being played
+            if (item.card.health == 0) continue; // spells have no health; only consider minions
+
+            minionsInHand.Add(item);
+        }
+
+        if (minionsInHand.Count > 0)
+        {
+            selectedCards.Add(minionsInHand[UnityEngine.Random.Range(0, minionsInHand.Count)]);
+        }
+
         yield return null;
     }
 
@@ -756,7 +794,7 @@ public class ActionHolder : ScriptableObject
         foreach (var minion in opponent.minions)
         {
             if (minion == thisMinion) continue;
-            if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1)
+            if (RangeUtility.IsInRange(thisMinion, minion))
             {
                 selectedMinions.Add(minion);
             }
@@ -789,7 +827,7 @@ public class ActionHolder : ScriptableObject
             foreach (var minion in opponent.minions)
             {
                 if (minion == thisMinion) continue;
-                if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1)
+                if (RangeUtility.IsInRange(thisMinion, minion))
                 {
                     selectedTargetMinions.Add(minion);
                 }
@@ -827,7 +865,7 @@ public class ActionHolder : ScriptableObject
         foreach (var minion in agent.minions)
         {
             //Debug.Log("checking if minion is in range: ");
-            if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1 && minion != thisMinion)
+            if (RangeUtility.IsInRange(thisMinion, minion) && minion != thisMinion)
             {
                 //Debug.Log("minion is in range: ");
 
@@ -853,7 +891,7 @@ public class ActionHolder : ScriptableObject
         {
             if (minion == thisMinion) continue;
             Debug.Log("checking if minion is in range: ");
-            if ((minion.transform.position - thisMinion.transform.position).magnitude < thisMinion.modal.range + 1)
+            if (RangeUtility.IsInRange(thisMinion, minion))
             {
                 Debug.Log("minion is in range: ");
 
@@ -1186,7 +1224,45 @@ public class ActionHolder : ScriptableObject
     {
         foreach (var card in selectedCards)
         {
-            card.modal.cost = Mathf.Clamp(card.modal.cost+value, 1, int.MaxValue);
+            card.modal.cost = Mathf.Clamp(card.modal.cost+value, 0, int.MaxValue);
+            card.view.UpdateView(card.modal);
+        }
+
+        yield return null;
+    }
+    public void ChangeCardAttack(int value)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_ChangeCardAttack(value));
+    }
+    public IEnumerator _ChangeCardAttack(int value)
+    {
+        foreach (var card in selectedCards)
+        {
+            if (card == null || card.modal == null) continue;
+
+            card.modal.attack += value;
+            card.view.UpdateView(card.modal);
+        }
+
+        yield return null;
+    }
+    public void ChangeCardHealth(int value)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_ChangeCardHealth(value));
+    }
+    public IEnumerator _ChangeCardHealth(int value)
+    {
+        foreach (var card in selectedCards)
+        {
+            if (card == null || card.modal == null) continue;
+
+            // Keep defHealth (max health) in sync so the summoned minion reflects the buff.
+            card.modal.health += value;
+            card.modal.defHealth += value;
             card.view.UpdateView(card.modal);
         }
 

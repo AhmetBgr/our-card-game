@@ -24,7 +24,7 @@ public class OpponentBrained : Agent
 
             foreach (var target in targets)
             {
-                if ((target.transform.position - item.transform.position).magnitude < item.modal.range + 1)
+                if (RangeUtility.IsInRange(item, target))
                 {
                     availableActions.Add(item.Attack(GameManager.Instance.player, target));
                     actionScores.Add(brain != null ? brain.ScoreAttack(item, target, this) : 0f);

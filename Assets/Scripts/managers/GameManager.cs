@@ -846,17 +846,27 @@ public class GameManager : Singleton<GameManager>
         GameObject occupantObj = GridManager.Instance.GetCell(destIndex).obj;
         if (occupantObj != null && occupantObj.TryGetComponent(out MinionController occupant))
         {
-            if (occupant.CanBePushedForward())
+            Vector3Int pushDir = ActionHolder.SummonerPushDir();
+            if (occupant.CanBePushedForward(pushDir))
             {
-                occupant.PushForward();
+                occupant.PushForward(pushDir);
             }
         }
 
         MinionController minion = Instantiate(minionprefab, pos, Quaternion.identity).GetComponent<MinionController>();
         minion.card = card;
-        //minion.modal = new MinionModal(card, minion);  
+        //minion.modal = new MinionModal(card, minion);
         // fix: setting isplayerminion like this might set as wrong if you summon minion on opponents turn or vice versa
-        minion.modal.UpdateModal(minion.card, isPlayerTurn ? player : opponent, isPlayerTurn); 
+        minion.modal.UpdateModal(minion.card, isPlayerTurn ? player : opponent, isPlayerTurn);
+
+        // Everything but events comes from the played hand card's modal (which may include in-hand
+        // buffs), not the CardSO. The card's modal was itself populated from the CardSO when the card
+        // was drawn. Falls back to the CardSO data (already set by UpdateModal) for summons with no
+        // hand card (e.g. tokens / random summons).
+        CardController sourceCard = ActionHolder.thisCard;
+        if (sourceCard != null && sourceCard.modal != null && sourceCard.card == card)
+            minion.modal.CopyFrom(sourceCard.modal);
+
         minion.view.UpdateView(minion.modal);
         minion.view.PlayAppearAnimation();
         ActionHolder.thisMinion = minion;

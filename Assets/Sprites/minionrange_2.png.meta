@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c6e2c09f9deb9fa4294a994ba5d51a4f
+guid: d4a6c17b48661a844972a2af7eefdbb3
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -236,8 +236,8 @@ TextureImporter:
       name: minionrange_5
       rect:
         serializedVersion: 2
-        x: 0
-        y: 384
+        x: 224
+        y: 128
         width: 96
         height: 96
       alignment: 0
@@ -272,6 +272,28 @@ TextureImporter:
       bones: []
       spriteID: 6758d841b2f9ba64b8fdd75fe9bd79c5
       internalID: 1704485004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: minionrange_7
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 0
+        width: 80
+        height: 128
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9cc88aa5d2119ea469ffee3a189ed7d4
+      internalID: 1881493719
       vertices: []
       indices: 
       edges: []
@@ -329,7 +351,7 @@ TextureImporter:
         width: 96
         height: 64
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -338,50 +360,6 @@ TextureImporter:
       bones: []
       spriteID: 4a737d0a381937547ad11ad94f6cc2e7
       internalID: 2078569128
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: minionrange_11
-      rect:
-        serializedVersion: 2
-        x: 96
-        y: 320
-        width: 96
-        height: 127
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: a1176f194f1c9934490578529556aa2a
-      internalID: -839441941
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: minionrange_7
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 0
-        width: 96
-        height: 160
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: a210fae7364022b459a0dcd167b97444
-      internalID: 1881493719
       vertices: []
       indices: 
       edges: []
@@ -403,7 +381,6 @@ TextureImporter:
       minionrange_0: -1394371350
       minionrange_1: -1137987039
       minionrange_10: 2078569128
-      minionrange_11: -839441941
       minionrange_2: 1090080228
       minionrange_3: -1210905570
       minionrange_4: 941582646

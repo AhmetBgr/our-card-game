@@ -123,6 +123,53 @@ public class MinionController : MonoBehaviour
 
     }
 
+    private void OnDrawGizmosSelected()
+    {
+        int range = modal != null ? modal.range : (card != null ? card.range : 0);
+        if (range <= 0) return;
+
+#if UNITY_EDITOR
+        UnityEditor.Handles.color = Color.cyan;
+        Vector3 size = new Vector3(0.9f, 0.9f, 0.1f);
+        foreach (var off in RangeUtility.RangeOffsets(range))
+        {
+            // grid offset (dx,dy) -> world offset (dx,-dy); cellSize is 1
+            Vector3 cell = transform.position + new Vector3(off.x, -off.y, 0f);
+            DrawThickWireCube(cell, size, 4f);
+        }
+#endif
+    }
+
+#if UNITY_EDITOR
+    private static void DrawThickWireCube(Vector3 center, Vector3 size, float thickness)
+    {
+        Vector3 e = size * 0.5f;
+        Vector3 a = center + new Vector3(-e.x, -e.y, -e.z);
+        Vector3 b = center + new Vector3( e.x, -e.y, -e.z);
+        Vector3 c = center + new Vector3( e.x,  e.y, -e.z);
+        Vector3 d = center + new Vector3(-e.x,  e.y, -e.z);
+        Vector3 a2 = center + new Vector3(-e.x, -e.y,  e.z);
+        Vector3 b2 = center + new Vector3( e.x, -e.y,  e.z);
+        Vector3 c2 = center + new Vector3( e.x,  e.y,  e.z);
+        Vector3 d2 = center + new Vector3(-e.x,  e.y,  e.z);
+
+        UnityEditor.Handles.DrawLine(a, b, thickness);
+        UnityEditor.Handles.DrawLine(b, c, thickness);
+        UnityEditor.Handles.DrawLine(c, d, thickness);
+        UnityEditor.Handles.DrawLine(d, a, thickness);
+
+        UnityEditor.Handles.DrawLine(a2, b2, thickness);
+        UnityEditor.Handles.DrawLine(b2, c2, thickness);
+        UnityEditor.Handles.DrawLine(c2, d2, thickness);
+        UnityEditor.Handles.DrawLine(d2, a2, thickness);
+
+        UnityEditor.Handles.DrawLine(a, a2, thickness);
+        UnityEditor.Handles.DrawLine(b, b2, thickness);
+        UnityEditor.Handles.DrawLine(c, c2, thickness);
+        UnityEditor.Handles.DrawLine(d, d2, thickness);
+    }
+#endif
+
     public virtual void SetReadyToAttack()
     {
         if (!modal.canAttack || !modal.canAttackManually || isAttackedThisTurn || age < 1)
@@ -137,7 +184,7 @@ public class MinionController : MonoBehaviour
 
             foreach (var minion in targets)
             {
-                if ((minion.transform.position - transform.position).magnitude < modal.range + 1)
+                if (RangeUtility.IsInRange(this, minion))
                 {
                     targetExists = true;
                     break;
@@ -161,7 +208,7 @@ public class MinionController : MonoBehaviour
         targets.Add(opponent.hero);
         foreach (var minion in targets)
         {
-            if((minion.transform.position - transform.position).magnitude < modal.range + 1)
+            if(RangeUtility.IsInRange(this, minion))
             {
                 return true;
             }
@@ -189,7 +236,7 @@ public class MinionController : MonoBehaviour
         {
             Debug.Log("checking if minion selectable");
 
-            if ((minion.transform.position - transform.position).magnitude < modal.range + 1)
+            if (RangeUtility.IsInRange(this, minion))
             {
                 Debug.Log(" minion is selectable selectable");
                 minion.attackingMinion = this;
@@ -219,8 +266,7 @@ public class MinionController : MonoBehaviour
         selectedMinion.selectable.SetSelectable(false);
         selectedMinion.TakeDamage(modal.attack);
         selectedMinion.transform.DOPunchPosition(dir * 0.03f, 0.15f, vibrato: 5).SetDelay(0.75f);
-        float distance = (selectedMinion.transform.position - transform.position).magnitude;    
-        if(distance < 2) //selectedMinion.modal.health > 0 && 
+        if (RangeUtility.IsInRange(selectedMinion, this)) // target retaliates if attacker is in ITS range
         {
             TakeDamage(selectedMinion.modal.attack);
             if (selectedMinion.modal.range < 2)
@@ -355,22 +401,22 @@ public class MinionController : MonoBehaviour
         GridManager.Instance.InvokeGridChanged();
     }
 
-    // True if the cell directly in front of this minion (toward the enemy side) is in-grid and empty.
+    // True if the cell one step along `pushDir` is in-grid and empty. `pushDir` is the summoning
+    // agent's forward direction (up for the player, down for the opponent), so any occupant — friendly
+    // or enemy — can be pushed out of the way as long as the cell ahead of it is free.
     // Used by spawn-on-occupied-cell logic: a start cell is only valid if its occupant can be pushed.
-    public bool CanBePushedForward()
+    public bool CanBePushedForward(Vector3Int pushDir)
     {
-        Vector3Int dir = modal.isPlayerMinion ? Vector3Int.up : Vector3Int.down;
-        Vector3Int target = Vector3Int.RoundToInt(transform.position) + dir;
+        Vector3Int target = Vector3Int.RoundToInt(transform.position) + pushDir;
         Vector2Int idx = GridManager.Instance.PosToGridIndex(target);
         if (GridManager.Instance.IsOutSideOfGrid(idx)) return false;
         return GridManager.Instance.GetCell(idx).obj == null;
     }
 
-    // Move this minion one cell forward, bypassing age/canMove gating (Move() itself does no checks).
-    public void PushForward()
+    // Move this minion one cell along `pushDir`, bypassing age/canMove gating (Move() does no checks).
+    public void PushForward(Vector3Int pushDir)
     {
-        Vector3Int dir = modal.isPlayerMinion ? Vector3Int.up : Vector3Int.down;
-        Vector3Int target = Vector3Int.RoundToInt(transform.position) + dir;
+        Vector3Int target = Vector3Int.RoundToInt(transform.position) + pushDir;
         Move(target);
     }
 

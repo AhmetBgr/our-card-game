@@ -16,19 +16,24 @@ MonoBehaviour:
   minionArt: {fileID: -271645784, guid: 473b3c12f85412f458bfd9c74f6206e6, type: 3}
   cardArt: {fileID: -69051076, guid: 473b3c12f85412f458bfd9c74f6206e6, type: 3}
   cardName: Day-x
-  desc: When played, +2 mana. Reduce the cost of minions in your hand by 1 (cannot
-    reduce to 0)
-  attack: 1
-  health: 4
+  desc: Reduce the cost random minion in your hand by 2 and increase its health and
+    attack by 2
+  attack: 2
+  health: 2
   cost: 3
   range: 1
   armor: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
   isUpgraded: 1
-  defHealth: 4
+  defHealth: 2
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -82,7 +87,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectAllMinionsInHand
+        m_MethodName: SelectRandomMinionFromHand
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -99,7 +104,31 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: -1
+          m_IntArgument: -2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: ChangeCardAttack
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: ChangeCardHealth
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -116,7 +145,7 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:

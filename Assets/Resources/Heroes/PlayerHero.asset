@@ -24,7 +24,7 @@ MonoBehaviour:
   armor: 0
   canMove: 1
   canAttack: 1
-  canAttackManually: 1
+  canAttackManually: 0
   type: 0
   aiIntent: 0
   aiEffectMagnitude: 0

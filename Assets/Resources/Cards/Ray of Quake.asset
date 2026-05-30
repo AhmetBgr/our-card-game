@@ -24,7 +24,12 @@ MonoBehaviour:
   range: 0
   armor: 0
   canMove: 0
+  canAttack: 1
+  canAttackManually: 1
   type: 2
+  aiIntent: 2
+  aiEffectMagnitude: -3
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
   isUpgraded: 1
@@ -152,7 +157,7 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:

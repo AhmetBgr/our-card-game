@@ -15,7 +15,6 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 817428628, guid: f736e4c134fc2dc4888fcac841518cfa, type: 3}
   cardArt: {fileID: 767342166, guid: f736e4c134fc2dc4888fcac841518cfa, type: 3}
-  frame: {fileID: 21300000, guid: 019a74c90cd5a324a9a4a6236b6e7c99, type: 3}
   cardName: Moth
   desc: 
   attack: 1
@@ -23,13 +22,17 @@ MonoBehaviour:
   cost: 1
   range: 2
   armor: 0
+  canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 2
-  OnPlayInitialize:
-    m_PersistentCalls:
-      m_Calls: []
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -93,6 +96,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []
