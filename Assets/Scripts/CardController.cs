@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 
 public class CardController : MonoBehaviour
@@ -20,12 +21,14 @@ public class CardController : MonoBehaviour
 
         DraggableItem.DragStarted += DisablePeek;
         DraggableItem.DragEnded += OnDragEnded;
+        DraggableItem.DragCancelled += OnDragCancelled;
     }
 
     private void OnDestroy()
     {
         DraggableItem.DragStarted -= DisablePeek;
         DraggableItem.DragEnded -= OnDragEnded;
+        DraggableItem.DragCancelled -= OnDragCancelled;
     }
 
     private void Update()
@@ -95,6 +98,29 @@ public class CardController : MonoBehaviour
     private void OnDragEnded(Transform draggedItem)
     {
         if (draggedItem == transform) return;
+        EnablePeek();
+    }
+
+    private void OnDragCancelled(Transform draggedItem)
+    {
+        // Other cards just re-enable peeking, mirroring OnDragEnded.
+        if (draggedItem != transform)
+        {
+            EnablePeek();
+            return;
+        }
+
+        // Put the dragged card back into the hand fan.
+        if (handLayout != null)
+        {
+            handLayout.CancelPeek();
+            handLayout.InsertCardAt(transform, 0);
+            draggableItem.ParentAfterDrag = handLayout.transform;
+        }
+
+        transform.DOComplete();
+        transform.localRotation = Quaternion.identity;
+        transform.localScale = Vector3.one;
         EnablePeek();
     }
 

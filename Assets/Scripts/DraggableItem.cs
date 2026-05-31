@@ -16,6 +16,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
 
     public static event Action DragStarted;
     public static event Action<Transform> DragEnded;
+    public static event Action<Transform> DragCancelled;
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -30,11 +31,27 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
         DragStarted?.Invoke();
     }
 
+    private void Update()
+    {
+        // Right click while dragging cancels the play and returns the card to hand.
+        if (isdragging && Input.GetMouseButtonDown(1))
+            CancelDrag();
+    }
+
     public void OnDrag(PointerEventData eventData)
     {
-        if (!Interactable) return;
+        if (!Interactable || !isdragging) return;
 
         transform.position = eventData.position;
+    }
+
+    private void CancelDrag()
+    {
+        // Clearing isdragging stops OnDrag from following the cursor and makes
+        // OnEndDrag/PlayArea.OnDrop bail out when the left button is finally released.
+        isdragging = false;
+        Image.raycastTarget = true;
+        DragCancelled?.Invoke(transform);
     }
 
     public void OnEndDrag(PointerEventData eventData)

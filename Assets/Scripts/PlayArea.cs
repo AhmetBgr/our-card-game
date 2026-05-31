@@ -20,6 +20,10 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
             return;
         }
 
+        // The drag was cancelled (right click) before release — don't play it.
+        if (droppedItem.draggableItem != null && !droppedItem.draggableItem.isdragging)
+            return;
+
         var layout = droppedItem.handLayout;
         int originalIndex = layout != null ? layout.cards.IndexOf(droppedItem.transform) : 0;
 
