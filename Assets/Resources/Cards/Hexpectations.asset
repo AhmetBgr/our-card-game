@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  cardArt: {fileID: 2279270367809720109, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
   cardName: Hexpectations
   desc: Summon a random 2 cost minion.
   attack: 0
@@ -23,7 +23,12 @@ MonoBehaviour:
   range: 0
   armor: 0
   canMove: 0
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: e8510371441fb2e4a94dd766ef90a6e3, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0

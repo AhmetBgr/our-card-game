@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  cardArt: {fileID: -3647169733911254445, guid: d63582f3f629afa4a8e5bdfd0486e04a,
+    type: 3}
   cardName: Hexcuses
   desc: Summon a random 5 cost minion.
   attack: 0
@@ -23,7 +24,12 @@ MonoBehaviour:
   range: 0
   armor: 0
   canMove: 0
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
   isUpgraded: 1

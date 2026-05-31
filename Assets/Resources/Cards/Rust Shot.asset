@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  cardArt: {fileID: 581310926089264151, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
   cardName: Rust Shot
   desc: 'Deal 3 damage to a minion.
 
@@ -25,8 +25,14 @@ MonoBehaviour:
   range: 0
   armor: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 2
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: 3365e8c6c6ac3db42a62fe4f1e630ed3, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0
   OnPlay:
@@ -92,7 +98,7 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:

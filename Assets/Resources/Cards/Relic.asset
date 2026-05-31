@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Relic
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  minionArt: {fileID: 5681697889624799646, guid: d63582f3f629afa4a8e5bdfd0486e04a,
+    type: 3}
+  cardArt: {fileID: 5681697889624799646, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
   cardName: Relic
   desc: Double the Attack of a minion.
   attack: 0

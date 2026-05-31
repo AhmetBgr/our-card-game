@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: NailGun
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  minionArt: {fileID: -613359829302618513, guid: d63582f3f629afa4a8e5bdfd0486e04a,
+    type: 3}
+  cardArt: {fileID: -613359829302618513, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
   cardName: Nail Gun
   desc: 'At the end of your turn: Deal 2 damage to all enemy minions in range.'
   attack: 5

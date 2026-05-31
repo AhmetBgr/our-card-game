@@ -672,10 +672,40 @@ MonoBehaviour:
   range: 0
   armor: 0
   defHealth: 0
+  owner: {fileID: 0}
   isPlayerMinion: 0
   upgradedVerdion: {fileID: 0}
   isUpgraded: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
+  OnPlay:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTurnStart:
+    m_PersistentCalls:
+      m_Calls: []
+  OnOwnerTurnEnd:
+    m_PersistentCalls:
+      m_Calls: []
+  OnAnyMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
+  OnOwnerDrawedCard:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMinionCollided:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &5286410626112935929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -701,6 +731,7 @@ MonoBehaviour:
   attacktext: {fileID: 4990867834113611566}
   healthtext: {fileID: 3615696007133470227}
   enemyInline: {fileID: 8205954058860351602}
+  heroDropDelay: 0.2
 --- !u!114 &5071159792561095710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -727,8 +758,6 @@ MonoBehaviour:
   isAttackedThisTurn: 0
   canAttack: 0
   age: 0
-  attackingMinion: {fileID: 0}
-  selectedMinion: {fileID: 0}
   LastTarget: {fileID: 0}
 --- !u!114 &2615169628972146479
 MonoBehaviour:

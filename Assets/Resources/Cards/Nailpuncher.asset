@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Nailpuncher
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  minionArt: {fileID: 136297622846076780, guid: d63582f3f629afa4a8e5bdfd0486e04a,
+    type: 3}
+  cardArt: {fileID: 136297622846076780, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
   cardName: Nailpuncher
   desc: 'At the end of your turn: Deal 1 damage  to random enemy minion in range.'
   attack: 4
@@ -23,8 +24,14 @@ MonoBehaviour:
   range: 1
   armor: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: 44fe5871caffea1449963a62b2f09a2e, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 3
   OnPlay:
@@ -114,12 +121,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

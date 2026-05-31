@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: Rotten Banana
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
+  minionArt: {fileID: 2510652883185604869, guid: d63582f3f629afa4a8e5bdfd0486e04a,
+    type: 3}
+  cardArt: {fileID: -6060927012704595642, guid: d63582f3f629afa4a8e5bdfd0486e04a,
+    type: 3}
   cardName: Rotten Banana
   desc: Deal 3 damage to your hero.
   attack: 0
@@ -23,7 +25,12 @@ MonoBehaviour:
   range: 0
   armor: 0
   canMove: 0
+  canAttack: 1
+  canAttackManually: 1
   type: 2
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: 02616ea4041f7cc42b5a5033fdead468, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0

@@ -1,0 +1,1914 @@
+fileFormatVersion: 2
+guid: d63582f3f629afa4a8e5bdfd0486e04a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8902804665606140333
+    second: SimpleShapes_0
+  - first:
+      213: -7153372905783188231
+    second: SimpleShapes_1
+  - first:
+      213: 5104294230767656245
+    second: SimpleShapes_2
+  - first:
+      213: -4010216633361954998
+    second: SimpleShapes_3
+  - first:
+      213: 2279270367809720109
+    second: SimpleShapes_4
+  - first:
+      213: -3647169733911254445
+    second: SimpleShapes_5
+  - first:
+      213: -3418273148628431154
+    second: SimpleShapes_6
+  - first:
+      213: 3331439849053709208
+    second: SimpleShapes_7
+  - first:
+      213: 5436159390022499685
+    second: SimpleShapes_8
+  - first:
+      213: 5825376966284769449
+    second: SimpleShapes_9
+  - first:
+      213: -3386488573347511277
+    second: SimpleShapes_10
+  - first:
+      213: 3806956756531432517
+    second: SimpleShapes_11
+  - first:
+      213: -297518912625919656
+    second: SimpleShapes_12
+  - first:
+      213: -1756977442222643285
+    second: SimpleShapes_13
+  - first:
+      213: -8858645110972609929
+    second: SimpleShapes_14
+  - first:
+      213: -563745689248678199
+    second: SimpleShapes_15
+  - first:
+      213: 3607101439105114373
+    second: SimpleShapes_16
+  - first:
+      213: 6031468480065390000
+    second: SimpleShapes_17
+  - first:
+      213: 4507455958492631052
+    second: SimpleShapes_18
+  - first:
+      213: 581310926089264151
+    second: SimpleShapes_19
+  - first:
+      213: 9000095169692208010
+    second: SimpleShapes_20
+  - first:
+      213: 5851073458082316548
+    second: SimpleShapes_21
+  - first:
+      213: 251676187330112798
+    second: SimpleShapes_22
+  - first:
+      213: 5901000282488429925
+    second: SimpleShapes_23
+  - first:
+      213: 8070459710558868382
+    second: SimpleShapes_24
+  - first:
+      213: 9190612621116575792
+    second: SimpleShapes_25
+  - first:
+      213: -1699875912848266585
+    second: SimpleShapes_26
+  - first:
+      213: -5655297368843098292
+    second: SimpleShapes_27
+  - first:
+      213: 3892331329905356963
+    second: SimpleShapes_28
+  - first:
+      213: -8886085110732412377
+    second: SimpleShapes_29
+  - first:
+      213: 2429121949536148070
+    second: SimpleShapes_30
+  - first:
+      213: -2679517034654910758
+    second: SimpleShapes_31
+  - first:
+      213: 2510652883185604869
+    second: SimpleShapes_32
+  - first:
+      213: 5188215277891571141
+    second: SimpleShapes_33
+  - first:
+      213: 5681697889624799646
+    second: SimpleShapes_34
+  - first:
+      213: -126455041368330550
+    second: SimpleShapes_35
+  - first:
+      213: -6060927012704595642
+    second: SimpleShapes_36
+  - first:
+      213: -3471118514312615515
+    second: SimpleShapes_37
+  - first:
+      213: -6370549642556054221
+    second: SimpleShapes_38
+  - first:
+      213: 8138238583388426074
+    second: SimpleShapes_39
+  - first:
+      213: -8511706313022297917
+    second: SimpleShapes_40
+  - first:
+      213: -3690987814555717952
+    second: SimpleShapes_41
+  - first:
+      213: -5507401574306501125
+    second: SimpleShapes_42
+  - first:
+      213: -8357615182546639299
+    second: SimpleShapes_43
+  - first:
+      213: 4035534108276310073
+    second: SimpleShapes_44
+  - first:
+      213: -613359829302618513
+    second: SimpleShapes_45
+  - first:
+      213: 2500855887491501295
+    second: SimpleShapes_46
+  - first:
+      213: 258089192523421616
+    second: SimpleShapes_47
+  - first:
+      213: 7813821573392219204
+    second: SimpleShapes_48
+  - first:
+      213: 4100291636465072037
+    second: SimpleShapes_49
+  - first:
+      213: -5505823196996198194
+    second: SimpleShapes_50
+  - first:
+      213: 9069699245865316536
+    second: SimpleShapes_51
+  - first:
+      213: 5518029228460847722
+    second: SimpleShapes_52
+  - first:
+      213: 4768582602984610332
+    second: SimpleShapes_53
+  - first:
+      213: 7587191739121596156
+    second: SimpleShapes_54
+  - first:
+      213: 7910829748962012896
+    second: SimpleShapes_55
+  - first:
+      213: -6856129242575041198
+    second: SimpleShapes_56
+  - first:
+      213: 6438746913867393524
+    second: SimpleShapes_57
+  - first:
+      213: -4077933375129153407
+    second: SimpleShapes_58
+  - first:
+      213: -8331091021335703817
+    second: SimpleShapes_59
+  - first:
+      213: -9148190285482912147
+    second: SimpleShapes_60
+  - first:
+      213: 7806141229316493119
+    second: SimpleShapes_61
+  - first:
+      213: 4580193303597397694
+    second: SimpleShapes_62
+  - first:
+      213: 8479352166701651347
+    second: SimpleShapes_63
+  - first:
+      213: 4417975483127714101
+    second: SimpleShapes_64
+  - first:
+      213: 2739280490406623682
+    second: SimpleShapes_65
+  - first:
+      213: 136297622846076780
+    second: SimpleShapes_66
+  - first:
+      213: 3202304233315463628
+    second: SimpleShapes_67
+  - first:
+      213: 4356364885295759180
+    second: SimpleShapes_68
+  - first:
+      213: 8161412144469912675
+    second: SimpleShapes_69
+  - first:
+      213: 7335972061172773296
+    second: SimpleShapes_70
+  - first:
+      213: 2626024069996749731
+    second: SimpleShapes_71
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SimpleShapes_0
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 889
+        width: 136
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da1f42e9cad1d8b70800000000000000
+      internalID: 8902804665606140333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_1
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 884
+        width: 94
+        height: 93
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f4a3ec0e3d1abc90800000000000000
+      internalID: -7153372905783188231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_2
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 887
+        width: 103
+        height: 98
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53d5bf52f8816d640800000000000000
+      internalID: 5104294230767656245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_3
+      rect:
+        serializedVersion: 2
+        x: 423
+        y: 887
+        width: 106
+        height: 101
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4709101839d858c0800000000000000
+      internalID: -4010216633361954998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_4
+      rect:
+        serializedVersion: 2
+        x: 550
+        y: 887
+        width: 106
+        height: 103
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2f4f5cc25891af10800000000000000
+      internalID: 2279270367809720109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_5
+      rect:
+        serializedVersion: 2
+        x: 675
+        y: 883
+        width: 108
+        height: 104
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35ae9a65376a26dc0800000000000000
+      internalID: -3647169733911254445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_6
+      rect:
+        serializedVersion: 2
+        x: 811
+        y: 880
+        width: 108
+        height: 105
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ece0fbe9eaadf80d0800000000000000
+      internalID: -3418273148628431154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_7
+      rect:
+        serializedVersion: 2
+        x: 922
+        y: 828
+        width: 87
+        height: 82
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8936d6954e6ab3e20800000000000000
+      internalID: 3331439849053709208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_8
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 792
+        width: 136
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56df1b8c92e117b40800000000000000
+      internalID: 5436159390022499685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_9
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 755
+        width: 112
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a875269c75e7d050800000000000000
+      internalID: 5825376966284769449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_10
+      rect:
+        serializedVersion: 2
+        x: 289
+        y: 755
+        width: 110
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 314c3bdb596c001d0800000000000000
+      internalID: -3386488573347511277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_11
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 755
+        width: 112
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54c445cfff605d430800000000000000
+      internalID: 3806956756531432517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_12
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 755
+        width: 112
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 859b8f210200fdbf0800000000000000
+      internalID: -297518912625919656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_13
+      rect:
+        serializedVersion: 2
+        x: 671
+        y: 755
+        width: 110
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba7e1fd3356fd97e0800000000000000
+      internalID: -1756977442222643285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_14
+      rect:
+        serializedVersion: 2
+        x: 811
+        y: 755
+        width: 108
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77a0a39e435cf0580800000000000000
+      internalID: -8858645110972609929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_15
+      rect:
+        serializedVersion: 2
+        x: 922
+        y: 731
+        width: 70
+        height: 82
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cebca0584c2d28f0800000000000000
+      internalID: -563745689248678199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_16
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 693
+        width: 136
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50129aac5affe0230800000000000000
+      internalID: 3607101439105114373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_17
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 633
+        width: 106
+        height: 101
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b5434460a414b350800000000000000
+      internalID: 6031468480065390000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_18
+      rect:
+        serializedVersion: 2
+        x: 306
+        y: 633
+        width: 106
+        height: 101
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c00dbae0053bd8e30800000000000000
+      internalID: 4507455958492631052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_19
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 631
+        width: 108
+        height: 103
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71c9a95153b311800800000000000000
+      internalID: 581310926089264151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_20
+      rect:
+        serializedVersion: 2
+        x: 543
+        y: 624
+        width: 111
+        height: 110
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8b863e4fd2c6ec70800000000000000
+      internalID: 9000095169692208010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_21
+      rect:
+        serializedVersion: 2
+        x: 671
+        y: 621
+        width: 113
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40186bf4f40333150800000000000000
+      internalID: 5851073458082316548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_22
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 621
+        width: 93
+        height: 113
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1d6c30b8222e7300800000000000000
+      internalID: 251676187330112798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_23
+      rect:
+        serializedVersion: 2
+        x: 922
+        y: 626
+        width: 56
+        height: 82
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56dd339fd7094e150800000000000000
+      internalID: 5901000282488429925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_24
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 433
+        width: 158
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9396fdf858000070800000000000000
+      internalID: 8070459710558868382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_25
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 588
+        width: 136
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03010e52c7d9b8f70800000000000000
+      internalID: 9190612621116575792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_26
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 508
+        width: 108
+        height: 98
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7aaaf641dd3d868e0800000000000000
+      internalID: -1699875912848266585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_27
+      rect:
+        serializedVersion: 2
+        x: 306
+        y: 508
+        width: 108
+        height: 98
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c47e7ee81095481b0800000000000000
+      internalID: -5655297368843098292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_28
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 508
+        width: 98
+        height: 94
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a0f12bd8b6540630800000000000000
+      internalID: 3892331329905356963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_29
+      rect:
+        serializedVersion: 2
+        x: 547
+        y: 504
+        width: 114
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72a28ea1ca84ea480800000000000000
+      internalID: -8886085110732412377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_30
+      rect:
+        serializedVersion: 2
+        x: 676
+        y: 509
+        width: 109
+        height: 88
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66ad4360b89f5b120800000000000000
+      internalID: 2429121949536148070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_31
+      rect:
+        serializedVersion: 2
+        x: 808
+        y: 508
+        width: 103
+        height: 89
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad639c3247170dad0800000000000000
+      internalID: -2679517034654910758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_32
+      rect:
+        serializedVersion: 2
+        x: 922
+        y: 522
+        width: 56
+        height: 82
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5099698ce71a7d220800000000000000
+      internalID: 2510652883185604869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_33
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 390
+        width: 99
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5cd4bf09e4e300840800000000000000
+      internalID: 5188215277891571141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_34
+      rect:
+        serializedVersion: 2
+        x: 318
+        y: 442
+        width: 110
+        height: 60
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e993c20b02279de40800000000000000
+      internalID: 5681697889624799646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_35
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 442
+        width: 58
+        height: 51
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aceee235fcdbe3ef0800000000000000
+      internalID: -126455041368330550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_36
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 442
+        width: 110
+        height: 51
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6415c2e7ef243eba0800000000000000
+      internalID: -6060927012704595642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_37
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 397
+        width: 110
+        height: 96
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a96d1d1a1c14dfc0800000000000000
+      internalID: -3471118514312615515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_38
+      rect:
+        serializedVersion: 2
+        x: 939
+        y: 459
+        width: 67
+        height: 37
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 335647b4ad24797a0800000000000000
+      internalID: -6370549642556054221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_39
+      rect:
+        serializedVersion: 2
+        x: 334
+        y: 321
+        width: 78
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5fce349fd4d0f070800000000000000
+      internalID: 8138238583388426074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_40
+      rect:
+        serializedVersion: 2
+        x: 427
+        y: 321
+        width: 115
+        height: 115
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c82bdb843850e980800000000000000
+      internalID: -8511706313022297917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_41
+      rect:
+        serializedVersion: 2
+        x: 777
+        y: 407
+        width: 70
+        height: 50
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ce6c1b632af6ccc0800000000000000
+      internalID: -3690987814555717952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_42
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 419
+        width: 70
+        height: 38
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfda8089277c193b0800000000000000
+      internalID: -5507401574306501125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_43
+      rect:
+        serializedVersion: 2
+        x: 937
+        y: 390
+        width: 82
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3665e2a549c30c80800000000000000
+      internalID: -8357615182546639299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_44
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 342
+        width: 136
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93048cae3e8110830800000000000000
+      internalID: 4035534108276310073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_45
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 251
+        width: 114
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f665ce62c78ec77f0800000000000000
+      internalID: -613359829302618513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_46
+      rect:
+        serializedVersion: 2
+        x: 606
+        y: 237
+        width: 129
+        height: 121
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fec0068fd23d4b220800000000000000
+      internalID: 2500855887491501295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_47
+      rect:
+        serializedVersion: 2
+        x: 747
+        y: 238
+        width: 129
+        height: 120
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b7d9b0d0cae49300800000000000000
+      internalID: 258089192523421616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_48
+      rect:
+        serializedVersion: 2
+        x: 887
+        y: 232
+        width: 124
+        height: 126
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44cb3545255407c60800000000000000
+      internalID: 7813821573392219204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_49
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 235
+        width: 136
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a77103e48927e830800000000000000
+      internalID: 4100291636465072037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_50
+      rect:
+        serializedVersion: 2
+        x: 339
+        y: 251
+        width: 114
+        height: 57
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec0afe239f26793b0800000000000000
+      internalID: -5505823196996198194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_51
+      rect:
+        serializedVersion: 2
+        x: 508
+        y: 251
+        width: 61
+        height: 58
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b03e69296b0edd70800000000000000
+      internalID: 9069699245865316536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_52
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 94
+        width: 130
+        height: 122
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a62b1a6f85af39c40800000000000000
+      internalID: 5518029228460847722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_53
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 101
+        width: 110
+        height: 105
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1a5105cc986d2240800000000000000
+      internalID: 4768582602984610332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_54
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 106
+        width: 116
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf6fe1520be1b4960800000000000000
+      internalID: 7587191739121596156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_55
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 101
+        width: 119
+        height: 105
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ee29794eb9e8cd60800000000000000
+      internalID: 7910829748962012896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_59
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 20
+        width: 39
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fec6d92bd4026c80800000000000000
+      internalID: -8331091021335703817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_60
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 20
+        width: 39
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d669c1097691b0180800000000000000
+      internalID: -9148190285482912147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_61
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 20
+        width: 39
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3fc0ffd61cf45c60800000000000000
+      internalID: 7806141229316493119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_62
+      rect:
+        serializedVersion: 2
+        x: 189
+        y: 20
+        width: 39
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb6bb8fea8d109f30800000000000000
+      internalID: 4580193303597397694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_63
+      rect:
+        serializedVersion: 2
+        x: 242
+        y: 20
+        width: 39
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 395d0bdbed5bca570800000000000000
+      internalID: 8479352166701651347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_64
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 20
+        width: 68
+        height: 54
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53156326b4dcf4d30800000000000000
+      internalID: 4417975483127714101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_65
+      rect:
+        serializedVersion: 2
+        x: 390
+        y: 23
+        width: 70
+        height: 52
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c938dab711e30620800000000000000
+      internalID: 2739280490406623682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_66
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 20
+        width: 68
+        height: 54
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c67787147f934e100800000000000000
+      internalID: 136297622846076780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_67
+      rect:
+        serializedVersion: 2
+        x: 559
+        y: 54
+        width: 62
+        height: 22
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc17f71dbbed07c20800000000000000
+      internalID: 3202304233315463628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_68
+      rect:
+        serializedVersion: 2
+        x: 631
+        y: 37
+        width: 74
+        height: 39
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4ff90c38cae47c30800000000000000
+      internalID: 4356364885295759180
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_69
+      rect:
+        serializedVersion: 2
+        x: 716
+        y: 19
+        width: 73
+        height: 57
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36c20b8ba19234170800000000000000
+      internalID: 8161412144469912675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SimpleShapes_70
+      rect:
+        serializedVersion: 2
+        x: 800
+        y: 6
+        width: 73
+        height: 68
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b1b464d8bb9ec560800000000000000
+      internalID: 7335972061172773296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: d2e560f9cd2830043bc2f41c35a118dd
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SimpleShapes_0: 8902804665606140333
+      SimpleShapes_1: -7153372905783188231
+      SimpleShapes_10: -3386488573347511277
+      SimpleShapes_11: 3806956756531432517
+      SimpleShapes_12: -297518912625919656
+      SimpleShapes_13: -1756977442222643285
+      SimpleShapes_14: -8858645110972609929
+      SimpleShapes_15: -563745689248678199
+      SimpleShapes_16: 3607101439105114373
+      SimpleShapes_17: 6031468480065390000
+      SimpleShapes_18: 4507455958492631052
+      SimpleShapes_19: 581310926089264151
+      SimpleShapes_2: 5104294230767656245
+      SimpleShapes_20: 9000095169692208010
+      SimpleShapes_21: 5851073458082316548
+      SimpleShapes_22: 251676187330112798
+      SimpleShapes_23: 5901000282488429925
+      SimpleShapes_24: 8070459710558868382
+      SimpleShapes_25: 9190612621116575792
+      SimpleShapes_26: -1699875912848266585
+      SimpleShapes_27: -5655297368843098292
+      SimpleShapes_28: 3892331329905356963
+      SimpleShapes_29: -8886085110732412377
+      SimpleShapes_3: -4010216633361954998
+      SimpleShapes_30: 2429121949536148070
+      SimpleShapes_31: -2679517034654910758
+      SimpleShapes_32: 2510652883185604869
+      SimpleShapes_33: 5188215277891571141
+      SimpleShapes_34: 5681697889624799646
+      SimpleShapes_35: -126455041368330550
+      SimpleShapes_36: -6060927012704595642
+      SimpleShapes_37: -3471118514312615515
+      SimpleShapes_38: -6370549642556054221
+      SimpleShapes_39: 8138238583388426074
+      SimpleShapes_4: 2279270367809720109
+      SimpleShapes_40: -8511706313022297917
+      SimpleShapes_41: -3690987814555717952
+      SimpleShapes_42: -5507401574306501125
+      SimpleShapes_43: -8357615182546639299
+      SimpleShapes_44: 4035534108276310073
+      SimpleShapes_45: -613359829302618513
+      SimpleShapes_46: 2500855887491501295
+      SimpleShapes_47: 258089192523421616
+      SimpleShapes_48: 7813821573392219204
+      SimpleShapes_49: 4100291636465072037
+      SimpleShapes_5: -3647169733911254445
+      SimpleShapes_50: -5505823196996198194
+      SimpleShapes_51: 9069699245865316536
+      SimpleShapes_52: 5518029228460847722
+      SimpleShapes_53: 4768582602984610332
+      SimpleShapes_54: 7587191739121596156
+      SimpleShapes_55: 7910829748962012896
+      SimpleShapes_56: -6856129242575041198
+      SimpleShapes_57: 6438746913867393524
+      SimpleShapes_58: -4077933375129153407
+      SimpleShapes_59: -8331091021335703817
+      SimpleShapes_6: -3418273148628431154
+      SimpleShapes_60: -9148190285482912147
+      SimpleShapes_61: 7806141229316493119
+      SimpleShapes_62: 4580193303597397694
+      SimpleShapes_63: 8479352166701651347
+      SimpleShapes_64: 4417975483127714101
+      SimpleShapes_65: 2739280490406623682
+      SimpleShapes_66: 136297622846076780
+      SimpleShapes_67: 3202304233315463628
+      SimpleShapes_68: 4356364885295759180
+      SimpleShapes_69: 8161412144469912675
+      SimpleShapes_7: 3331439849053709208
+      SimpleShapes_70: 7335972061172773296
+      SimpleShapes_71: 2626024069996749731
+      SimpleShapes_8: 5436159390022499685
+      SimpleShapes_9: 5825376966284769449
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
