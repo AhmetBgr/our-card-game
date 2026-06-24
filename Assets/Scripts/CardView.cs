@@ -81,7 +81,11 @@ public class CardView : MonoBehaviour
     {
         if (gearRotateTween == null) return;
 
-        gearRotateTween.timeScale = (GameManager.Instance.player.availibleMana >= card.cost && GameManager.Instance.currentState != GameState.EndGame) ? ((float)card.cost) / 1f : 0;
+        bool playable = GameManager.Instance.player.availibleMana >= card.cost && GameManager.Instance.currentState != GameState.EndGame;
+        // Spin rate scales with cost, but a playable card must always visibly spin — otherwise a
+        // zero-cost card freezes (timeScale 0) and looks unaffordable. Floor the speed at 1 so a
+        // cost-0 card spins like a cost-1 card.
+        gearRotateTween.timeScale = playable ? Mathf.Max(card.cost, 1f) : 0f;
     }
     private void UpdateTexts(CardModal card)
     {
