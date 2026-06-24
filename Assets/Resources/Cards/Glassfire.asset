@@ -30,7 +30,7 @@ MonoBehaviour:
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: dc314b80d81f2ca408cc8ba4b056e0c4, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 2

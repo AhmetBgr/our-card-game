@@ -21,6 +21,9 @@ public class MinionAnimationController : MonoBehaviour
 
     public Transform slashAnimationObj;
 
+    // Attack VFX (slash/arrow) play 20% faster than authored.
+    const float AttackSpeedMultiplier = 1.2f;
+
 
     public SlashInfo[] slashInfo;
 
@@ -39,7 +42,7 @@ public class MinionAnimationController : MonoBehaviour
         arrowImageObj.rotation = Quaternion.Euler(0, 0, angle-45);
         arrowImageObj.localPosition = Vector3.zero;
 
-        arrowImageObj.DOMove(targetPos, 0.5f).OnComplete(() =>
+        arrowImageObj.DOMove(targetPos, 0.5f / AttackSpeedMultiplier).OnComplete(() =>
         {
             arrowImageObj.gameObject.SetActive(false);
 
@@ -50,6 +53,7 @@ public class MinionAnimationController : MonoBehaviour
 
     public void PlayArrowHitAnimation()
     {
+        animator.speed = AttackSpeedMultiplier;
         animator.Play("Arrow");
     }
 
@@ -64,6 +68,7 @@ public class MinionAnimationController : MonoBehaviour
             {
                 slashAnimationObj.position = slash.pos + transform.position;
                 slashAnimationObj.rotation = Quaternion.Euler(slash.rotation);
+                animator.speed = AttackSpeedMultiplier;
                 animator.Play("Slash");
                 break;
             }

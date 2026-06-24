@@ -842,6 +842,86 @@ public class ActionHolder : ScriptableObject
 
         curActionsList.Enqueue(_SelectRandomFriendlyMinionInRange(player));
     }
+    public void SelectRandomFriendlyMinion()
+    {
+        Agent player = thisMinion != null ? thisMinion.owner
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
+        curActionsList.Enqueue(_SelectRandomFriendlyMinion(player));
+    }
+    public IEnumerator _SelectRandomFriendlyMinion(Agent thisAgent)
+    {
+        selectedMinions.Clear();
+        List<MinionController> candidates = new List<MinionController>();
+        foreach (var minion in thisAgent.minions)
+        {
+            if (minion == thisMinion) continue;
+            candidates.Add(minion);
+        }
+        if (candidates.Count > 0)
+            selectedMinions.Add(candidates[UnityEngine.Random.Range(0, candidates.Count)]);
+        yield return null;
+    }
+    public void SelectPushableMinion()
+    {
+        Agent agent = thisMinion != null ? thisMinion.owner
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
+        curActionsList.Enqueue(_SelectPushableMinion(agent));
+    }
+    public IEnumerator _SelectPushableMinion(Agent agent)
+    {
+        selectedMinions.Clear();
+
+        bool isPlayer = agent == GameManager.Instance.player;
+        Vector3Int frontDir = isPlayer ? Vector3Int.up : Vector3Int.down;
+
+        List<MinionController> candidates = new List<MinionController>();
+        foreach (var minion in agent.minions)
+        {
+            if (minion == thisMinion) continue;
+            if (minion.CanBePushedForward(frontDir))
+                candidates.Add(minion);
+        }
+
+        var indexes = new List<Vector2Int>();
+        foreach (var item in candidates)
+        {
+            var index = GridManager.Instance.PosToGridIndex(item.transform.position);
+            indexes.Add(index);
+        }
+
+        GridCellSelectionManager.Instance.BeginSelection(indexes, hovered => new[] { hovered });
+
+        while (selectedMinion == null)
+        {
+            yield return null;
+        }
+
+        GridCellSelectionManager.Instance.EndSelection();
+
+        yield return null;
+    }
+
+    public void SelectAllFriendlyMinions()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        Agent player = thisMinion != null ? thisMinion.owner
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
+        curActionsList.Enqueue(_SelectAllFriendlyMinions(player));
+    }
+    public IEnumerator _SelectAllFriendlyMinions(Agent thisAgent)
+    {
+        selectedMinions.Clear();
+        foreach (var minion in thisAgent.minions)
+        {
+            if (minion == thisMinion) continue;
+            selectedMinions.Add(minion);
+        }
+        yield return null;
+    }
     public IEnumerator _SelectRandomMinion(List<MinionController> minions)
     {
         selectedMinion = minions[UnityEngine.Random.Range(0, minions.Count)];
@@ -911,6 +991,107 @@ public class ActionHolder : ScriptableObject
         selectedTargetMinions.Clear();
         if (thisMinion.LastTarget != null)
             selectedTargetMinions.Add(thisMinion.LastTarget);
+        yield return null;
+    }
+
+    public void SelectSpawnCells()
+    {
+        curActionsList.Enqueue(_SelectSpawnCells());
+    }
+    public IEnumerator _SelectSpawnCells()
+    {
+        int rowIndex = 2;
+        if (!GameManager.Instance.isPlayerTurn)
+            rowIndex = 2 - rowIndex;
+
+        selectedCells.Clear();
+        var grid = GridManager.Instance.GetGrid();
+        foreach (var cell in grid)
+        {
+            if (cell.index.y != rowIndex) continue;
+            if (cell.cellObj == null) continue;
+            selectedCells.Add(cell.cellObj.transform);
+        }
+        yield return null;
+    }
+
+    public void SelectEmptyCells()
+    {
+        curActionsList.Enqueue(_SelectEmptyCells());
+    }
+    public IEnumerator _SelectEmptyCells()
+    {
+        selectedCells.Clear();
+        var grid = GridManager.Instance.GetGrid();
+        foreach (var cell in grid)
+        {
+            if (cell.cellObj == null) continue;
+            if (cell.obj != null) continue;
+            selectedCells.Add(cell.cellObj.transform);
+        }
+        yield return null;
+    }
+
+    public void SelectAllCells()
+    {
+        curActionsList.Enqueue(_SelectAllCells());
+    }
+    public IEnumerator _SelectAllCells()
+    {
+        selectedCells.Clear();
+        var grid = GridManager.Instance.GetGrid();
+        foreach (var cell in grid)
+        {
+            if (cell.cellObj == null) continue;
+            selectedCells.Add(cell.cellObj.transform);
+        }
+        yield return null;
+    }
+
+    // Filters selectedCells to the row directly adjacent to the enemy hero (hero is off-grid;
+    // clamping its grid-y gives the nearest valid row). If selectedcell or thisMinion is set,
+    // further narrows to that same X column — matching the active summon position.
+    public void FilterSpawnCells()
+    {
+        curActionsList.Enqueue(_FilterSpawnCells());
+    }
+    public IEnumerator _FilterSpawnCells()
+    {
+        Agent enemyAgent = thisMinion != null
+            ? (thisMinion.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player)
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.opponent : GameManager.Instance.player);
+
+        int heroGridY = -Mathf.RoundToInt(enemyAgent.hero.transform.position.y);
+        int frontRow = Mathf.Clamp(heroGridY, 0, GridManager.Instance.GridHeight - 1);
+
+        int? spawnX = null;
+        if (selectedcell != null)
+            spawnX = GridManager.Instance.PosToGridIndex(selectedcell.position).x;
+        else if (thisMinion != null)
+            spawnX = GridManager.Instance.PosToGridIndex(thisMinion.transform.position).x;
+
+        selectedCells.RemoveAll(t =>
+        {
+            var idx = GridManager.Instance.PosToGridIndex(t.position);
+            if (idx.y != frontRow) return true;
+            if (spawnX.HasValue && idx.x != spawnX.Value) return true;
+            return false;
+        });
+
+        yield return null;
+    }
+
+    public void FilterEmptyCells()
+    {
+        curActionsList.Enqueue(_FilterEmptyCells());
+    }
+    public IEnumerator _FilterEmptyCells()
+    {
+        selectedCells.RemoveAll(t =>
+        {
+            var cell = GridManager.Instance.GetCell(t.position);
+            return cell.obj != null;
+        });
         yield return null;
     }
 
@@ -1044,10 +1225,11 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
-        CardSO picked = candidates[UnityEngine.Random.Range(0, candidates.Count)];
 
         foreach (var cell in selectedCells)
         {
+            CardSO picked = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+
             GameManager.Instance.SummonMinion(picked, cell.position);
         }
 

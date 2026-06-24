@@ -269,19 +269,22 @@ public class MinionController : MonoBehaviour
         Debug.Log("damaging minion");
 
         Vector3 dir = (chosen.transform.position - transform.position).normalized;
-        transform.DOPunchPosition(dir*0.2f, 0.5f, vibrato: 1).SetEase(Ease.InOutBack).SetDelay(0.5f);
+        // Lunge plays 20% faster (duration / 1.2).
+        transform.DOPunchPosition(dir*0.2f, 0.5f / 1.2f, vibrato: 1).SetEase(Ease.InOutBack).SetDelay(0.5f);
         chosen.TakeDamage(modal.attack);
         chosen.transform.DOPunchPosition(dir * 0.03f, 0.15f, vibrato: 5).SetDelay(0.75f);
         if (RangeUtility.IsInRange(chosen, this)) // target retaliates if attacker is in ITS range
         {
             TakeDamage(chosen.modal.attack);
+            // Counter-attack is delayed an extra 0.25s so it reads as a response to the strike
+            // rather than overlapping it.
             if (chosen.modal.range < 2)
             {
-                StartCoroutine(chosen.animationController.PlaySlashAnimation(-dir, 0.5f));
+                StartCoroutine(chosen.animationController.PlaySlashAnimation(-dir, 0.75f));
             }
             else
             {
-                StartCoroutine(chosen.animationController.PlayArrowAnimation(-dir, transform.position, 0.65f, animationController.PlayArrowHitAnimation));
+                StartCoroutine(chosen.animationController.PlayArrowAnimation(-dir, transform.position, 0.9f, animationController.PlayArrowHitAnimation));
             }
         }
 
@@ -313,23 +316,26 @@ public class MinionController : MonoBehaviour
         DOVirtual.DelayedCall(0.75f, () => view.UpdateView(modal));
         Debug.Log("minion take damage: " + modal.name);
 
+        if (modal.health <= 0)
+        {
+            // Lethal hit: go straight to death and deliberately do NOT fire OnTookDamage. The minion is
+            // dying, so its OnDeath trigger supersedes. Firing OnTookDamage first would wrap a took-damage
+            // triggered-action scope around the death: the death gets deferred behind it, then flushed from
+            // inside the took-damage scope's finally, and when that outer scope disposes its Restore()
+            // clobbers the death trigger's freshly-set ActionHolder selection state with stale leftovers —
+            // which made OnDeath effects (e.g. the seed's +1/+1) intermittently no-op.
+            Debug.Log("minion died: " + modal.name);
+            Die();
+            return true;
+        }
+
         if (effectiveDamage > 0)
         {
             Debug.Log("on took damage invoke");
             OnTookDamage?.Invoke(this, effectiveDamage);
         }
 
-        if (modal.health <= 0)
-        {
-            Debug.Log("minion died: " + modal.name);
-            Die();
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-
+        return false;
     }
 
     protected virtual void Die()

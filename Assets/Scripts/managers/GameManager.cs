@@ -41,6 +41,12 @@ public class GameManager : Singleton<GameManager>
     private bool _executingTriggeredActions = false;
     private readonly Queue<Action> _pendingTriggeredCallbacks = new Queue<Action>();
 
+    // True while any triggered action is running or still queued to run. Callers that mutate the shared
+    // ActionHolder selection globals (the AI turn loop, card plays, turn-end processing) must wait for
+    // this to clear before proceeding, or they will clobber an in-flight trigger's state mid-execution
+    // (e.g. a minion that kills itself attacking, whose OnDeath resolves a frame later).
+    public bool HasInFlightTriggeredActions => _executingTriggeredActions || _pendingTriggeredCallbacks.Count > 0;
+
     [SerializeField] private Queue<IEnumerator> defaultActionQueue;
 
     public GameState currentState;
@@ -860,6 +866,10 @@ public class GameManager : Singleton<GameManager>
             if (occupant.CanBePushedForward(pushDir))
             {
                 occupant.PushForward(pushDir);
+            }
+            else
+            {
+                return;
             }
         }
 

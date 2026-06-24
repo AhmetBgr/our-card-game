@@ -13,14 +13,15 @@ MonoBehaviour:
   m_Name: Stove Golem
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 3892331329905356963, guid: d63582f3f629afa4a8e5bdfd0486e04a,
+  minionArt: {fileID: -1756977442222643285, guid: d63582f3f629afa4a8e5bdfd0486e04a,
     type: 3}
-  cardArt: {fileID: 3892331329905356963, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
+  cardArt: {fileID: -1756977442222643285, guid: d63582f3f629afa4a8e5bdfd0486e04a,
+    type: 3}
   cardName: Stove Golem
-  desc: 
+  desc: At the End of your turn gain 1 Attack.
   attack: 5
-  health: 7
-  cost: 5
+  health: 6
+  cost: 7
   range: 1
   armor: 0
   canMove: 1
@@ -32,8 +33,8 @@ MonoBehaviour:
   aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
-  isUpgraded: 0
-  defHealth: 7
+  isUpgraded: 1
+  defHealth: 6
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -93,7 +94,31 @@ MonoBehaviour:
       m_Calls: []
   OnOwnerTurnEnd:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisMinion
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: ChangeMinionAttack
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []

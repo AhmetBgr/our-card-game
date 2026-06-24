@@ -239,7 +239,10 @@ public class CardBrowserWindow : EditorWindow
 
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                GUILayout.Label($"Cards: {_visibleCards.Count}", GUILayout.ExpandWidth(true));
+                string countLabel = _visibleCards.Count == _allCards.Count
+                    ? $"Cards: {_visibleCards.Count}"
+                    : $"Cards: {_visibleCards.Count} / {_allCards.Count}";
+                GUILayout.Label(countLabel, GUILayout.ExpandWidth(true));
                 if (GUILayout.Button("Ping", EditorStyles.toolbarButton, GUILayout.Width(44)))
                 {
                     if (_selected != null)
@@ -445,7 +448,7 @@ public class CardBrowserWindow : EditorWindow
 
             DrawCardRow(card, 0);
 
-            if (grouped && card.upgradedVersion != null)
+            if (grouped && card.upgradedVersion != null && _visibleCards.Contains(card.upgradedVersion))
                 DrawCardRow(card.upgradedVersion, 16);
         }
 
@@ -545,7 +548,7 @@ public class CardBrowserWindow : EditorWindow
 
     private CardSO FindBaseCard(CardSO upgraded)
     {
-        return _allCards.FirstOrDefault(c => c.upgradedVersion == upgraded);
+        return _visibleCards.FirstOrDefault(c => c.upgradedVersion == upgraded);
     }
 
     private void DrawRightPane()

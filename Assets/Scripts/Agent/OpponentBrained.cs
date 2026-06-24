@@ -77,6 +77,14 @@ public class OpponentBrained : Agent
             yield return StartCoroutine(action);
             Debug.LogWarning("end of  action");
 
+            // An action (especially an attack) can spawn triggered actions — e.g. a minion that kills
+            // itself on the counter-attack fires its OnDeath a frame or two later. Those run as separate
+            // coroutines over the shared ActionHolder selection globals, so we must let them fully drain
+            // before issuing the next action; otherwise the next play/turn-end clobbers their state and
+            // the trigger's effect (the seed's +1/+1 buff) silently does nothing.
+            while (GameManager.Instance.HasInFlightTriggeredActions)
+                yield return null;
+
             ActionHolder.OnWaitingCellSelect -= SelectCell;
             ActionHolder.OnWaitingMinionSelect -= SelectMinion;
 
