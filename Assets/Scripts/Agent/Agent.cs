@@ -106,7 +106,7 @@ public class Agent : MonoBehaviour
         hand.Add(cardObj);
         cardHandLayout.AddCard(cardObj.transform);
 
-        GameManager.Instance.TriggerCardDrawActions();
+        GameManager.Instance.TriggerCardDrawActions(this);
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
     }
 
@@ -126,7 +126,7 @@ public class Agent : MonoBehaviour
         hand.Add(cardObj);
         cardHandLayout.AddCard(cardObj.transform, startPos);
 
-        GameManager.Instance.TriggerCardDrawActions();
+        GameManager.Instance.TriggerCardDrawActions(this);
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
     }
 

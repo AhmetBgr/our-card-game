@@ -758,7 +758,7 @@ public class ActionHolder : ScriptableObject
             Debug.Log("opponent: " + opponent.name);
 
         }
-
+        selectedAgent = opponent;
         curActionsList.Enqueue(_SelectRandomMinionInRange(opponent));
     }
     public void SelectAllEnemyMinionsInRange()
@@ -932,14 +932,14 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _SelectRandomMinionInRange(Agent agent)
     {
         List<MinionController> minionsInRange = new List<MinionController>();
-        //Debug.Log("opponent: " + agent.name);
+        Debug.Log("opponent: " + agent.name);
 
         foreach (var minion in agent.minions)
         {
-            //Debug.Log("checking if minion is in range: ");
+            Debug.Log("checking if minion is in range: ");
             if (RangeUtility.IsInRange(thisMinion, minion) && minion != thisMinion)
             {
-                //Debug.Log("minion is in range: ");
+                Debug.Log("minion is in range: ");
 
                 minionsInRange.Add(minion);
             }

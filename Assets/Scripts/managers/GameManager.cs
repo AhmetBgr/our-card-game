@@ -190,8 +190,13 @@ public class GameManager : Singleton<GameManager>
         player.curState = Player.State.Waiting;
         //Debug.Log("Player's Turn");
         player.DrawCard();
-        StartCoroutine(InvokeOnTurnStarted());
-        yield return StartCoroutine(player.PlayTurn()); 
+        // Queue turn-start through the same serializer as the draw above so it runs AFTER the on-draw
+        // pass completes, instead of racing it and clobbering shared ActionHolder state.
+        EnqueueTriggeredAction(() => StartCoroutine(InvokeOnTurnStarted()));
+        // Let the on-draw + turn-start passes fully resolve before play begins, so card plays don't
+        // run concurrently with (and clobber) an in-flight trigger's shared ActionHolder selection state.
+        yield return new WaitUntil(() => !HasInFlightTriggeredActions);
+        yield return StartCoroutine(player.PlayTurn());
 
         yield return new WaitForSeconds(0.5f);
     }
@@ -219,25 +224,27 @@ public class GameManager : Singleton<GameManager>
         int yEnd = iterateForward ? GridManager.Instance.GridHeight : -1;
         int yStep = iterateForward ? 1 : -1;
 
-        for (int x = xStart; x != xEnd; x += xStep)
+        // Hold the triggered-action lock for the WHOLE pass (not per grid cell). Triggered passes share
+        // ActionHolder's static selection state (thisMinion / selectedTargetMinions / ...); releasing the
+        // lock between minions would let a queued sibling pass start and clobber an in-flight one mid-way.
+        _executingTriggeredActions = true;
+        try
         {
-            for (int y = yStart; y != yEnd; y += yStep)
+            for (int x = xStart; x != xEnd; x += xStep)
             {
-                Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
-
-                MinionController minion;
-
-                // Skip the hero here: it is handled by the dedicated hero block below. The hero's
-                // GridEntity is type Obj so it occupies a grid cell, and without this guard its
-                // OnTurnStart would fire twice (once here, once in the dedicated block).
-                if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == currentAgent && minion != currentAgent.hero)
+                for (int y = yStart; y != yEnd; y += yStep)
                 {
-                    using (ActionHolder.PushScope())
-                    {
-                        try
-                        {
-                            _executingTriggeredActions = true;
+                    Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
 
+                    MinionController minion;
+
+                    // Skip the hero here: it is handled by the dedicated hero block below. The hero's
+                    // GridEntity is type Obj so it occupies a grid cell, and without this guard its
+                    // OnTurnStart would fire twice (once here, once in the dedicated block).
+                    if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == currentAgent && minion != currentAgent.hero)
+                    {
+                        using (ActionHolder.PushScope())
+                        {
                             onTurnStartActions.Clear();
                             ActionHolder.ResetSelections();
                             ActionHolder.thisMinion = minion;
@@ -252,25 +259,16 @@ public class GameManager : Singleton<GameManager>
 
                             yield return StartCoroutine(ExecuteActions(onTurnStartActions));
                         }
-                        finally
-                        {
-                            FinishTriggeredAction();
-                        }
                     }
                 }
             }
-        }
 
-        // Hero turn start
-        MinionController hero = currentAgent.hero;
-        if (hero != null)
-        {
-            using (ActionHolder.PushScope())
+            // Hero turn start
+            MinionController hero = currentAgent.hero;
+            if (hero != null)
             {
-                try
+                using (ActionHolder.PushScope())
                 {
-                    _executingTriggeredActions = true;
-
                     onTurnStartActions.Clear();
                     ActionHolder.ResetSelections();
                     ActionHolder.thisMinion = hero;
@@ -285,37 +283,40 @@ public class GameManager : Singleton<GameManager>
 
                     yield return StartCoroutine(ExecuteActions(onTurnStartActions));
                 }
-                finally
-                {
-                    FinishTriggeredAction();
-                }
             }
+        }
+        finally
+        {
+            FinishTriggeredAction();
         }
     }
 
-    public void TriggerCardDrawActions()
+    public void TriggerCardDrawActions(Agent drawingAgent)
     {
-        EnqueueTriggeredAction(() => StartCoroutine(InvokeOnCardDrawActions()));
+        EnqueueTriggeredAction(() => StartCoroutine(InvokeOnCardDrawActions(drawingAgent)));
     }
 
-    private IEnumerator InvokeOnCardDrawActions()
+    private IEnumerator InvokeOnCardDrawActions(Agent drawingAgent)
     {
-        for (int x = 0; x < GridManager.Instance.GridWidth; x++)
+        // Lock acquired up front (before any yield) so a turn-start/turn-end pass enqueued right after
+        // the draw waits for this whole pass instead of clobbering a turret's in-flight select->attack.
+        _executingTriggeredActions = true;
+        try
         {
-            for (int y = 0; y < GridManager.Instance.GridHeight; y++)
+            for (int x = 0; x < GridManager.Instance.GridWidth; x++)
             {
-                Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
-
-                MinionController minion;
-
-                if (cell.obj != null && cell.obj.TryGetComponent(out minion) && ((minion.owner == player && isPlayerTurn) || (minion.owner == opponent && !isPlayerTurn)))
+                for (int y = 0; y < GridManager.Instance.GridHeight; y++)
                 {
-                    using (ActionHolder.PushScope())
-                    {
-                        try
-                        {
-                            _executingTriggeredActions = true;
+                    Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
 
+                    MinionController minion;
+
+                    // "Whenever you draw a card": a turret triggers when its own owner drew, regardless of
+                    // whose turn it is (covers off-turn / card-effect draws, not just the start-of-turn draw).
+                    if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == drawingAgent)
+                    {
+                        using (ActionHolder.PushScope())
+                        {
                             onCardDrawActions.Clear();
                             ActionHolder.ResetSelections();
                             ActionHolder.thisMinion = minion;
@@ -330,13 +331,13 @@ public class GameManager : Singleton<GameManager>
 
                             yield return StartCoroutine(ExecuteActions(onCardDrawActions));
                         }
-                        finally
-                        {
-                            FinishTriggeredAction();
-                        }
                     }
                 }
             }
+        }
+        finally
+        {
+            FinishTriggeredAction();
         }
 
         SetPlayerMinionsReadyToAttack();
@@ -346,22 +347,23 @@ public class GameManager : Singleton<GameManager>
     {
         if (currentState != GameState.PlayerTurn) yield break;
 
-        for (int x = 0; x < GridManager.Instance.GridWidth; x++)
+        // Lock held across the whole OnOwnerTurnEnd loop so the per-minion passes can't interleave with
+        // each other or a queued sibling pass (see InvokeOnCardDrawActions for the rationale).
+        _executingTriggeredActions = true;
+        try
         {
-            for (int y = 0; y < GridManager.Instance.GridHeight; y++)
+            for (int x = 0; x < GridManager.Instance.GridWidth; x++)
             {
-                Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
-
-                MinionController minion;
-
-                if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == player)
+                for (int y = 0; y < GridManager.Instance.GridHeight; y++)
                 {
-                    using (ActionHolder.PushScope())
-                    {
-                        try
-                        {
-                            _executingTriggeredActions = true;
+                    Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
 
+                    MinionController minion;
+
+                    if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == player)
+                    {
+                        using (ActionHolder.PushScope())
+                        {
                             onTurnEndActions.Clear();
                             ActionHolder.ResetSelections();
                             ActionHolder.thisMinion = minion;
@@ -376,13 +378,13 @@ public class GameManager : Singleton<GameManager>
 
                             yield return StartCoroutine(ExecuteActions(onTurnEndActions));
                         }
-                        finally
-                        {
-                            FinishTriggeredAction();
-                        }
                     }
                 }
             }
+        }
+        finally
+        {
+            FinishTriggeredAction();
         }
 
         isPlayerTurn = false;
@@ -438,27 +440,33 @@ public class GameManager : Singleton<GameManager>
 
         opponent.DrawCard();
 
-        StartCoroutine(InvokeOnTurnStarted());
+        // Queue turn-start behind the on-draw pass (same serializer) instead of racing it.
+        EnqueueTriggeredAction(() => StartCoroutine(InvokeOnTurnStarted()));
+
+        // Critical: the AI's PlayTurn evaluates moves by running ExecuteActions/ResetSelections on the
+        // shared ActionHolder globals. Wait for the on-draw + turn-start passes to drain first, or the
+        // AI eval clobbers an opponent turret's in-flight select->attack (its target list gets reset).
+        yield return new WaitUntil(() => !HasInFlightTriggeredActions);
 
         yield return StartCoroutine(opponent.PlayTurn());
 
 
-        for (int x = GridManager.Instance.GridWidth-1; x >= 0; x--)
+        // Lock held across the whole OnOwnerTurnEnd loop (see InvokeOnCardDrawActions for rationale).
+        _executingTriggeredActions = true;
+        try
         {
-            for (int y = GridManager.Instance.GridHeight-1; y >= 0 ; y--)
+            for (int x = GridManager.Instance.GridWidth-1; x >= 0; x--)
             {
-                Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
-
-                MinionController minion;
-
-                if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == opponent)
+                for (int y = GridManager.Instance.GridHeight-1; y >= 0 ; y--)
                 {
-                    using (ActionHolder.PushScope())
-                    {
-                        try
-                        {
-                            _executingTriggeredActions = true;
+                    Cell cell = GridManager.Instance.GetCell(new Vector2Int(x, y));
 
+                    MinionController minion;
+
+                    if (cell.obj != null && cell.obj.TryGetComponent(out minion) && minion.owner == opponent)
+                    {
+                        using (ActionHolder.PushScope())
+                        {
                             onTurnEndActions.Clear();
                             ActionHolder.ResetSelections();
                             ActionHolder.thisMinion = minion;
@@ -473,13 +481,13 @@ public class GameManager : Singleton<GameManager>
 
                             yield return StartCoroutine(ExecuteActions(onTurnEndActions));
                         }
-                        finally
-                        {
-                            FinishTriggeredAction();
-                        }
                     }
                 }
             }
+        }
+        finally
+        {
+            FinishTriggeredAction();
         }
 
 
