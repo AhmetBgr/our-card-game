@@ -71,7 +71,9 @@ public class MinMaxBrain : AgentBrain
             }
             else if (intent == CardSO.CardIntent.Beneficial)
             {
-                score += buffSpellBonus + self.minions.Count * perFriendlyForBuff;
+                score += self.minions.Count == 0
+                    ? -50f
+                    : buffSpellBonus + self.minions.Count * perFriendlyForBuff;
             }
         }
 

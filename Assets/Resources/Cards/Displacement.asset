@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: Burst Of Air
-  m_EditorClassIdentifier: 
+  m_Name: Displacement
+  m_EditorClassIdentifier:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 4100291636465072037, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
-  cardName: Burst Of Air
-  desc: Push a minion Forward
+  cardArt: {fileID: 0}
+  cardName: Displacement
+  desc: Swap a minion with the one in front of it
   attack: 0
   health: 0
-  cost: 3
+  cost: 2
   range: 0
   armor: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
-  type: 1
+  type: 0
   aiIntent: 1
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
-  upgradedVersion: {fileID: 11400000, guid: 7313173bfaa1bb24daf57b5e4a8620f3, type: 2}
+  upgradedVersion: {fileID: 11400000, guid: 7a8bc0d1e2f34567890abcde0f1a2b3c, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0
@@ -45,19 +45,19 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: PushSelectedMinionForward
+        m_MethodName: SwapSelectedMinionWithMinionInFront
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -69,7 +69,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -81,7 +81,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument:
           m_BoolArgument: 0
         m_CallState: 2
   OnDeath:

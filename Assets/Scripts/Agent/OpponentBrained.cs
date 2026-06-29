@@ -124,6 +124,10 @@ public class OpponentBrained : Agent
             filtered = minions.Where(x => x.modal.isPlayerMinion).ToList();
         else if (card.type == CardSO.Type.Buff)
             filtered = minions.Where(x => !x.modal.isPlayerMinion).ToList();
+        else if (card.aiIntent == CardSO.CardIntent.Beneficial)
+            filtered = minions.Where(x => !x.modal.isPlayerMinion).ToList();
+        else if (card.aiIntent == CardSO.CardIntent.Harmful)
+            filtered = minions.Where(x => x.modal.isPlayerMinion).ToList();
         else
             filtered = minions;
 
@@ -133,15 +137,19 @@ public class OpponentBrained : Agent
             return;
         }
 
-        MinionController best = filtered[0];
-        float bestScore = brain != null ? brain.ScoreMinionSelection(filtered[0], card, this) : 0f;
-        for (int i = 1; i < filtered.Count; i++)
+        // Exclude minions already committed as targets (e.g. first pick in a two-pick swap spell).
+        var candidates = filtered.Where(m => !ActionHolder.selectedTargetMinions.Contains(m)).ToList();
+        if (candidates.Count == 0) candidates = filtered;
+
+        MinionController best = candidates[0];
+        float bestScore = brain != null ? brain.ScoreMinionSelection(candidates[0], card, this) : 0f;
+        for (int i = 1; i < candidates.Count; i++)
         {
-            float s = brain != null ? brain.ScoreMinionSelection(filtered[i], card, this) : 0f;
+            float s = brain != null ? brain.ScoreMinionSelection(candidates[i], card, this) : 0f;
             if (s > bestScore)
             {
                 bestScore = s;
-                best = filtered[i];
+                best = candidates[i];
             }
         }
 

@@ -1764,6 +1764,58 @@ public class ActionHolder : ScriptableObject
         yield return null;
     }
 
+    public void SwapSelectedMinionWithMinionInFront()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_SwapSelectedMinionWithMinionInFront());
+    }
+    public IEnumerator _SwapSelectedMinionWithMinionInFront()
+    {
+        if (selectedMinion == null) yield break;
+
+        Vector3Int dir = SummonerPushDir();
+        Vector3Int frontPos = Vector3Int.RoundToInt(selectedMinion.transform.position) + dir;
+        Vector2Int frontIdx = GridManager.Instance.PosToGridIndex(frontPos);
+
+        if (GridManager.Instance.IsOutSideOfGrid(frontIdx)) yield break;
+
+        var frontCell = GridManager.Instance.GetCell(frontIdx);
+        var frontMinion = frontCell.obj?.GetComponent<MinionController>();
+
+        if (frontMinion == null) yield break;
+
+        selectedMinion.SwapPositionsWith(frontMinion);
+        yield return null;
+    }
+
+    public void StoreSelectedMinionAsTarget()
+    {
+        curActionsList.Enqueue(_StoreSelectedMinionAsTarget());
+    }
+    public IEnumerator _StoreSelectedMinionAsTarget()
+    {
+        selectedTargetMinions.Clear();
+        if (selectedMinion != null)
+            selectedTargetMinions.Add(selectedMinion);
+        selectedMinion = null;
+        yield return null;
+    }
+
+    public void SwapSelectedMinionWithTarget()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_SwapSelectedMinionWithTarget());
+    }
+    public IEnumerator _SwapSelectedMinionWithTarget()
+    {
+        if (selectedMinion == null || selectedTargetMinions.Count == 0) yield break;
+        var target = selectedTargetMinions[0];
+        if (target == null || target == selectedMinion) yield break;
+
+        selectedMinion.SwapPositionsWith(target);
+        yield return null;
+    }
+
     public void SummonFriendlyMinionsDiedInSelectedCells()
     {
         if (GameManager.Instance.isTesting) return;

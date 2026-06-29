@@ -425,6 +425,27 @@ public class MinionController : MonoBehaviour
         Move(target);
     }
 
+    // Swap world positions with another minion in one grid refresh so neither slot is briefly vacant.
+    public void SwapPositionsWith(MinionController other)
+    {
+        Vector3 posA = gridEntity.WorldPos;
+        Vector3 posB = other.gridEntity.WorldPos;
+
+        gridEntity.WorldPos = posB;
+        other.gridEntity.WorldPos = posA;
+
+        transform.DOMove(posB, 0.25f).OnComplete(() =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.SetPlayerMinionsReadyToAttack();
+        });
+        other.transform.DOMove(posA, 0.25f);
+
+        plannedMoveDir = Vector3Int.zero;
+        other.plannedMoveDir = Vector3Int.zero;
+
+        GridManager.Instance.InvokeGridChanged();
+    }
+
     public virtual void FailedMove(Vector3 dir, MinionController  collidedEntity = null)
     {
         Debug.Log("failed move");
