@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DeckSO
   deckName: deck 2
   cards:
+  - {fileID: 11400000, guid: eb2f4ea431e3ed041972f62d43d96fe9, type: 2}
   - {fileID: 11400000, guid: 377e9f3361b21724a8e31f9651265cde, type: 2}
-  - {fileID: 11400000, guid: d1f72174487234545a2b213b64d94ba6, type: 2}
+  - {fileID: 11400000, guid: af207d2db347bbe43bb3b7790209d314, type: 2}
   - {fileID: 11400000, guid: 12226c2444ddd534aba5a51e9feec345, type: 2}
-  - {fileID: 11400000, guid: 4f950df988824f34ba5cd1f90008ef3e, type: 2}
+  - {fileID: 11400000, guid: a8700cf5f777635498591cbf94bc0385, type: 2}
   - {fileID: 11400000, guid: b5698a2cd334e774396b31df186d0e7c, type: 2}
-  - {fileID: 11400000, guid: acbc78e5304db5f499e6732e9fc4a1ab, type: 2}
+  - {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232, type: 2}
   - {fileID: 11400000, guid: 213a597cb0aa10c42865a171a66d5d45, type: 2}
   - {fileID: 11400000, guid: cae3f458df8c7d24a877ca70276e7f57, type: 2}
-  - {fileID: 11400000, guid: a8700cf5f777635498591cbf94bc0385, type: 2}
-  - {fileID: 11400000, guid: de61890a59135bf4da9e4135d332026f, type: 2}
+  - {fileID: 11400000, guid: 43b24c118b482a64e80e9479d9ad95b7, type: 2}

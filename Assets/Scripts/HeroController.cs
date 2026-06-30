@@ -22,11 +22,10 @@ public class HeroController : MinionController
         {
             // show weapon image
         }
-        else
+        else if (!DraggableItem.AnyCardDragging)
         {
             var index = modal.isPlayerMinion ? new Vector2Int(-1, -1) : new Vector2Int(-2, -2);
             MinionRangeHandler.Instance.ShowRange(index, modal.range);
-
         }
     }
 

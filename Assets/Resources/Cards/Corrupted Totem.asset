@@ -25,9 +25,9 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   canAttackManually: 1
-  type: 0
-  aiIntent: 0
-  aiEffectMagnitude: 0
+  type: 1
+  aiIntent: 1
+  aiEffectMagnitude: 2
   aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}

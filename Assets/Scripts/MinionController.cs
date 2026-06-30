@@ -104,10 +104,9 @@ public class MinionController : MonoBehaviour
         {
             // show weapon image
         }
-        else
+        else if (!DraggableItem.AnyCardDragging)
         {
             MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range);
-
         }
     }
 

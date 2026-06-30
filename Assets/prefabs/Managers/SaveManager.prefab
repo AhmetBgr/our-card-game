@@ -50,7 +50,7 @@ MonoBehaviour:
     Decks: []
     HighScore: 0
     SelectedDeckIndex: 0
-  defaultDeck: {fileID: 11400000, guid: f028545964f3d0f4996dd1c03eea90f2, type: 2}
+  defaultDeck: {fileID: 11400000, guid: 1182b5be1aa550848bca9174e336ab5a, type: 2}
   DeckSize: 10
 --- !u!114 &6552837891346492369
 MonoBehaviour:

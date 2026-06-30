@@ -14,6 +14,8 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
 
     [HideInInspector] public Transform ParentAfterDrag;
 
+    public static bool AnyCardDragging { get; private set; }
+
     public static event Action DragStarted;
     public static event Action<Transform> DragEnded;
     public static event Action<Transform> DragCancelled;
@@ -23,6 +25,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
         if (!Interactable) return;
 
         isdragging = true;
+        AnyCardDragging = true;
         ParentAfterDrag = transform.parent;
         transform.SetParent(transform.root);
         transform.SetAsLastSibling();
@@ -50,6 +53,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
         // Clearing isdragging stops OnDrag from following the cursor and makes
         // OnEndDrag/PlayArea.OnDrop bail out when the left button is finally released.
         isdragging = false;
+        AnyCardDragging = false;
         Image.raycastTarget = true;
         DragCancelled?.Invoke(transform);
     }
@@ -58,11 +62,10 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
     {
         if (!Interactable || !isdragging) return;
 
-
         transform.SetParent(ParentAfterDrag);
         Image.raycastTarget = true;
         DragEnded?.Invoke(transform);
         isdragging = false;
-
+        AnyCardDragging = false;
     }
 }

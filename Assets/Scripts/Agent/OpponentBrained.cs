@@ -164,19 +164,21 @@ public class OpponentBrained : Agent
             return;
         }
 
-        Transform best = cells[0];
         float bestScore = brain != null ? brain.ScoreCellSelection(cells[0], card, this) : 0f;
         for (int i = 1; i < cells.Count; i++)
         {
             float s = brain != null ? brain.ScoreCellSelection(cells[i], card, this) : 0f;
-            if (s > bestScore)
-            {
-                bestScore = s;
-                best = cells[i];
-            }
+            if (s > bestScore) bestScore = s;
         }
 
-        ActionHolder.selectedcell = best;
+        List<Transform> tied = new List<Transform>();
+        foreach (var c in cells)
+        {
+            float s = brain != null ? brain.ScoreCellSelection(c, card, this) : 0f;
+            if (s >= bestScore) tied.Add(c);
+        }
+
+        ActionHolder.selectedcell = tied[UnityEngine.Random.Range(0, tied.Count)];
     }
 
     public override bool IsPlayer() => false;
