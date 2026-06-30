@@ -14,6 +14,7 @@ public class CardHandLayout : MonoBehaviour
     public Transform deckPosition;
     public Transform cardmovePosition;
     public Transform cardplaceholder;
+    public RectTransform peekPosition;
 
     public float cardinitialScale;
 

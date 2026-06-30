@@ -6,10 +6,12 @@ using UnityEngine.UI;
 public class MainMenuManager : MonoBehaviour
 {
     public Button playButton;
-    // Start is called before the first frame update
+    public Button exitButton;
+
     void Start()
     {
         playButton.onClick.AddListener(() => { SceneTransitionManager.Instance.TransitionToScene("Game"); });
+        exitButton.onClick.AddListener(() => { Application.Quit(); });
     }
     private void OnEnable()
     {

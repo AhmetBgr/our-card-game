@@ -17,6 +17,7 @@ public class MinionView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI healthtext;
 
     [SerializeField] private SpriteRenderer enemyInline;
+    [SerializeField] private SpriteRenderer friendlyInline;
     [SerializeField] private float heroDropDelay = 0.2f;
 
     private float heroDropHeight = 10f;
@@ -31,6 +32,8 @@ public class MinionView : MonoBehaviour
 
         art.sprite = modal.minionArt;
         enemyInline.gameObject.SetActive(!modal.isPlayerMinion);
+        if (friendlyInline != null)
+            friendlyInline.gameObject.SetActive(modal.isPlayerMinion);
     }
 
     private void UpdateAttackText(int value)

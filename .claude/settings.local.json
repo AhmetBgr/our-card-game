@@ -31,7 +31,10 @@
       "mcp__unity-mcp__Unity_ValidateScript",
       "mcp__unity-mcp__Unity_GetConsoleLogs",
       "mcp__unity-mcp__Unity_Grep",
-      "mcp__unity-mcp__Unity_ManageAsset"
+      "mcp__unity-mcp__Unity_ManageAsset",
+      "mcp__unity-mcp__Unity_FindProjectAssets",
+      "mcp__unity-mcp__Unity_ManageScene",
+      "mcp__unity-mcp__Unity_ManageGameObject"
     ]
   }
 }

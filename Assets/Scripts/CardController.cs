@@ -74,7 +74,10 @@ public class CardController : MonoBehaviour
         transform.SetParent(handLayout.transform.parent);
         transform.SetSiblingIndex(handLayout.transform.parent.childCount - 1);
         transform.localRotation = Quaternion.identity;
-        transform.localPosition = new Vector3(transform.localPosition.x, -533, transform.localPosition.z);
+        float peekY = handLayout.peekPosition != null
+            ? handLayout.transform.parent.InverseTransformPoint(handLayout.peekPosition.position).y
+            : -533f;
+        transform.localPosition = new Vector3(transform.localPosition.x, peekY, transform.localPosition.z);
         transform.localScale = Vector3.one * 1.5f;
     }
 
