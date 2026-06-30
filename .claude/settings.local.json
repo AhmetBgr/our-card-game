@@ -28,7 +28,10 @@
       "Bash(PYTHONIOENCODING=utf-8 grep -nE \"modal|public CardModal|public MinionModal|CardController|cardModal\" Assets/Scripts/MinionController.cs)",
       "mcp__unity-mcp__Unity_ReadConsole",
       "mcp__unity-mcp__Unity_ManageMenuItem",
-      "mcp__unity-mcp__Unity_ValidateScript"
+      "mcp__unity-mcp__Unity_ValidateScript",
+      "mcp__unity-mcp__Unity_GetConsoleLogs",
+      "mcp__unity-mcp__Unity_Grep",
+      "mcp__unity-mcp__Unity_ManageAsset"
     ]
   }
 }
