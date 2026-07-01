@@ -15,7 +15,7 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
   cardArt: {fileID: -1407081494, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
-  cardName: daisy
+  cardName: Daisy
   desc: Reduce the cost random minion in your hand by 1
   attack: 1
   health: 1

@@ -6,7 +6,15 @@ using UnityEngine;
 [CustomEditor(typeof(DeckSO))]
 public class DeckSOEditor : Editor
 {
-    private int _deckSize = 10;
+    // Target mana curve for a 10-card deck: (allowed costs, how many cards to draw from them).
+    private static readonly (int[] costs, int count)[] ManaCurve = new (int[] costs, int count)[]
+    {
+        (new[] { 0, 1 }, 2),
+        (new[] { 2 }, 3),
+        (new[] { 3 }, 2),
+        (new[] { 4 }, 2),
+        (new[] { 5 }, 1),
+    };
 
     public override void OnInspectorGUI()
     {
@@ -14,8 +22,6 @@ public class DeckSOEditor : Editor
 
         EditorGUILayout.Space(8);
         EditorGUILayout.LabelField("Tools", EditorStyles.boldLabel);
-
-        _deckSize = EditorGUILayout.IntField("Deck Size", _deckSize);
 
         if (GUILayout.Button("Fill with Random Cards (Balanced Cost)"))
             FillBalanced();
@@ -39,6 +45,7 @@ public class DeckSOEditor : Editor
             .Where(p => { var l = p.ToLowerInvariant(); return l.Contains("/cards/") && !l.Contains("/test/"); })
             .Select(p => AssetDatabase.LoadAssetAtPath<CardSO>(p))
             .Where(c => c != null && !c.isUpgraded)
+            .OrderBy(_ => Random.value)
             .ToList();
 
         if (pool.Count == 0)
@@ -47,35 +54,19 @@ public class DeckSOEditor : Editor
             return;
         }
 
-        // Group by cost, shuffle each bucket.
-        Dictionary<int, List<CardSO>> buckets = pool
-            .GroupBy(c => c.cost)
-            .ToDictionary(g => g.Key, g => g.OrderBy(_ => Random.value).ToList());
-
-        List<int> costKeys = buckets.Keys.OrderBy(k => k).ToList();
-
         deck.cards.Clear();
 
-        // Round-robin across cost buckets, removing each card after use so there are no repeats.
-        while (deck.cards.Count < _deckSize)
+        foreach ((int[] costs, int count) tier in ManaCurve)
         {
-            // Remove exhausted buckets each pass.
-            costKeys.RemoveAll(k => buckets[k].Count == 0);
-            if (costKeys.Count == 0)
-                break;
+            List<CardSO> matches = pool.Where(c => tier.costs.Contains(c.cost)).Take(tier.count).ToList();
+            deck.cards.AddRange(matches);
+            foreach (CardSO c in matches) pool.Remove(c);
 
-            foreach (int key in costKeys.ToList())
-            {
-                if (deck.cards.Count >= _deckSize) break;
-                List<CardSO> bucket = buckets[key];
-                if (bucket.Count == 0) continue;
-
-                deck.cards.Add(bucket[0]);
-                bucket.RemoveAt(0);
-            }
+            if (matches.Count < tier.count)
+                Debug.LogWarning($"DeckSOEditor: only found {matches.Count}/{tier.count} cards for cost {string.Join("/", tier.costs)}.");
         }
 
         EditorUtility.SetDirty(deck);
-        Debug.Log($"DeckSOEditor: filled '{deck.deckName}' with {deck.cards.Count} cards across {costKeys.Count} cost tiers.");
+        Debug.Log($"DeckSOEditor: filled '{deck.deckName}' with {deck.cards.Count} cards following the mana curve.");
     }
 }

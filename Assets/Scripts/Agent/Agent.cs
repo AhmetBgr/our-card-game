@@ -143,7 +143,7 @@ public class Agent : MonoBehaviour
 
         CardController cardObj = Instantiate(cardPrefab);
         cardObj.transform.SetParent(cardHandLayout.transform.parent);
-        cardObj.transform.SetSiblingIndex(0);
+        cardObj.transform.SetSiblingIndex(cardHandLayout.transform.parent.childCount-1);
 
         cardObj.transform.position = cardPlayPos.position;
         cardObj.card = card;
@@ -152,8 +152,9 @@ public class Agent : MonoBehaviour
         cardObj.transform.localScale = Vector3.zero;
 
         Sequence sequence = DOTween.Sequence();
-        sequence.Append(cardObj.transform.DOScale(Vector3.one, 0.25f));
+        sequence.Append(cardObj.transform.DOScale(Vector3.one*1.2f, 0.25f));
         sequence.Append(DOVirtual.DelayedCall(0.5f, () => { }));
+
         sequence.Append(cardObj.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f, 50f, 1, 0.5f));
         sequence.Join(cardObj.transform.DOScale(cardHandLayout.cardinitialScale, 0.5f));
         sequence.Join(cardObj.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
@@ -162,6 +163,7 @@ public class Agent : MonoBehaviour
             cardObj.view.UpdateView(cardObj.modal);
             cardObj.transform.DORotate(Vector3.up * 0, 0.15f);
         }));
+        sequence.AppendCallback(() => cardObj.transform.SetSiblingIndex(deck.Count > 1 ? 0 : cardHandLayout.transform.parent.childCount - 1));
         sequence.Append(cardObj.transform.DOMove(cardHandLayout.deckPosition.GetChild(cardHandLayout.deckPosition.childCount - 1).position, 0.5f));
         sequence.OnComplete(() => Destroy(cardObj.gameObject));
 
