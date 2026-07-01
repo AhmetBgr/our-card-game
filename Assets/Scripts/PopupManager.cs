@@ -2,17 +2,36 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PopupManager : Singleton<PopupManager>
 {
     public Transform victoryPopup;
     public Transform defeatPopup;
 
+    public Button victoryReplayButton;
+    public Button victoryExitButton;
+    public Button defeatReplayButton;
+    public Button defeatExitButton;
+
     private Transform curPopup = null;
 
     void Start()
     {
-        
+        if (victoryReplayButton != null) victoryReplayButton.onClick.AddListener(Replay);
+        if (victoryExitButton != null) victoryExitButton.onClick.AddListener(ExitToMenu);
+        if (defeatReplayButton != null) defeatReplayButton.onClick.AddListener(Replay);
+        if (defeatExitButton != null) defeatExitButton.onClick.AddListener(ExitToMenu);
+    }
+
+    public void Replay()
+    {
+        SceneTransitionManager.Instance.TransitionToScene("Game");
+    }
+
+    public void ExitToMenu()
+    {
+        SceneTransitionManager.Instance.TransitionToScene("Menu");
     }
 
 

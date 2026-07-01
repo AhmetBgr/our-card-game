@@ -574,6 +574,20 @@ public class GameManager : Singleton<GameManager>
 
         }
     }
+
+    // Editor-only debug triggers (see GameManagerEditor) to preview the end-game panels without
+    // having to actually win/lose a match.
+    public void TriggerVictory()
+    {
+        currentState = GameState.EndGame;
+        PopupManager.Instance.OpenPopup(PopupManager.Instance.victoryPopup);
+    }
+
+    public void TriggerDefeat()
+    {
+        currentState = GameState.EndGame;
+        PopupManager.Instance.OpenPopup(PopupManager.Instance.defeatPopup);
+    }
     public void Addtoactions(IEnumerator action)
     {
         actionQueue.Enqueue(action);

@@ -35,7 +35,8 @@
       "mcp__unity-mcp__Unity_FindProjectAssets",
       "mcp__unity-mcp__Unity_ManageScene",
       "mcp__unity-mcp__Unity_ManageGameObject",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(git checkout *)"
     ]
   }
 }
