@@ -829,18 +829,7 @@ public class ActionHolder : ScriptableObject
     }
     public void SelectRandomFriendlyMinionInRange()
     {
-        Agent player = null;
-
-        if (thisMinion != null)
-        {
-            player = thisMinion.owner;
-        }
-        else
-        {
-            player = GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent;
-        }
-
-        curActionsList.Enqueue(_SelectRandomFriendlyMinionInRange(player));
+        curActionsList.Enqueue(_SelectRandomFriendlyMinionInRange());
     }
     public void SelectRandomFriendlyMinion()
     {
@@ -954,8 +943,15 @@ public class ActionHolder : ScriptableObject
 
         yield return null;
     }
-    public IEnumerator _SelectRandomFriendlyMinionInRange(Agent thisAgent)
+    public IEnumerator _SelectRandomFriendlyMinionInRange()
     {
+        // Resolved lazily (when this coroutine actually runs) rather than when it's enqueued, so it
+        // sees thisMinion as set by this same play's SummonMinion step, not a stale value left over
+        // from a previous card/trigger (GameManager.PlayCard doesn't reset thisMinion).
+        Agent thisAgent = thisMinion != null
+            ? thisMinion.owner
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
         List<MinionController> minionsInRange = new List<MinionController>();
         Debug.Log("opponent: " + thisAgent.name);
         selectedMinions.Clear();
