@@ -40,10 +40,11 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
         initialSelectablePanelPos = selectableDecksPanel.localPosition;
 
-        foreach (var item in SaveManager.Instance.saveData.Decks)
+        var decks = SaveManager.Instance.saveData.Decks;
+        for (int i = 0; i < decks.Length; i++)
         {
             var deckView = Instantiate(deckPrefab, selectableDecksPanel);
-            deckView.Initialize(item);
+            deckView.Initialize(decks[i], isRandomDeck: i == SaveManager.MysteryDeckIndex);
 
             customDeckUIControllers.Add(deckView);
         }
@@ -186,7 +187,8 @@ public class DeckPanelController : Singleton<DeckPanelController>
     }
     private void TriggerDeckChanged()
     {
-        DeckChanged?.Invoke(curCustomDeck.Count >= SaveManager.Instance.DeckSize);
+        bool isMysteryDeck = saveData.SelectedDeckIndex == SaveManager.MysteryDeckIndex;
+        DeckChanged?.Invoke(isMysteryDeck || curCustomDeck.Count >= SaveManager.Instance.DeckSize);
 
     }
     private void UpdateDeckName(int index)
@@ -198,7 +200,7 @@ public class DeckPanelController : Singleton<DeckPanelController>
     {
         int amount = curCustomDeck.Count;
 
-        if (amount < SaveManager.Instance.DeckSize) { 
+        if (amount < SaveManager.Instance.DeckSize) {
             cardAmount.text = $"<color=yellow>{amount}/{SaveManager.Instance.DeckSize}</color>";
         }
         else
@@ -209,7 +211,7 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
         if (saveData.Decks[saveData.SelectedDeckIndex].isLocked)
         {
-            cardAmount.text = cardAmount.text + " - LOCKED";
+            cardAmount.text = cardAmount.text + "\nLOCKED";
         }
 
     }

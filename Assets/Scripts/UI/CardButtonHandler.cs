@@ -36,8 +36,17 @@ public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerEx
         costText.text = cost.ToString();
     }
 
+    public void SetHidden()
+    {
+        cardName = null;
+        cardNameText.text = "???";
+        costText.text = "?";
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (string.IsNullOrEmpty(cardName)) return;
+
         DeckPanelController.Instance.ShowCard(cardName, GetCardPosition(eventData.position));
     }
     public void OnPointerExit(PointerEventData eventData)

@@ -6,16 +6,6 @@ using UnityEngine;
 [CustomEditor(typeof(DeckSO))]
 public class DeckSOEditor : Editor
 {
-    // Target mana curve for a 10-card deck: (allowed costs, how many cards to draw from them).
-    private static readonly (int[] costs, int count)[] ManaCurve = new (int[] costs, int count)[]
-    {
-        (new[] { 0, 1 }, 2),
-        (new[] { 2 }, 3),
-        (new[] { 3 }, 2),
-        (new[] { 4 }, 2),
-        (new[] { 5 }, 1),
-    };
-
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
@@ -56,7 +46,7 @@ public class DeckSOEditor : Editor
 
         deck.cards.Clear();
 
-        foreach ((int[] costs, int count) tier in ManaCurve)
+        foreach ((int[] costs, int count) tier in DeckSO.ManaCurve)
         {
             List<CardSO> matches = pool.Where(c => tier.costs.Contains(c.cost)).Take(tier.count).ToList();
             deck.cards.AddRange(matches);

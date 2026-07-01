@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class SaveManager : PermanentSingleton<SaveManager>
 {
+    public const int PlayerDeckIndex = 0;
+    public const int MysteryDeckIndex = 1;
 
     public string saveDataKey = "DeckData";
 
@@ -96,6 +98,51 @@ public class SaveManager : PermanentSingleton<SaveManager>
         return true;
     }
 
+    public void GenerateRandomDeck(int deckIndex)
+    {
+        if (!IsValidDeckIndex(deckIndex))
+            return;
+
+        var pool = new List<CardSO>(DeckDatabase.Instance.AllCards);
+        pool.RemoveAll(c => c.isUpgraded);
+
+        // Shuffle so picks within each mana-curve tier are random.
+        for (int i = pool.Count - 1; i > 0; i--)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, i + 1);
+            var temp = pool[i];
+            pool[i] = pool[randomIndex];
+            pool[randomIndex] = temp;
+        }
+
+        var deck = saveData.Decks[deckIndex].Deck;
+        deck.Clear();
+
+        foreach (var tier in DeckSO.ManaCurve)
+        {
+            int taken = 0;
+            for (int i = pool.Count - 1; i >= 0 && taken < tier.count; i--)
+            {
+                if (System.Array.IndexOf(tier.costs, pool[i].cost) < 0)
+                    continue;
+
+                deck.Add(pool[i].cardName);
+                pool.RemoveAt(i);
+                taken++;
+            }
+        }
+
+        // Pad with whatever is left if a tier couldn't be fully satisfied.
+        while (deck.Count < DeckSize && pool.Count > 0)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, pool.Count);
+            deck.Add(pool[randomIndex].cardName);
+            pool.RemoveAt(randomIndex);
+        }
+
+        SaveData();
+    }
+
     bool IsValidDeckIndex(int index)
     {
         if (saveData == null || saveData.Decks == null)
@@ -134,6 +181,12 @@ public class SaveManager : PermanentSingleton<SaveManager>
             if (deck.Deck == null)
                 deck.Deck = new List<string>();
         }
+
+        if (saveData.Decks.Length > PlayerDeckIndex && saveData.Decks[PlayerDeckIndex] != null)
+            saveData.Decks[PlayerDeckIndex].isLocked = true;
+
+        if (saveData.Decks.Length > MysteryDeckIndex && saveData.Decks[MysteryDeckIndex] != null)
+            saveData.Decks[MysteryDeckIndex].isLocked = true;
     }
 
     void CreateNewSave()
@@ -146,19 +199,19 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
 
         };
-        saveData.Decks[0] = new DeckData
+        saveData.Decks[PlayerDeckIndex] = new DeckData
         {
             Name = defaultDeck != null ? defaultDeck.deckName : "Default_Deck_0",
-            isLocked = false,
+            isLocked = true,
             Deck = new List<string>()
         };
 
         if (defaultDeck != null)
         {
-            for (int i = 0; i < defaultDeck.cards.Count && saveData.Decks[0].Deck.Count < DeckSize; i++)
+            for (int i = 0; i < defaultDeck.cards.Count && saveData.Decks[PlayerDeckIndex].Deck.Count < DeckSize; i++)
             {
                 if (defaultDeck.cards[i] != null)
-                    saveData.Decks[0].Deck.Add(defaultDeck.cards[i].cardName);
+                    saveData.Decks[PlayerDeckIndex].Deck.Add(defaultDeck.cards[i].cardName);
             }
         }
 
@@ -168,7 +221,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
             saveData.Decks[i] = new DeckData
             {
                 Name = "Default_Deck_" + i,
-                isLocked = false,
+                isLocked = i == MysteryDeckIndex,
                 Deck = new List<string>()
             };
         }

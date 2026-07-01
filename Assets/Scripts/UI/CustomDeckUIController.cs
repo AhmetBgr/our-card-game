@@ -8,10 +8,25 @@ public class CustomDeckUIController : MonoBehaviour
 {
     private Dictionary<string, CardButtonHandler> cards = new Dictionary<string, CardButtonHandler>();
 
-    [SerializeField] protected CardButtonHandler cardButtonPrefab;
+    [SerializeField] private Transform cardsContainer;
+    [SerializeField] private GameObject randomText;
 
-    public void Initialize(DeckData deck)
+    private List<CardButtonHandler> cardButtonPool;
+    private bool hideCardContents;
+
+    public void Initialize(DeckData deck, bool isRandomDeck = false)
     {
+        hideCardContents = isRandomDeck;
+
+        if (randomText != null)
+            randomText.SetActive(isRandomDeck);
+
+        cardButtonPool ??= cardsContainer.GetComponentsInChildren<CardButtonHandler>(true).ToList();
+
+        foreach (var cardButton in cardButtonPool)
+            cardButton.gameObject.SetActive(false);
+
+        cards.Clear();
 
         foreach (var name in deck.Deck)
         {
@@ -25,20 +40,37 @@ public class CustomDeckUIController : MonoBehaviour
     {
         var card = name;
 
-        var cardButton = Instantiate(cardButtonPrefab, transform);
-
-        if (!isLocked)
+        var cardSO = DeckDatabase.Instance.GetCard(name);
+        if (cardSO == null)
         {
-
-            cardButton.OnClicked = () => {
-                DeckPanelController.Instance.RemoveFromCurrentCustomDeck(card);
-            };
+            Debug.LogWarning($"Card with name {name} not found in database.");
+            return;
         }
 
-        var cardSO = DeckDatabase.Instance.GetCard(name);
+        var cardButton = cardButtonPool.FirstOrDefault(b => !b.gameObject.activeSelf);
+        if (cardButton == null)
+        {
+            Debug.LogWarning($"No available card button slot for card {name}.");
+            return;
+        }
+
+        cardButton.gameObject.SetActive(true);
+        cardButton.OnClicked = isLocked ? null : () => {
+            DeckPanelController.Instance.RemoveFromCurrentCustomDeck(card);
+        };
+
         cardButton.Card = cardSO;
-        cardButton.SetName(name);
-        cardButton.SetCost(cardSO.cost);
+
+        if (hideCardContents)
+        {
+            cardButton.SetHidden();
+        }
+        else
+        {
+            cardButton.SetName(name);
+            cardButton.SetCost(cardSO.cost);
+        }
+
         cards.Add(name, cardButton);
     }
     public void RemoveCard(string cardName)
@@ -48,22 +80,19 @@ public class CustomDeckUIController : MonoBehaviour
             var cardButton = cards[cardName];
             cards.Remove(cardName);
 
-            Destroy(cardButton.gameObject);
+            cardButton.OnClicked = null;
+            cardButton.gameObject.SetActive(false);
         }
 
     }
     public void UpdateOrder()
     {
         var cardbuttons = cards.Values.ToList();
-        foreach (var item in cardbuttons)
-        {
-            item.transform.SetParent(transform.parent);
-        }
         cardbuttons.Sort((a, b) => a.Card.cost.CompareTo(b.Card.cost));
 
-        foreach (var item in cardbuttons)
+        for (int i = 0; i < cardbuttons.Count; i++)
         {
-            item.transform.SetParent(transform);
+            cardbuttons[i].transform.SetSiblingIndex(i);
         }
     }
 }
