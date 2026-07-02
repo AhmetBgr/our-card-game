@@ -16,15 +16,22 @@ MonoBehaviour:
   minionArt: {fileID: 1680542353, guid: f3787018efc7bf240be23e5f16f6949d, type: 3}
   cardArt: {fileID: 1715944439, guid: f3787018efc7bf240be23e5f16f6949d, type: 3}
   cardName: Smerinthus Ocellatus
-  desc: Recives -1 damage.
+  desc: Takes 1 less damage.
   attack: 2
   health: 3
   cost: 3
   range: 2
   armor: 1
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  selectionIntent: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
+  normalVersion: {fileID: 0}
   isUpgraded: 1
   defHealth: 3
   OnPlay:
@@ -90,7 +97,7 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:

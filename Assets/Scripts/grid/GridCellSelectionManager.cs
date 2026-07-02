@@ -16,6 +16,11 @@ public class GridCellSelectionManager : MonoBehaviour
     private bool _previewOccupantPush;
     private MinionController _pushPreviewMinion;
 
+    // The card driving this cell pick (if any), so every minion under the hovered area can preview whether
+    // the card would kill it (skull). _skullPreviewMinions tracks whose skulls are currently lit.
+    private CardSO _sourceCard;
+    private readonly List<MinionController> _skullPreviewMinions = new List<MinionController>();
+
     public bool HasActiveSession => _selectableIndexes.Count > 0;
 
     private void Awake()
@@ -32,7 +37,8 @@ public class GridCellSelectionManager : MonoBehaviour
     public void BeginSelection(
         IEnumerable<Vector2Int> selectableIndexes,
         Func<Vector2Int, IEnumerable<Vector2Int>> hoverAreaProvider,
-        bool previewOccupantPush = false)
+        bool previewOccupantPush = false,
+        CardSO sourceCard = null)
     {
         // Starting a cell selection preempts any active minion/attack selection (mutual preempt with
         // SelectionManager, which calls EndSelection() here when it begins a minion/attack request).
@@ -51,6 +57,7 @@ public class GridCellSelectionManager : MonoBehaviour
 
         _hoverAreaProvider = hoverAreaProvider;
         _previewOccupantPush = previewOccupantPush;
+        _sourceCard = sourceCard;
     }
 
     public void EndSelection()
@@ -65,6 +72,7 @@ public class GridCellSelectionManager : MonoBehaviour
         _selectableIndexes.Clear();
         _hoverAreaProvider = null;
         _previewOccupantPush = false;
+        _sourceCard = null;
     }
 
     public void OnCellHoverEnter(Vector2Int index)
@@ -83,6 +91,7 @@ public class GridCellSelectionManager : MonoBehaviour
             //if (!_selectableIndexes.Contains(areaIndex)) continue;
             _hoverPreviewIndexes.Add(areaIndex);
             SetCellHoverPreview(areaIndex, true);
+            PreviewOccupantDeath(areaIndex);
         }
 
         // Summoning onto an occupied cell pushes the occupant forward — preview that push arrow.
@@ -121,7 +130,30 @@ public class GridCellSelectionManager : MonoBehaviour
         }
 
         _hoverPreviewIndexes.Clear();
+
+        foreach (var minion in _skullPreviewMinions)
+        {
+            if (minion != null) minion.HideCardDeathPreview();
+        }
+        _skullPreviewMinions.Clear();
+
         ClearPushPreview();
+    }
+
+    // If the card driving this selection would kill the minion occupying `index`, light its skull. Tracked
+    // so ClearHoverPreview turns it back off when the hover moves. Non-damage cards (or empty cells) do
+    // nothing, so this is safe to run for every cell-pick regardless of card type.
+    private void PreviewOccupantDeath(Vector2Int index)
+    {
+        if (_sourceCard == null) return;
+        if (GridManager.Instance == null || GridManager.Instance.IsOutSideOfGrid(index)) return;
+
+        var cell = GridManager.Instance.GetCell(index);
+        if (cell.obj != null && cell.obj.TryGetComponent(out MinionController occupant))
+        {
+            occupant.ShowCardDeathPreview(_sourceCard);
+            _skullPreviewMinions.Add(occupant);
+        }
     }
 
     // Show the push arrow on the minion currently occupying the hovered summon cell (if any). It gets

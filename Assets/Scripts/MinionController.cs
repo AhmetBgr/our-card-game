@@ -36,6 +36,16 @@ public class MinionController : MonoBehaviour
     public float moveArrowBreathDuration = 0.6f;
     private Tween _moveArrowTween;
 
+    [Header("Attack Preview")]
+    // Shown while this minion is hovered as an attack target and the pending attacker's strike would kill it.
+    public GameObject skull;
+    public float skullBreathMinAlpha = 0.25f;
+    public float skullBreathDuration = 0.6f;
+    private SpriteRenderer _skullRenderer;
+    private Color _skullBaseColor;
+    private bool _skullResolved;
+    private Tween _skullTween;
+
     public SelectionType SelectionType { get => SelectionType.Minion; }
     public static event Action<List<MinionController>> OnSelectingMinionForAttack;
     public static event Action<MinionController> OnDied;
@@ -53,6 +63,8 @@ public class MinionController : MonoBehaviour
         GameManager.OnTurnEnd -= OnTurnSwitch;
         _moveArrowTween?.Kill();
         _moveArrowTween = null;
+        _skullTween?.Kill();
+        _skullTween = null;
     }
 
     protected virtual void Start()
@@ -120,6 +132,12 @@ public class MinionController : MonoBehaviour
             : HoverIntent.SeeRange;
 
         ApplyHoverIntent(intent);
+
+        // Independently of the intent-specific feedback above, light the skull if picking this minion
+        // right now would kill it (an attack strike, its retaliation, or a lethal damage spell). Guarded
+        // by HasActiveMinionRequest so it never shows while merely inspecting range.
+        if (SelectionManager.Instance.HasActiveMinionRequest)
+            ShowDeathPreview();
     }
 
     // Central dispatch for hover feedback. Only the SeeRange and ToPush cases do something today; the
@@ -143,11 +161,127 @@ public class MinionController : MonoBehaviour
         }
     }
 
+    // The attacker whose retaliation skull we lit while this minion was hovered, so OnMouseExit can hide
+    // it too (only the hovered target itself gets an OnMouseExit).
+    private MinionController _previewedAttacker;
+
+    // While this minion is hovered as a valid pick, light the skull on whatever the pick would kill. Two
+    // sources: an attack (this minion takes the attacker's strike, and the attacker takes the retaliation
+    // back if it is in this minion's range — so its skull can light from taking damage too), or a lethal
+    // damage spell targeting this minion. Uses TakeDamage's armor math (damage after armor >= health means
+    // dead). No health text is touched; the skull is the only feedback.
+    private void ShowDeathPreview()
+    {
+        var selection = SelectionManager.Instance;
+        if (!selection.IsActiveTarget(this))
+        {
+            HideDeathPreview();
+            return;
+        }
+
+        MinionController attacker = selection.ActiveAttacker;
+        if (attacker != null)
+        {
+            int dmgToTarget = Mathf.Max(attacker.modal.attack - modal.armor, 0);
+            SetSkull(dmgToTarget >= modal.health);
+
+            // Retaliation: the attacker takes this minion's strike back only if it is in this minion's range
+            // (mirrors Attack()'s RangeUtility.IsInRange(target, attacker) check).
+            if (RangeUtility.IsInRange(this, attacker))
+            {
+                int dmgToAttacker = Mathf.Max(modal.attack - attacker.modal.armor, 0);
+                attacker.SetSkull(dmgToAttacker >= attacker.modal.health);
+                _previewedAttacker = attacker;
+            }
+            return;
+        }
+
+        // Spell/card pick: use the card's authored AI hints to know the outcome for this target.
+        CardSO sourceCard = selection.ActiveCard;
+        SetSkull(sourceCard != null && WouldCardKill(sourceCard));
+    }
+
+    // Death-preview entry points for area (cell-selection) spells, which preview every minion sitting
+    // under the spell's hovered area rather than a single directly-hovered target. GridCellSelectionManager
+    // calls these for each occupant of the previewed cells.
+    public void ShowCardDeathPreview(CardSO sourceCard)
+    {
+        SetSkull(sourceCard != null && WouldCardKill(sourceCard));
+    }
+
+    public void HideCardDeathPreview()
+    {
+        SetSkull(false);
+    }
+
+    // Show/hide the skull, breathing its alpha up and down for as long as it stays shown (mirrors the move
+    // arrow). Enabling resets the alpha to full first so repeated shows never drift dimmer; disabling kills
+    // the tween. Idempotent when already in the requested state.
+    private void SetSkull(bool willDie)
+    {
+        if (skull == null) return;
+
+        if (!willDie)
+        {
+            _skullTween?.Kill();
+            _skullTween = null;
+            skull.SetActive(false);
+            return;
+        }
+
+        if (skull.activeSelf && _skullTween != null) return; // already breathing
+
+        ResolveSkullRenderer();
+        skull.SetActive(true);
+        if (_skullRenderer == null) return;
+
+        _skullRenderer.color = _skullBaseColor; // reset to full so re-shows don't inherit a mid-fade alpha
+        _skullTween?.Kill();
+        _skullTween = _skullRenderer
+            .DOFade(skullBreathMinAlpha * _skullBaseColor.a, skullBreathDuration)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutSine);
+    }
+
+    private void ResolveSkullRenderer()
+    {
+        if (_skullResolved) return;
+        _skullResolved = true;
+        _skullRenderer = skull.GetComponent<SpriteRenderer>();
+        if (_skullRenderer != null) _skullBaseColor = _skullRenderer.color;
+    }
+
+    // True if playing sourceCard on this minion would kill it. A destroy/banish removes it outright;
+    // otherwise the card's OnPlay damage (read from its actual serialized calls, not the AI hints, which
+    // are often unset) is applied through this minion's armor to match TakeDamage.
+    private bool WouldCardKill(CardSO sourceCard)
+    {
+        if (sourceCard.aiRemovesTarget) return true;
+
+        int damage = CardEffectInspector.GetTargetedDamage(sourceCard);
+        if (damage <= 0) return false;
+
+        int effectiveDamage = Mathf.Max(damage - modal.armor, 0);
+        return effectiveDamage >= modal.health;
+    }
+
+    private void HideDeathPreview()
+    {
+        SetSkull(false);
+
+        if (_previewedAttacker != null)
+        {
+            _previewedAttacker.SetSkull(false);
+            _previewedAttacker = null;
+        }
+    }
+
     protected void OnMouseExit()
     {
         GameManager.Instance.player.handManager.HideInfoCard();
         MinionRangeHandler.Instance.HideRange();
         HideMoveArrow();
+        HideDeathPreview();
     }
 
     private void OnDrawGizmosSelected()

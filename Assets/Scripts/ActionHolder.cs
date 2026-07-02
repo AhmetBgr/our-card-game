@@ -281,7 +281,8 @@ public class ActionHolder : ScriptableObject
             GridCellSelectionManager.Instance.BeginSelection(
                 selectableIndexes,
                 hovered => new[] { hovered },
-                previewOccupantPush: true);
+                previewOccupantPush: true,
+                sourceCard: thisCardSO);
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -340,7 +341,8 @@ public class ActionHolder : ScriptableObject
                     hovered,
                     new Vector2Int(hovered.x, hovered.y - 1),
                     new Vector2Int(hovered.x, hovered.y - 2),
-                });
+                },
+                sourceCard: thisCardSO);
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -417,7 +419,8 @@ public class ActionHolder : ScriptableObject
                     new Vector2Int(hovered.x - 1, hovered.y),
                     new Vector2Int(hovered.x, hovered.y + 1),
                     new Vector2Int(hovered.x, hovered.y - 1),
-                });
+                },
+                sourceCard: thisCardSO);
         }
 
         if (GameManager.Instance.isPlayerTurn)
@@ -518,7 +521,7 @@ public class ActionHolder : ScriptableObject
         // AI's turn and while testing, where the result (selectedMinion) is written directly instead.
         // The card declares what hovering a candidate means (e.g. ToPush shows the push arrow).
         HoverIntent intent = thisCardSO != null ? thisCardSO.selectionIntent : HoverIntent.ToSelectGenerally;
-        SelectionManager.Instance.BeginMinionRequest(selectableminions, picked => selectedMinion = picked, intent);
+        SelectionManager.Instance.BeginMinionRequest(selectableminions, picked => selectedMinion = picked, intent, thisCardSO);
 
         OnWaitingMinionSelect?.Invoke(selectableminions, thisCardSO);
 
@@ -599,7 +602,8 @@ public class ActionHolder : ScriptableObject
         {
             GridCellSelectionManager.Instance.BeginSelection(
                 selectableIndexes,
-                hovered => selectableIndexes.Where(i => i.x == hovered.x));
+                hovered => selectableIndexes.Where(i => i.x == hovered.x),
+                sourceCard: thisCardSO);
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -883,7 +887,7 @@ public class ActionHolder : ScriptableObject
             indexes.Add(index);
         }
 
-        GridCellSelectionManager.Instance.BeginSelection(indexes, hovered => new[] { hovered });
+        GridCellSelectionManager.Instance.BeginSelection(indexes, hovered => new[] { hovered }, sourceCard: thisCardSO);
 
         while (selectedMinion == null)
         {
