@@ -11,11 +11,6 @@ public class MainMenuManager : MonoBehaviour
     void Start()
     {
         playButton.onClick.AddListener(() => {
-            if (SaveManager.Instance.saveData.SelectedDeckIndex == SaveManager.MysteryDeckIndex)
-            {
-                SaveManager.Instance.GenerateRandomDeck(SaveManager.MysteryDeckIndex);
-            }
-
             SceneTransitionManager.Instance.TransitionToScene("Game");
         });
         exitButton.onClick.AddListener(() => { Application.Quit(); });

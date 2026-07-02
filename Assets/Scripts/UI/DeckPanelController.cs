@@ -36,6 +36,11 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
     void Start()
     {
+        // Regenerate the mystery deck before building any views, so the panel
+        // reads the freshly-generated cards instead of a just-cleared list.
+        // Runs in Start (not Awake) so DeckDatabase/SaveManager Awakes are done.
+        SaveManager.Instance.GenerateRandomDeck(SaveManager.MysteryDeckIndex);
+
         PopulateAllCards();
 
         initialSelectablePanelPos = selectableDecksPanel.localPosition;
