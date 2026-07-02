@@ -26,6 +26,7 @@ MonoBehaviour:
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 3
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

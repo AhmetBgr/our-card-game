@@ -25,6 +25,7 @@ MonoBehaviour:
   armor: 0
   canMove: 1
   type: 1
+  selectionIntent: 3
   upgradedVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 0

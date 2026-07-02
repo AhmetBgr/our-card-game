@@ -28,6 +28,14 @@ public class MinionController : MonoBehaviour
 
     public MinionController LastTarget;
 
+    [Header("Move Preview")]
+    public SpriteRenderer moveArrow;
+    public Color moveArrowColor = Color.white;
+    public Color moveArrowCollideColor = Color.yellow;
+    public float moveArrowBreathMinAlpha = 0.25f;
+    public float moveArrowBreathDuration = 0.6f;
+    private Tween _moveArrowTween;
+
     public SelectionType SelectionType { get => SelectionType.Minion; }
     public static event Action<List<MinionController>> OnSelectingMinionForAttack;
     public static event Action<MinionController> OnDied;
@@ -43,6 +51,8 @@ public class MinionController : MonoBehaviour
     private void OnDisable()
     {
         GameManager.OnTurnEnd -= OnTurnSwitch;
+        _moveArrowTween?.Kill();
+        _moveArrowTween = null;
     }
 
     protected virtual void Start()
@@ -98,15 +108,38 @@ public class MinionController : MonoBehaviour
             return;
 
         GameManager.Instance.player.handManager.ShowInfoCard(card);
-        Debug.Log("shouldshow range");
 
-        if (SelectionManager.Instance.HasActiveMinionRequest)
+        // A card being dragged owns the hover; don't react unless a selection request is active.
+        if (DraggableItem.AnyCardDragging && !SelectionManager.Instance.HasActiveMinionRequest)
+            return;
+
+        // What hovering this minion means right now: an active selection request dictates it (attack pick,
+        // push pick, generic pick); otherwise we're just inspecting, so show the range.
+        HoverIntent intent = SelectionManager.Instance.HasActiveMinionRequest
+            ? SelectionManager.Instance.ActiveIntent
+            : HoverIntent.SeeRange;
+
+        ApplyHoverIntent(intent);
+    }
+
+    // Central dispatch for hover feedback. Only the SeeRange and ToPush cases do something today; the
+    // others are wired here so their behavior can be filled in later without touching OnMouseEnter.
+    protected virtual void ApplyHoverIntent(HoverIntent intent)
+    {
+        switch (intent)
         {
-            // show weapon image
-        }
-        else if (!DraggableItem.AnyCardDragging)
-        {
-            MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range);
+            case HoverIntent.SeeRange:
+                MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range);
+                break;
+            case HoverIntent.ToPush:
+                ShowPushArrow();
+                break;
+            case HoverIntent.ToAttack:
+                // TODO: show weapon image
+                break;
+            case HoverIntent.ToSelectGenerally:
+                // TODO: generic select feedback
+                break;
         }
     }
 
@@ -114,7 +147,7 @@ public class MinionController : MonoBehaviour
     {
         GameManager.Instance.player.handManager.HideInfoCard();
         MinionRangeHandler.Instance.HideRange();
-
+        HideMoveArrow();
     }
 
     private void OnDrawGizmosSelected()
@@ -456,6 +489,72 @@ public class MinionController : MonoBehaviour
             OnCollided?.Invoke(this, collidedEntity);
         }
     }
+    // Movement-preview arrow shown while the player hovers the turn-switch button. The arrow points in
+    // this minion's forward direction (up for the player, down for the opponent) and is enabled only when
+    // the minion would actually try to advance next turn: white when the cell ahead is free (it will
+    // move), yellow when the cell ahead is occupied (it wants to move but will collide). It stays hidden
+    // when the minion can't move at all — can't-move flag, summoned this turn (age < 1), or facing the
+    // board edge. Mirrors CanMove's gating, but treats any occupant (minion or wall) as a collision so
+    // walls also turn the arrow yellow (CanMove only reports minion collisions via CollidedEntity).
+    public void ShowMoveArrow()
+    {
+        if (moveArrow == null) return;
+
+        if (!modal.canMove || age < 1)
+        {
+            HideMoveArrow();
+            return;
+        }
+
+        Vector3Int dir = modal.isPlayerMinion ? Vector3Int.up : Vector3Int.down;
+        Vector3Int dest = Vector3Int.RoundToInt(transform.position) + dir;
+        Vector2Int idx = GridManager.Instance.PosToGridIndex(dest);
+
+        if (GridManager.Instance.IsOutSideOfGrid(idx))
+        {
+            HideMoveArrow();
+            return;
+        }
+
+        bool willCollide = GridManager.Instance.GetCell(idx).obj != null;
+        EnableMoveArrow(willCollide);
+    }
+
+    // Push preview shown while hovering a push card's candidate: the arrow always shows (the intent IS to
+    // push this minion), pointing in the summoner's forward direction. White when the cell ahead is free
+    // (the push lands), yellow when it's blocked by the board edge or an occupant (the push will fail /
+    // collide). Ignores canMove/age because a push bypasses them. Pushes only happen on the player's turn,
+    // so the direction is always up and the arrow needs no rotation.
+    public void ShowPushArrow()
+    {
+        if (moveArrow == null) return;
+        bool willCollide = !CanBePushedForward(ActionHolder.SummonerPushDir());
+        EnableMoveArrow(willCollide);
+    }
+
+    // Enable the arrow in white/yellow and breathe its alpha up/down for as long as it stays shown.
+    private void EnableMoveArrow(bool willCollide)
+    {
+        if (moveArrow == null) return;
+
+        Color c = willCollide ? moveArrowCollideColor : moveArrowColor;
+        moveArrow.color = c;
+        moveArrow.gameObject.SetActive(true);
+
+        _moveArrowTween?.Kill();
+        _moveArrowTween = moveArrow
+            .DOFade(moveArrowBreathMinAlpha * c.a, moveArrowBreathDuration)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutSine);
+    }
+
+    public void HideMoveArrow()
+    {
+        _moveArrowTween?.Kill();
+        _moveArrowTween = null;
+        if (moveArrow != null) moveArrow.gameObject.SetActive(false);
+    }
+
     public virtual MoveInfo CanMove(Vector3Int pos)
     {
         var moveInfo = new MoveInfo();

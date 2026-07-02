@@ -36,6 +36,7 @@ public class SelectionManager
     private sealed class SelectionRequest
     {
         public SelectionKind Kind;
+        public HoverIntent Intent;
         public readonly List<MinionController> Highlighted = new List<MinionController>();
         public readonly HashSet<MinionController> ValidTargets = new HashSet<MinionController>();
         public MinionController Attacker;
@@ -54,19 +55,26 @@ public class SelectionManager
     public MinionController ActiveAttacker =>
         _active != null && _active.Kind == SelectionKind.AttackTarget ? _active.Attacker : null;
 
+    /// <summary>
+    /// What the active request means for a hovered minion, so hover feedback can be picked from it.
+    /// Falls back to <see cref="HoverIntent.SeeRange"/> when nothing is being selected.
+    /// </summary>
+    public HoverIntent ActiveIntent => _active != null ? _active.Intent : HoverIntent.SeeRange;
+
     /// <summary>Begin a spell/card minion pick over <paramref name="candidates"/>.</summary>
-    public void BeginMinionRequest(IEnumerable<MinionController> candidates, Action<MinionController> resolve)
+    public void BeginMinionRequest(IEnumerable<MinionController> candidates, Action<MinionController> resolve,
+        HoverIntent intent = HoverIntent.ToSelectGenerally)
     {
-        BeginRequest(SelectionKind.Minion, null, candidates, resolve);
+        BeginRequest(SelectionKind.Minion, null, candidates, resolve, intent);
     }
 
     /// <summary>Begin an attack-target pick by <paramref name="attacker"/> over <paramref name="targets"/>.</summary>
     public void BeginAttackRequest(MinionController attacker, IEnumerable<MinionController> targets, Action<MinionController> resolve)
     {
-        BeginRequest(SelectionKind.AttackTarget, attacker, targets, resolve);
+        BeginRequest(SelectionKind.AttackTarget, attacker, targets, resolve, HoverIntent.ToAttack);
     }
 
-    private void BeginRequest(SelectionKind kind, MinionController attacker, IEnumerable<MinionController> candidates, Action<MinionController> resolve)
+    private void BeginRequest(SelectionKind kind, MinionController attacker, IEnumerable<MinionController> candidates, Action<MinionController> resolve, HoverIntent intent)
     {
         // Inert under testing and off the player's turn — the AI / TestCard paths resolve selections
         // by writing the result sinks directly and must not see manager-driven highlights.
@@ -80,6 +88,7 @@ public class SelectionManager
         var request = new SelectionRequest
         {
             Kind = kind,
+            Intent = intent,
             Attacker = attacker,
             Resolve = resolve,
         };

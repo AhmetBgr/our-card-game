@@ -536,6 +536,20 @@ public class GameManager : Singleton<GameManager>
         yield return null;
     }
 
+    // Turn-switch hover preview: light up each player minion's move arrow to show what will happen when
+    // the turn ends (white = will advance, yellow = wants to advance but will collide).
+    public void ShowMovePreview()
+    {
+        foreach (var minion in player.minions)
+            if (minion != null) minion.ShowMoveArrow();
+    }
+
+    public void HideMovePreview()
+    {
+        foreach (var minion in player.minions)
+            if (minion != null) minion.HideMoveArrow();
+    }
+
     public void SetPlayerMinionsReadyToAttack()
     {
 

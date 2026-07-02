@@ -38,7 +38,19 @@ public class SwitchController : MonoBehaviour
         }
     }
 
-    public void OnMouseDown() { 
+    public void OnMouseEnter()
+    {
+        if (GameManager.Instance == null || !GameManager.Instance.isPlayerTurn) return;
+        GameManager.Instance.ShowMovePreview();
+    }
+
+    public void OnMouseExit()
+    {
+        if (GameManager.Instance == null) return;
+        GameManager.Instance.HideMovePreview();
+    }
+
+    public void OnMouseDown() {
         if(!GameManager.Instance.isPlayerTurn) return;
 
         animator.Play("OpponentFailedSwitch");

@@ -280,7 +280,8 @@ public class ActionHolder : ScriptableObject
         {
             GridCellSelectionManager.Instance.BeginSelection(
                 selectableIndexes,
-                hovered => new[] { hovered });
+                hovered => new[] { hovered },
+                previewOccupantPush: true);
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -515,7 +516,9 @@ public class ActionHolder : ScriptableObject
 
         // The SelectionManager owns highlighting + click routing for the player; it is inert on the
         // AI's turn and while testing, where the result (selectedMinion) is written directly instead.
-        SelectionManager.Instance.BeginMinionRequest(selectableminions, picked => selectedMinion = picked);
+        // The card declares what hovering a candidate means (e.g. ToPush shows the push arrow).
+        HoverIntent intent = thisCardSO != null ? thisCardSO.selectionIntent : HoverIntent.ToSelectGenerally;
+        SelectionManager.Instance.BeginMinionRequest(selectableminions, picked => selectedMinion = picked, intent);
 
         OnWaitingMinionSelect?.Invoke(selectableminions, thisCardSO);
 

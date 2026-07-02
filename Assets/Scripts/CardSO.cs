@@ -25,6 +25,9 @@ public class CardSO : ScriptableObject
 
     public Type type;
 
+    [Tooltip("Hover intent shown while this card is picking a target minion. Set to ToPush on push cards so hovering a candidate previews the push arrow.")]
+    public HoverIntent selectionIntent = HoverIntent.ToSelectGenerally;
+
     [Header("AI Hints")]
     [Tooltip("Beneficial = buff/heal a minion; Harmful = damage/destroy; Neutral = summon, draw, self-only.")]
     public CardIntent aiIntent = CardIntent.Neutral;
