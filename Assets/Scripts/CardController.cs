@@ -15,18 +15,23 @@ public class CardController : MonoBehaviour
     public bool canPeek = true;
     public bool isPeeking = false;
 
+    // Hand slot this card was in when the drag began, captured so a cancelled drag
+    // (or an unplayable drop) returns it to its original position.
+    private int _returnIndex = -1;
+    public int ReturnIndex => _returnIndex;
+
     void Start()
     {
 
 
-        DraggableItem.DragStarted += DisablePeek;
+        DraggableItem.DragStarted += OnDragStarted;
         DraggableItem.DragEnded += OnDragEnded;
         DraggableItem.DragCancelled += OnDragCancelled;
     }
 
     private void OnDestroy()
     {
-        DraggableItem.DragStarted -= DisablePeek;
+        DraggableItem.DragStarted -= OnDragStarted;
         DraggableItem.DragEnded -= OnDragEnded;
         DraggableItem.DragCancelled -= OnDragCancelled;
     }
@@ -113,13 +118,20 @@ public class CardController : MonoBehaviour
             return;
         }
 
-        // Put the dragged card back into the hand fan.
+        // Put the dragged card back into the hand fan at its original slot.
         if (handLayout != null)
         {
             handLayout.CancelPeek();
-            handLayout.InsertCardAt(transform, 0);
+            // Guard against re-adding a card that's somehow still in the list, so the
+            // fan never ends up with a duplicate (which throws off every card's angle).
+            handLayout.RemoveCard(transform);
+            int index = _returnIndex >= 0
+                ? Mathf.Clamp(_returnIndex, 0, handLayout.cards.Count)
+                : 0;
+            handLayout.InsertCardAt(transform, index);
             draggableItem.ParentAfterDrag = handLayout.transform;
         }
+        _returnIndex = -1;
 
         transform.DOComplete();
         transform.localRotation = Quaternion.identity;
@@ -127,12 +139,38 @@ public class CardController : MonoBehaviour
         EnablePeek();
     }
 
-    void DisablePeek()
+    private void OnDragStarted(Transform draggedItem)
     {
+        if (draggedItem == transform)
+        {
+            // This card is the one being dragged — take it out of the hand fan and
+            // remember its slot so a cancelled drag can restore it. Doing this here
+            // (whether or not the card was peeking) guarantees it leaves the layout's
+            // `cards` list exactly once, so reinserting it on cancel can't duplicate it.
+            if (handLayout != null)
+            {
+                if (isPeeking)
+                {
+                    _returnIndex = handLayout.PeekIndex;
+                    handLayout.CancelPeek();
+                }
+                else
+                {
+                    _returnIndex = handLayout.RemoveCard(transform);
+                }
+            }
+            transform.localScale = Vector3.one;
+            canPeek = false;
+            isPeeking = false;
+            return;
+        }
+
+        // Another card started dragging — if we were mid-peek, settle back into the
+        // fan (EndPeek reinserts us) instead of being left orphaned.
         if (isPeeking && handLayout != null)
         {
             transform.localScale = Vector3.one;
-            handLayout.CancelPeek();
+            handLayout.EndPeek();
         }
         canPeek = false;
         isPeeking = false;

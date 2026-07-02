@@ -21,6 +21,10 @@ public class CardHandLayout : MonoBehaviour
     private Transform _peekCard;
     private int _peekIndex = -1;
 
+    // The hand slot the currently-peeking card came from, so a cancelled drag can
+    // restore it to its original position.
+    public int PeekIndex => _peekIndex;
+
     void Update()
     {
         UpdateCardPositions();

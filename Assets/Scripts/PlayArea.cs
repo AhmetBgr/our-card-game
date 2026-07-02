@@ -9,6 +9,11 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
     public Transform cardPos;
     public Transform opponentCardPos;
 
+    // True from the moment a drop starts resolving (CanPlay test) until it finishes.
+    // Set synchronously so a second card dropped during the async test window is
+    // rejected instead of being played on top of the first.
+    private bool isResolvingDrop = false;
+
     public virtual void OnDrop(PointerEventData eventData)
     {
         CardController droppedItem = eventData.pointerDrag.GetComponent<CardController>();
@@ -24,8 +29,21 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
         if (droppedItem.draggableItem != null && !droppedItem.draggableItem.isdragging)
             return;
 
+        // A card is already resolving or being played — reject this drop. dropHandled
+        // is left false so OnEndDrag returns the card to its slot in hand.
+        if (isResolvingDrop || GameManager.Instance.isPlayingCard)
+            return;
+
+        // Mark the drop as landing on a valid target so OnEndDrag doesn't cancel it.
+        if (droppedItem.draggableItem != null)
+            droppedItem.draggableItem.dropHandled = true;
+
+        isResolvingDrop = true;
+
         var layout = droppedItem.handLayout;
-        int originalIndex = layout != null ? layout.cards.IndexOf(droppedItem.transform) : 0;
+        // The card is pulled out of the fan when the drag begins, so its original slot
+        // is the index captured on the card rather than a live IndexOf lookup.
+        int originalIndex = droppedItem.ReturnIndex;
 
         bool canPlay = false;
         Debug.Log("testing: ");
@@ -50,12 +68,18 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
                 droppedItem.transform.DOMove(cardPos.position, 0.25f);
                 droppedItem.transform.DOScale(Vector3.one, 0.25f);
 
+                // PlayCard sets isPlayingCard synchronously, so that flag guards further
+                // drops from here on; this drop is done resolving.
+                isResolvingDrop = false;
                 StartCoroutine(GameManager.Instance.PlayCard(droppedItem, GameManager.Instance.player));
             }
             else
             {
-                int returnIndex = layout.RemoveCard(droppedItem.transform);
-                layout.InsertCardAt(droppedItem.transform, returnIndex >= 0 ? returnIndex : Mathf.Max(originalIndex, 0));
+                isResolvingDrop = false;
+                // RemoveCard first so an already-listed card can't be inserted twice.
+                layout.RemoveCard(droppedItem.transform);
+                int insertIndex = Mathf.Clamp(originalIndex >= 0 ? originalIndex : 0, 0, layout.cards.Count);
+                layout.InsertCardAt(droppedItem.transform, insertIndex);
                 droppedItem.transform.DOComplete();
                 droppedItem.transform.localRotation = Quaternion.identity;
                 droppedItem.transform.localScale = Vector3.one;

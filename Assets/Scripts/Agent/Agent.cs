@@ -236,6 +236,11 @@ public class Agent : MonoBehaviour
         cardObj.card = cardSO;
         cardObj.modal.UpdateModal(cardSO, this, IsPlayer());
         cardObj.view.UpdateView(cardObj.modal);
+
+        // Only the player can drag their own cards — the opponent's hand is never draggable.
+        if (cardObj.draggableItem != null)
+            cardObj.draggableItem.Interactable = IsPlayer();
+
         return cardObj;
     }
 }

@@ -12,11 +12,16 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
     public bool Interactable = true;
     public bool isdragging = false;
 
+    // Set by PlayArea.OnDrop when the card is released over the play area. If it's
+    // still false when OnEndDrag runs, the card was dropped somewhere invalid and
+    // the play is cancelled (card returns to its slot in hand).
+    [HideInInspector] public bool dropHandled = false;
+
     [HideInInspector] public Transform ParentAfterDrag;
 
     public static bool AnyCardDragging { get; private set; }
 
-    public static event Action DragStarted;
+    public static event Action<Transform> DragStarted;
     public static event Action<Transform> DragEnded;
     public static event Action<Transform> DragCancelled;
 
@@ -24,14 +29,19 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
     {
         if (!Interactable) return;
 
+        // While a card is being played (resolving in the play area), no card can be
+        // dragged — the played card can only be cancelled, not moved.
+        if (GameManager.Instance != null && GameManager.Instance.isPlayingCard) return;
+
         isdragging = true;
         AnyCardDragging = true;
+        dropHandled = false;
         ParentAfterDrag = transform.parent;
         transform.SetParent(transform.root);
         transform.SetAsLastSibling();
         transform.DORotate(Vector3.zero, 0.5f);
         Image.raycastTarget = false;
-        DragStarted?.Invoke();
+        DragStarted?.Invoke(transform);
     }
 
     private void Update()
@@ -62,10 +72,19 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
     {
         if (!Interactable || !isdragging) return;
 
-        transform.SetParent(ParentAfterDrag);
-        Image.raycastTarget = true;
-        DragEnded?.Invoke(transform);
         isdragging = false;
         AnyCardDragging = false;
+        Image.raycastTarget = true;
+
+        // Released outside the play area — cancel the play and send the card back
+        // to its original position in hand, mirroring the right-click cancel.
+        if (!dropHandled)
+        {
+            DragCancelled?.Invoke(transform);
+            return;
+        }
+
+        transform.SetParent(ParentAfterDrag);
+        DragEnded?.Invoke(transform);
     }
 }
