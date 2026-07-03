@@ -2,7 +2,9 @@ using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MinionController : MonoBehaviour
 {
@@ -46,6 +48,32 @@ public class MinionController : MonoBehaviour
     private bool _skullResolved;
     private Tween _skullTween;
 
+    [Header("Stat Change Preview")]
+    // Shown while this minion is hovered as a card target and the card would change its stats WITHOUT
+    // killing it (a buff, or a non-lethal debuff). Two separate labels sit above the minion's attack and
+    // health numbers, each tinted for its stat (attack yellow, health red) and breathing alpha in sync.
+    // The skull owns the lethal case, so the skull and these labels are never visible at once.
+    public TMP_Text statChangeAttackText;
+    public TMP_Text statChangeHealthText;
+    // The background containers that hold each label. These are what we actually show/hide and breathe (the
+    // text stays active inside), so the label's background image toggles and fades along with the number.
+    public CanvasGroup statChangeAttackGroup;
+    public CanvasGroup statChangeHealthGroup;
+    // The number's color encodes the direction of the change: green for a buff, red for a debuff. (Which
+    // stat changed is already clear from position — each label sits above its own attack/health number.)
+    public Color statBuffColor = new Color(0.25f, 0.9f, 0.3f, 1f);  // green
+    public Color statDebuffColor = new Color(1f, 0.3f, 0.3f, 1f);   // red
+    public float statChangeBreathMinAlpha = 0.25f;
+    public float statChangeBreathDuration = 0.6f;
+    private Tween _statChangeTween;
+    // The background image behind each number (the container's Graphic) is what breathes; the number text
+    // itself stays solid so the value is always readable. Cached (with its authored color) on first show.
+    private Graphic _statChangeAttackBg;
+    private Graphic _statChangeHealthBg;
+    private Color _statChangeAttackBgBase;
+    private Color _statChangeHealthBgBase;
+    private bool _statChangeBgResolved;
+
     public SelectionType SelectionType { get => SelectionType.Minion; }
     public static event Action<List<MinionController>> OnSelectingMinionForAttack;
     public static event Action<MinionController> OnDied;
@@ -65,6 +93,8 @@ public class MinionController : MonoBehaviour
         _moveArrowTween = null;
         _skullTween?.Kill();
         _skullTween = null;
+        _statChangeTween?.Kill();
+        _statChangeTween = null;
     }
 
     protected virtual void Start()
@@ -183,22 +213,26 @@ public class MinionController : MonoBehaviour
         if (attacker != null)
         {
             int dmgToTarget = Mathf.Max(attacker.modal.attack - modal.armor, 0);
-            SetSkull(dmgToTarget >= modal.health);
+            bool targetDies = dmgToTarget >= modal.health;
+            SetSkull(targetDies);
+            // Non-lethal hit: preview the health the target will lose (the skull owns the lethal case).
+            SetHealthChangePreview(targetDies ? 0 : -dmgToTarget);
 
             // Retaliation: the attacker takes this minion's strike back only if it is in this minion's range
             // (mirrors Attack()'s RangeUtility.IsInRange(target, attacker) check).
             if (RangeUtility.IsInRange(this, attacker))
             {
                 int dmgToAttacker = Mathf.Max(modal.attack - attacker.modal.armor, 0);
-                attacker.SetSkull(dmgToAttacker >= attacker.modal.health);
+                bool attackerDies = dmgToAttacker >= attacker.modal.health;
+                attacker.SetSkull(attackerDies);
+                attacker.SetHealthChangePreview(attackerDies ? 0 : -dmgToAttacker);
                 _previewedAttacker = attacker;
             }
             return;
         }
 
-        // Spell/card pick: use the card's authored AI hints to know the outcome for this target.
-        CardSO sourceCard = selection.ActiveCard;
-        SetSkull(sourceCard != null && WouldCardKill(sourceCard));
+        // Spell/card pick: a lethal card lights the skull; a non-lethal stat change shows the delta label.
+        PreviewCardEffect(selection.ActiveCard);
     }
 
     // Death-preview entry points for area (cell-selection) spells, which preview every minion sitting
@@ -206,12 +240,143 @@ public class MinionController : MonoBehaviour
     // calls these for each occupant of the previewed cells.
     public void ShowCardDeathPreview(CardSO sourceCard)
     {
-        SetSkull(sourceCard != null && WouldCardKill(sourceCard));
+        PreviewCardEffect(sourceCard);
     }
 
     public void HideCardDeathPreview()
     {
         SetSkull(false);
+        HideStatChange();
+    }
+
+    // Card-hover feedback dispatch shared by single-target (ShowDeathPreview) and area (ShowCardDeathPreview)
+    // previews: a card that would kill this minion lights the skull; otherwise, if it would change this
+    // minion's stats, the delta label shows instead. The two are mutually exclusive.
+    private void PreviewCardEffect(CardSO card)
+    {
+        bool lethal = card != null && WouldCardKill(card);
+        SetSkull(lethal);
+        SetStatChange(lethal ? null : card);
+    }
+
+    // Compute the net attack/health change this card would apply to this minion (armor mitigates a health
+    // debuff, matching TakeDamage), then show the breathing label if anything actually changes. A null
+    // card, or one that changes nothing, hides it.
+    private void SetStatChange(CardSO card)
+    {
+        if (card == null) { HideStatChange(); return; }
+
+        CardEffectInspector.StatDelta delta = CardEffectInspector.GetTargetedStatChange(card);
+        int dA = delta.attack;
+        int dH = delta.health;
+        if (dH < 0) dH = -Mathf.Max(-dH - modal.armor, 0); // a health debuff is reduced by armor, like damage
+
+        if (dA == 0 && dH == 0) { HideStatChange(); return; }
+
+        ShowStatChange(dA, dH);
+    }
+
+    // Preview a pure health change on this minion (used by the attack hover: the damage a strike or its
+    // retaliation would deal, passed as a negative delta). Zero hides the labels — e.g. a lethal hit, where
+    // the skull owns the feedback instead.
+    private void SetHealthChangePreview(int healthDelta)
+    {
+        if (healthDelta == 0) { HideStatChange(); return; }
+        ShowStatChange(0, healthDelta);
+    }
+
+    // Fill each stat's label above its number (an unchanged stat's label stays hidden), then breathe the
+    // labels' background images in sync for as long as the preview is up (mirrors the skull); the number
+    // text stays solid. Resets alpha to full first so re-shows never inherit a mid-fade value.
+    private void ShowStatChange(int dA, int dH)
+    {
+        ApplyStatDelta(statChangeAttackText, statChangeAttackGroup, dA);
+        ApplyStatDelta(statChangeHealthText, statChangeHealthGroup, dH);
+        ResolveStatChangeBgs();
+
+        _statChangeTween?.Kill();
+        SetStatChangeAlpha(1f);
+        _statChangeTween = DOTween
+            .To(() => 1f, SetStatChangeAlpha, statChangeBreathMinAlpha, statChangeBreathDuration)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutSine);
+    }
+
+    // Show one stat's delta ("+2" / "-1"), or hide it when unchanged. The number is tinted by direction
+    // (green buff / red debuff); the background image keeps its authored color. The background container is
+    // what toggles (its CanvasGroup if wired, else the text's parent), so the label's background shows/hides
+    // together with the number; the text just carries the value.
+    private void ApplyStatDelta(TMP_Text text, CanvasGroup group, int delta)
+    {
+        GameObject container = ContainerOf(text, group);
+        if (container == null) return;
+
+        if (delta == 0) { container.SetActive(false); return; }
+
+        if (text != null)
+        {
+            text.color = delta > 0 ? statBuffColor : statDebuffColor;
+            text.text = delta.ToString("+0;-0");
+        }
+
+        container.SetActive(true);
+    }
+
+    // The object we show/hide (and breathe) for a label: its background container — the wired CanvasGroup,
+    // else the text's parent — falling back to the text itself if it has no parent.
+    private static GameObject ContainerOf(TMP_Text text, CanvasGroup group)
+    {
+        if (group != null) return group.gameObject;
+        if (text == null) return null;
+        return text.transform.parent != null ? text.transform.parent.gameObject : text.gameObject;
+    }
+
+    // Breathe only the labels' background images, fading each between its authored alpha (a == 1) and
+    // statChangeBreathMinAlpha of it (mirrors the skull/move-arrow scaling). The number text is untouched.
+    private void SetStatChangeAlpha(float a)
+    {
+        FadeBg(_statChangeAttackBg, _statChangeAttackBgBase, a);
+        FadeBg(_statChangeHealthBg, _statChangeHealthBgBase, a);
+    }
+
+    private static void FadeBg(Graphic bg, Color baseColor, float a)
+    {
+        if (bg == null) return;
+        Color c = baseColor;
+        c.a = baseColor.a * a;
+        bg.color = c;
+    }
+
+    // Cache each label's background Graphic (the container's Image) and its authored color, so breathing
+    // fades relative to that base rather than snapping to a flat alpha. Resolved once; containers are fixed.
+    private void ResolveStatChangeBgs()
+    {
+        if (_statChangeBgResolved) return;
+
+        _statChangeAttackBg = BgOf(statChangeAttackText, statChangeAttackGroup);
+        if (_statChangeAttackBg != null) _statChangeAttackBgBase = _statChangeAttackBg.color;
+
+        _statChangeHealthBg = BgOf(statChangeHealthText, statChangeHealthGroup);
+        if (_statChangeHealthBg != null) _statChangeHealthBgBase = _statChangeHealthBg.color;
+
+        _statChangeBgResolved = true;
+    }
+
+    private static Graphic BgOf(TMP_Text text, CanvasGroup group)
+    {
+        GameObject container = ContainerOf(text, group);
+        return container != null ? container.GetComponent<Graphic>() : null;
+    }
+
+    private void HideStatChange()
+    {
+        _statChangeTween?.Kill();
+        _statChangeTween = null;
+
+        GameObject atk = ContainerOf(statChangeAttackText, statChangeAttackGroup);
+        if (atk != null) atk.SetActive(false);
+        GameObject hp = ContainerOf(statChangeHealthText, statChangeHealthGroup);
+        if (hp != null) hp.SetActive(false);
     }
 
     // Show/hide the skull, breathing its alpha up and down for as long as it stays shown (mirrors the move
@@ -268,10 +433,12 @@ public class MinionController : MonoBehaviour
     private void HideDeathPreview()
     {
         SetSkull(false);
+        HideStatChange();
 
         if (_previewedAttacker != null)
         {
             _previewedAttacker.SetSkull(false);
+            _previewedAttacker.HideStatChange();
             _previewedAttacker = null;
         }
     }

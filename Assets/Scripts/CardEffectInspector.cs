@@ -19,6 +19,21 @@ public static class CardEffectInspector
         "ChangeTargetMinionHealth",
     };
 
+    // ActionHolder methods that change a targeted minion's attack by their int argument.
+    private static readonly HashSet<string> AttackChangeMethods = new HashSet<string>
+    {
+        "ChangeMinionAttack",
+    };
+
+    // ActionHolder methods that change a targeted minion's health by their int argument. A negative
+    // argument is damage (armor applies at the caller); a positive one is a straight heal / max-health buff.
+    private static readonly HashSet<string> HealthChangeMethods = new HashSet<string>
+    {
+        "ChangeMinionHealth",
+        "ChangeMinionDefHealth",
+        "ChangeTargetMinionHealth",
+    };
+
     private static readonly FieldInfo PersistentCallsField =
         typeof(UnityEventBase).GetField("m_PersistentCalls", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -41,6 +56,36 @@ public static class CardEffectInspector
             if (arg < 0) total += -arg;
         }
         return total;
+    }
+
+    /// <summary>
+    /// The net attack/health change the card's OnPlay would apply to a single targeted minion, summed
+    /// across every stat-changing call so a multi-part buff reads correctly. Values are the raw authored
+    /// deltas: health is returned pre-armor (the caller applies armor to a negative/debuff value to match
+    /// <see cref="MinionController.TakeDamage"/>).
+    /// </summary>
+    public static StatDelta GetTargetedStatChange(CardSO card)
+    {
+        var delta = new StatDelta();
+        if (card == null || card.OnPlay == null || PersistentCallsField == null) return delta;
+
+        int count = card.OnPlay.GetPersistentEventCount();
+        for (int i = 0; i < count; i++)
+        {
+            string method = card.OnPlay.GetPersistentMethodName(i);
+            if (AttackChangeMethods.Contains(method))
+                delta.attack += GetIntArgument(card.OnPlay, i);
+            else if (HealthChangeMethods.Contains(method))
+                delta.health += GetIntArgument(card.OnPlay, i);
+        }
+        return delta;
+    }
+
+    public struct StatDelta
+    {
+        public int attack;
+        public int health;
+        public bool Any => attack != 0 || health != 0;
     }
 
     private static int GetIntArgument(UnityEventBase evt, int index)

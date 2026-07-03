@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: Blessed Seed
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 4768582602984610332, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardArt: {fileID: 4768582602984610332, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
+  minionArt: {fileID: -1127841548, guid: 71444647c78b26c4db204bd1388ac784, type: 3}
+  cardArt: {fileID: 4177589214123082665, guid: 71444647c78b26c4db204bd1388ac784, type: 3}
   cardName: Blessed Seed
   desc: 'On Death: Give all friendly minion +1/+1'
   attack: 0
@@ -27,6 +26,7 @@ MonoBehaviour:
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
