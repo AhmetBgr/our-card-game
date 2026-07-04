@@ -106,9 +106,15 @@ public class CardHandLayout : MonoBehaviour
     {
         if (_peekCard == null) return;
 
+        // Reinsert where the placeholder actually sits now, not at the slot captured when the
+        // peek began — cards added/removed while peeking shift the placeholder, so the stored
+        // _peekIndex can be stale and would drop the card a slot off from its original spot.
+        int index = cards.IndexOf(cardplaceholder);
+        if (index < 0) index = _peekIndex;
+
         RemoveCard(cardplaceholder);
         cardplaceholder.SetParent(transform.parent);
-        InsertCardAt(_peekCard, _peekIndex);
+        InsertCardAt(_peekCard, index);
 
         _peekCard = null;
         _peekIndex = -1;
@@ -142,6 +148,18 @@ public class CardHandLayout : MonoBehaviour
 
         int count = cards.Count;
         if (count == 0) return;
+
+        // Render/overlap order must follow the fan order: cards[0] draws on top, each
+        // following card tucks underneath. Deriving the sibling order from the list every
+        // frame keeps layering correct through transient states — e.g. a card added mid-flip
+        // (a child before it enters `cards`) or a card added while another is being peeked —
+        // instead of relying on SetParent/insert ordering coincidences that those states break.
+        // Any child not yet in `cards` (a card still playing its draw-flip) is left above the
+        // fan, matching the previous top-most behaviour during the flip.
+        for (int i = 0; i < count; i++)
+        {
+            cards[i].SetAsFirstSibling();
+        }
 
         float angleStep;
         float startAngle;
