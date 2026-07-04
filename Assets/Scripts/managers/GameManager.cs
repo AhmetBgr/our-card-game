@@ -19,6 +19,12 @@ public class GameManager : Singleton<GameManager>
 
     private bool cancelPlayingCardRequested = false;
     private CardController playingCard = null;
+
+    /// <summary>
+    /// The card currently being played, or null when no card play is in progress. Read-only; the general
+    /// targeting arrow reads this so it can originate from the card while the player picks a cell/minion.
+    /// </summary>
+    public CardController PlayingCard => playingCard;
     private Agent playingAgent = null;
     private int playingAgentManaBeforePlay = 0;
     private int playingCardHandLayoutIndex = -1;
