@@ -34,9 +34,6 @@ public class MinionController : MonoBehaviour
     public SpriteRenderer moveArrow;
     public Color moveArrowColor = Color.white;
     public Color moveArrowCollideColor = Color.yellow;
-    public float moveArrowBreathMinAlpha = 0.25f;
-    public float moveArrowBreathDuration = 0.6f;
-    private Tween _moveArrowTween;
 
     [Header("Attack Preview")]
     // Shown while this minion is hovered as an attack target and the pending attacker's strike would kill it.
@@ -89,8 +86,6 @@ public class MinionController : MonoBehaviour
     private void OnDisable()
     {
         GameManager.OnTurnEnd -= OnTurnSwitch;
-        _moveArrowTween?.Kill();
-        _moveArrowTween = null;
         _skullTween?.Kill();
         _skullTween = null;
         _statChangeTween?.Kill();
@@ -833,7 +828,7 @@ public class MinionController : MonoBehaviour
         EnableMoveArrow(willCollide);
     }
 
-    // Enable the arrow in white/yellow and breathe its alpha up/down for as long as it stays shown.
+    // Enable the arrow in white/yellow for as long as it stays shown.
     private void EnableMoveArrow(bool willCollide)
     {
         if (moveArrow == null) return;
@@ -841,18 +836,10 @@ public class MinionController : MonoBehaviour
         Color c = willCollide ? moveArrowCollideColor : moveArrowColor;
         moveArrow.color = c;
         moveArrow.gameObject.SetActive(true);
-
-        _moveArrowTween?.Kill();
-        _moveArrowTween = moveArrow
-            .DOFade(moveArrowBreathMinAlpha * c.a, moveArrowBreathDuration)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutSine);
     }
 
     public void HideMoveArrow()
     {
-        _moveArrowTween?.Kill();
-        _moveArrowTween = null;
         if (moveArrow != null) moveArrow.gameObject.SetActive(false);
     }
 
