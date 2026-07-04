@@ -894,6 +894,11 @@ public class MinionController : MonoBehaviour
         GameObject objectAtDest = GridManager.Instance.GetCell(GridManager.Instance.PosToGridIndex(pos)).obj;
 
         if (objectAtDest != null) {
+            // The minion wanted to advance (it passed the can-move / age / edge gates) but the cell
+            // ahead is taken — a real failed move. Blocked distinguishes this from the earlier returns,
+            // where the minion simply isn't trying to move. CollidedEntity is the blocker when it's a
+            // minion, null when it's a wall (still blocked).
+            moveInfo.Blocked = true;
             moveInfo.CollidedEntity = objectAtDest.GetComponent<MinionController>();
             return moveInfo;
         }
@@ -905,6 +910,9 @@ public class MinionController : MonoBehaviour
     public struct MoveInfo
     {
         public bool CanMove;
+        // True when the minion tried to advance but was blocked by an occupant (minion or wall), as
+        // opposed to not moving at all (can't-move flag, summoned this turn, or facing the board edge).
+        public bool Blocked;
         public MinionController CollidedEntity;
     }
 }

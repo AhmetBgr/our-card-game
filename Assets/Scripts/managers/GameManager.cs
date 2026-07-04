@@ -416,16 +416,20 @@ public class GameManager : Singleton<GameManager>
 
 
                     Vector3Int pos = Vector3Int.RoundToInt(minion.transform.position) + Vector3Int.up;
-                    if (minion.CanMove(pos).CanMove)
+                    var moveInfo = minion.CanMove(pos);
+                    if (moveInfo.CanMove)
                     {
                         minion.Move(pos);
                         yield return new WaitForSeconds(0.26f);
 
-                        
+
                     }
-                    else
+                    else if (moveInfo.Blocked)
                     {
-                        //minion.FailedMove(Vector3.up);
+                        // Wanted to advance but the cell ahead stayed occupied (minions are resolved
+                        // front-first, so anything still in the way here is a genuine block) — bump.
+                        minion.FailedMove(Vector3.up, moveInfo.CollidedEntity);
+                        yield return new WaitForSeconds(0.26f);
                     }
                 }
             }
@@ -518,16 +522,20 @@ public class GameManager : Singleton<GameManager>
                     if (minion.modal.isPlayerMinion) continue;
 
                     Vector3Int pos = Vector3Int.RoundToInt(minion.transform.position) + Vector3Int.down;
-                    if (minion.CanMove(pos).CanMove)
+                    var moveInfo = minion.CanMove(pos);
+                    if (moveInfo.CanMove)
                     {
                         minion.Move(pos);
                         yield return new WaitForSeconds(0.26f);
 
                         GridManager.Instance.InvokeGridChanged();
                     }
-                    else
+                    else if (moveInfo.Blocked)
                     {
-                        //minion.FailedMove(Vector3.down);
+                        // Wanted to advance but the cell ahead stayed occupied (minions are resolved
+                        // front-first, so anything still in the way here is a genuine block) — bump.
+                        minion.FailedMove(Vector3.down, moveInfo.CollidedEntity);
+                        yield return new WaitForSeconds(0.26f);
                     }
                 }
             }
