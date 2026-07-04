@@ -4221,6 +4221,8 @@ MonoBehaviour:
   switchController: {fileID: 1513692545}
   minionprefab: {fileID: 4113462982911207717, guid: ef15430328ff6844aa8c828df4d7c542,
     type: 3}
+  rangedMinionprefab: {fileID: 8475178990169076692, guid: f37440cbe0d1dd44aa5807a69867128e,
+    type: 3}
   discardPile: {fileID: 1487044434}
   isPlayingCard: 0
   playerCornerDamageTexts:
@@ -7302,7 +7304,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 8c60c329947d8cb44b6086d77156f50a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

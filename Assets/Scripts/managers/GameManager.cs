@@ -13,6 +13,7 @@ public class GameManager : Singleton<GameManager>
     public Agent opponent;
     public SwitchController switchController;   
     public GameObject minionprefab;
+    public GameObject rangedMinionprefab;
     public Transform discardPile;
     public bool isPlayingCard = false;
     public IEnumerator curaction;
@@ -915,7 +916,8 @@ public class GameManager : Singleton<GameManager>
             }
         }
 
-        MinionController minion = Instantiate(minionprefab, pos, Quaternion.identity).GetComponent<MinionController>();
+        GameObject prefabToSpawn = (card.range >= 2 && rangedMinionprefab != null) ? rangedMinionprefab : minionprefab;
+        MinionController minion = Instantiate(prefabToSpawn, pos, Quaternion.identity).GetComponent<MinionController>();
         minion.card = card;
         //minion.modal = new MinionModal(card, minion);
         // fix: setting isplayerminion like this might set as wrong if you summon minion on opponents turn or vice versa

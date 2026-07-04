@@ -22,6 +22,11 @@ public class MinionView : MonoBehaviour
 
     private float heroDropHeight = 10f;
 
+    // Which team's inline this minion should show, and whether the spawn animation has finished. The
+    // inline stays hidden until the pop-in completes, so it doesn't flash at full size mid scale-up.
+    private bool _isPlayerMinion;
+    private bool _hasAppeared;
+
     public void UpdateView(CardModal modal)
     {
         if (modal == null) return;
@@ -31,9 +36,17 @@ public class MinionView : MonoBehaviour
         UpdateFrame(modal);
 
         art.sprite = modal.minionArt;
-        enemyInline.gameObject.SetActive(!modal.isPlayerMinion);
+        _isPlayerMinion = modal.isPlayerMinion;
+        ApplyInlineVisibility();
+    }
+
+    // The team inline is only visible once the spawn animation has finished; before then both stay
+    // hidden. Later UpdateView calls (e.g. after taking damage) keep it shown, since _hasAppeared sticks.
+    private void ApplyInlineVisibility()
+    {
+        enemyInline.gameObject.SetActive(_hasAppeared && !_isPlayerMinion);
         if (friendlyInline != null)
-            friendlyInline.gameObject.SetActive(modal.isPlayerMinion);
+            friendlyInline.gameObject.SetActive(_hasAppeared && _isPlayerMinion);
     }
 
     private void UpdateAttackText(int value)
@@ -47,7 +60,7 @@ public class MinionView : MonoBehaviour
 
     private void UpdateFrame(CardModal modal)
     {
-        if(frame == null) return;
+        /*if(frame == null) return;
 
         if(modal.range == 1)
         {
@@ -59,20 +72,29 @@ public class MinionView : MonoBehaviour
             int index = Mathf.Min((int)(modal.defHealth / 5f), rangedFrames.Length - 1);
             frame.sprite = rangedFrames[index];
 
-        }
+        }*/
     }
 
     public void PlayAppearAnimation()
     {
         transform.localScale = Vector3.zero;
-        transform.DOScale(Vector3.one, 0.5f).SetDelay(0.25f).SetEase(Ease.OutBack);
+        transform.DOScale(Vector3.one, 0.5f).SetDelay(0.25f).SetEase(Ease.OutBack)
+            .OnComplete(RevealInline);
     }
 
     public void PlayHeroAppearAnimation()
     {
         Vector3 target = transform.localPosition;
         transform.localPosition = target + Vector3.up * heroDropHeight;
-        transform.DOLocalMove(target, 1f).SetDelay(heroDropDelay).SetEase(Ease.OutExpo);
+        transform.DOLocalMove(target, 1f).SetDelay(heroDropDelay).SetEase(Ease.OutExpo)
+            .OnComplete(RevealInline);
+    }
+
+    // Called when a spawn animation finishes: the inline becomes eligible to show and is applied now.
+    private void RevealInline()
+    {
+        _hasAppeared = true;
+        ApplyInlineVisibility();
     }
 
     public void FadeOutArtImage(float dur)

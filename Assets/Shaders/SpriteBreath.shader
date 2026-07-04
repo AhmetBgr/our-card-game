@@ -16,6 +16,8 @@ Shader "Custom/2D/SpriteBreath"
 
         [Header(Alpha Pulse)]
         _AlphaAmount ("Alpha Pulse (0 = off)", Range(0,1)) = 0
+        _AlphaMin ("Alpha Min", Range(0,1)) = 0
+        _AlphaMax ("Alpha Max", Range(0,1)) = 1
 
         // Sprite/UI plumbing (matches Sprites-Default)
         [HideInInspector] _RendererColor ("RendererColor", Color) = (1,1,1,1)
@@ -74,6 +76,8 @@ Shader "Custom/2D/SpriteBreath"
             float  _ScaleAmountY;
             float4 _Pivot;
             float  _AlphaAmount;
+            float  _AlphaMin;
+            float  _AlphaMax;
 
             v2f vert (appdata v)
             {
@@ -88,8 +92,9 @@ Shader "Custom/2D/SpriteBreath"
                 pos.xy = (pos.xy - _Pivot.xy) * scale + _Pivot.xy;
                 o.vertex = UnityObjectToClipPos(float4(pos, v.vertex.w));
 
-                // Optional alpha pulse in sync with the swell.
+                // Optional alpha pulse in sync with the swell, clamped to [min, max].
                 float alpha = lerp(1.0, 1.0 - _AlphaAmount, w);
+                alpha = clamp(alpha, _AlphaMin, _AlphaMax);
 
                 o.uv = v.uv;
                 o.color = v.color * _Color * _RendererColor;
