@@ -2,15 +2,21 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Hearthstone-style curved aiming arrow shown while a RANGED minion is picking an attack target.
+/// Hearthstone-style aiming arrow shown while a minion is picking an attack target.
 ///
 /// It owns no game state and edits none: it self-activates by polling the public selection state that
-/// already exists on <see cref="SelectionManager"/>. Whenever an attack-target request is live for a
-/// ranged attacker (<see cref="SelectionManager.ActiveAttacker"/> non-null,
+/// already exists on <see cref="SelectionManager"/>. Whenever an attack-target request is live for an
+/// attacker this instance serves (<see cref="SelectionManager.ActiveAttacker"/> non-null,
 /// <see cref="SelectionManager.ActiveIntent"/> == <see cref="HoverIntent.ToAttack"/>, and the attacker's
-/// <c>modal.range &gt;= 2</c>) it draws a quadratic Bézier from the attacker to the cursor, snapping the
-/// end onto whatever valid target sits under the cursor. When the request ends (target clicked, cancel,
-/// turn end) the state clears and the arrow hides itself the same frame.
+/// range matches <see cref="serves"/>) it draws a quadratic Bézier from the attacker to the cursor,
+/// snapping the end onto whatever valid target sits under the cursor. When the request ends (target
+/// clicked, cancel, turn end) the state clears and the arrow hides itself the same frame.
+///
+/// Ranged and melee attackers get their OWN instance of this component so each can have its own line,
+/// beads and anchors. Use <see cref="serves"/> to pick which attackers an instance responds to
+/// (ranged = <c>modal.range &gt;= 2</c>, melee = below that), and turn <see cref="curvedLine"/> off for the
+/// melee arrow so it draws a straight line instead of a lobbed arc. Everything else (beads, anchors,
+/// tinting) works the same for both.
 ///
 /// The curved body is a code-built LineRenderer. The two END markers are your OWN scene objects: assign a
 /// <see cref="startAnchor"/> (drawn on the attacker) and an <see cref="endAnchor"/> (drawn on the target /
@@ -20,6 +26,22 @@ using UnityEngine;
 /// </summary>
 public class AttackTargetingArrow : MonoBehaviour
 {
+    /// <summary>Which attackers an arrow instance serves, keyed off the attacker's <c>modal.range</c>.</summary>
+    public enum AttackerKind
+    {
+        [Tooltip("Attackers with range >= 2 (the lobbed, curved arrow).")]
+        Ranged,
+        [Tooltip("Attackers with range < 2 (melee; pair with a straight line).")]
+        Melee,
+    }
+
+    [Header("Which attacker this arrow serves")]
+    [Tooltip("Ranged serves attackers with modal.range >= 2; Melee serves the rest. Give ranged and melee " +
+             "their own instance of this component so each keeps its own line, beads and anchors.")]
+    public AttackerKind serves = AttackerKind.Ranged;
+    [Tooltip("Bulge the line into a lobbed arc (ranged). Turn OFF for melee to draw a straight line from " +
+             "the attacker to the target.")]
+    public bool curvedLine = true;
     [Header("End markers (assign your own scene objects; leave empty to skip)")]
     [Tooltip("Transform placed at the START of the line, on the attacker.")]
     public Transform startAnchor;
@@ -77,8 +99,11 @@ public class AttackTargetingArrow : MonoBehaviour
     public Color validColor = new Color(0.55f, 1f, 0.55f, 1f);
     [Tooltip("Tint while the cursor is over empty space or an invalid target.")]
     public Color invalidColor = new Color(1f, 0.95f, 0.7f, 1f);
-    [Tooltip("Also tint SpriteRenderers under the start/end anchors with the valid/invalid color.")]
+    [Tooltip("Also tint SpriteRenderers under the END anchor (arrowhead) with the valid/invalid color.")]
     public bool tintAnchors = true;
+    [Tooltip("Also tint the START anchor (on the attacker). Off by default so the attacker-side marker keeps " +
+             "its own color and doesn't flash with the aim state.")]
+    public bool tintStartAnchor = false;
 
     [Header("Rendering order")]
     [Tooltip("Sorting layer for the line body. Defaults to the top layer so it draws over minions " +
@@ -149,11 +174,14 @@ public class AttackTargetingArrow : MonoBehaviour
         var sel = SelectionManager.Instance;
         var attacker = sel != null ? sel.ActiveAttacker : null;
 
-        // Only for a live attack pick by a ranged attacker.
+        // Only for a live attack pick by an attacker this instance serves (ranged vs melee).
+        bool rangeMatches = attacker != null && attacker.modal != null
+                            && (serves == AttackerKind.Ranged
+                                ? attacker.modal.range >= 2
+                                : attacker.modal.range < 2);
         bool active = attacker != null
                       && sel.ActiveIntent == HoverIntent.ToAttack
-                      && attacker.modal != null
-                      && attacker.modal.range >= 2;
+                      && rangeMatches;
         if (!active)
         {
             SetVisible(false);
@@ -179,10 +207,15 @@ public class AttackTargetingArrow : MonoBehaviour
         start.z = foregroundZ;
         end.z = foregroundZ;
 
-        // Control point: midpoint bulged upward, more for longer shots.
-        float dist = Vector2.Distance(start, end);
-        float extra = Mathf.Min(dist * 0.25f, maxExtraArc);
-        Vector3 control = (start + end) * 0.5f + Vector3.up * (arcHeight + extra);
+        // Control point: for a curved (ranged) arrow the midpoint is bulged upward, more for longer shots;
+        // for a straight (melee) line the control sits exactly at the midpoint so the Bézier is a line.
+        Vector3 control = (start + end) * 0.5f;
+        if (curvedLine)
+        {
+            float dist = Vector2.Distance(start, end);
+            float extra = Mathf.Min(dist * 0.25f, maxExtraArc);
+            control += Vector3.up * (arcHeight + extra);
+        }
         control.z = foregroundZ;
 
         // Sample the quadratic Bézier into the line.
@@ -203,9 +236,9 @@ public class AttackTargetingArrow : MonoBehaviour
         }
 
         // End anchor (arrowhead): at the tip, facing the curve tangent there.
-        PlaceAnchor(endAnchor, _endTintTargets, end, end - _points[_points.Length - 2], endAngleOffset, c);
-        // Start anchor: at the origin, facing down the line.
-        PlaceAnchor(startAnchor, _startTintTargets, start, _points[1] - _points[0], startAngleOffset, c);
+        PlaceAnchor(endAnchor, _endTintTargets, end, end - _points[_points.Length - 2], endAngleOffset, c, tintAnchors);
+        // Start anchor: at the origin, facing down the line. Tinted only if explicitly opted in.
+        PlaceAnchor(startAnchor, _startTintTargets, start, _points[1] - _points[0], startAngleOffset, c, tintAnchors && tintStartAnchor);
 
         PlaceBeads(start, control, end, c);
 
@@ -284,7 +317,7 @@ public class AttackTargetingArrow : MonoBehaviour
         }
     }
 
-    private void PlaceAnchor(Transform anchor, SpriteRenderer[] tintTargets, Vector3 pos, Vector3 tangent, float angleOffset, Color tint)
+    private void PlaceAnchor(Transform anchor, SpriteRenderer[] tintTargets, Vector3 pos, Vector3 tangent, float angleOffset, Color tint, bool applyTint)
     {
         if (anchor == null) return;
         anchor.position = pos;
@@ -293,7 +326,7 @@ public class AttackTargetingArrow : MonoBehaviour
             float angle = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg + angleOffset;
             anchor.rotation = Quaternion.Euler(0f, 0f, angle);
         }
-        if (tintAnchors) TintRgb(tintTargets, tint);
+        if (applyTint) TintRgb(tintTargets, tint);
         if (!anchor.gameObject.activeSelf) anchor.gameObject.SetActive(true);
     }
 
