@@ -788,10 +788,11 @@ public class MinionController : MonoBehaviour
     // Movement-preview arrow shown while the player hovers the turn-switch button. The arrow points in
     // this minion's forward direction (up for the player, down for the opponent) and is enabled only when
     // the minion would actually try to advance next turn: white when the cell ahead is free (it will
-    // move), yellow when the cell ahead is occupied (it wants to move but will collide). It stays hidden
-    // when the minion can't move at all — can't-move flag, summoned this turn (age < 1), or facing the
-    // board edge. Mirrors CanMove's gating, but treats any occupant (minion or wall) as a collision so
-    // walls also turn the arrow yellow (CanMove only reports minion collisions via CollidedEntity).
+    // move or will follow the column forward), yellow only when the cell ahead stays blocked. It stays
+    // hidden when the minion can't move at all — can't-move flag, summoned this turn (age < 1), or facing
+    // the board edge. Collision is resolved via CellAheadClears, which walks the column so a minion tucked
+    // behind an ally that is itself advancing shows white (it follows into the vacated cell), and only a
+    // real blocker (edge, wall, enemy, or a stuck ally) shows yellow.
     public void ShowMoveArrow()
     {
         if (moveArrow == null) return;
@@ -812,8 +813,32 @@ public class MinionController : MonoBehaviour
             return;
         }
 
-        bool willCollide = GridManager.Instance.GetCell(idx).obj != null;
+        bool willCollide = !CellAheadClears(dir);
         EnableMoveArrow(willCollide);
+    }
+
+    // Whether the cell one step along `dir` will be empty by the time this minion resolves its move
+    // at turn end. The turn-end movement loops resolve minions front-first and each Move updates the
+    // grid immediately, so an occupied cell isn't necessarily a collision: if the blocker is a
+    // same-side minion that will itself advance, this minion follows it into the vacated cell (the
+    // whole column shifts in one step). Only a permanent blocker keeps the cell filled — the board
+    // edge, a wall/non-minion, an enemy (which doesn't move on this side's phase), or an ally that is
+    // itself blocked. Walks the column recursively, matching the resolution order exactly.
+    private bool CellAheadClears(Vector3Int dir)
+    {
+        Vector3Int dest = Vector3Int.RoundToInt(transform.position) + dir;
+        Vector2Int idx = GridManager.Instance.PosToGridIndex(dest);
+
+        if (GridManager.Instance.IsOutSideOfGrid(idx)) return false;
+
+        GameObject occupant = GridManager.Instance.GetCell(idx).obj;
+        if (occupant == null) return true;
+
+        if (!occupant.TryGetComponent(out MinionController ahead)) return false;
+        if (ahead.modal.isPlayerMinion != modal.isPlayerMinion) return false;
+        if (!ahead.modal.canMove || ahead.age < 1) return false;
+
+        return ahead.CellAheadClears(dir);
     }
 
     // Push preview shown while hovering a push card's candidate: the arrow always shows (the intent IS to

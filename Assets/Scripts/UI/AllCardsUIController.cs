@@ -79,10 +79,17 @@ public class AllCardsUIController : MonoBehaviour
 
     public void UpdateSelectableCards()
     {
-        List<string> cardsInCustomDeck = SaveManager.Instance.saveData.Decks[SaveManager.Instance.saveData.SelectedDeckIndex].Deck;
         foreach (var button in allCards.Values)
             button.Button.interactable = true;
 
+        // The mystery/randomized deck hides its contents (its cards show as "???"). Marking
+        // that deck's cards as selected here would grey out exactly the cards it contains in
+        // the all-cards grid, revealing the hidden deck — so leave every card unmarked while
+        // it's the selected deck. It's locked, so nothing can be added/removed anyway.
+        if (SaveManager.Instance.saveData.SelectedDeckIndex == SaveManager.MysteryDeckIndex)
+            return;
+
+        List<string> cardsInCustomDeck = SaveManager.Instance.saveData.Decks[SaveManager.Instance.saveData.SelectedDeckIndex].Deck;
         foreach (var item in cardsInCustomDeck)
         {
             if (!allCards.ContainsKey(item)) continue;
