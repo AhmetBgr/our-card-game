@@ -5,10 +5,10 @@ using UnityEngine;
 /// spell, or picking a grid cell (summon position, area effect, etc.). All the rendering lives in
 /// <see cref="TargetingArrowBase"/>; this class only answers WHEN it is live and WHERE it runs.
 ///
-/// It self-activates by polling the two selection systems: a non-attack minion pick on
-/// <see cref="SelectionManager"/> (<see cref="SelectionManager.HasActiveMinionRequest"/> with an intent
-/// other than <see cref="HoverIntent.ToAttack"/>, which is the attack arrow's job) OR a cell pick on
-/// <see cref="GridCellSelectionManager.HasActiveSession"/>. The line originates from the card being played
+/// It self-activates by polling the two selection systems: a card-driven minion pick on
+/// <see cref="SelectionManager"/> (<see cref="SelectionManager.HasActiveCardMinionPick"/> — any request of
+/// kind Minion, regardless of its declared intent; an attacker's attack pick is the attack arrow's job) OR
+/// a cell pick on <see cref="GridCellSelectionManager.HasActiveSession"/>. The line originates from the card being played
 /// (<see cref="GameManager.PlayingCard"/>) — or <see cref="originOverride"/> if you'd rather anchor it to a
 /// fixed point — and ends at the cursor, snapping onto a valid minion or a valid selectable cell under it.
 /// When the pick ends the arrow hides the same frame.
@@ -42,8 +42,10 @@ public class GeneralTargetingArrow : TargetingArrowBase
         var sel = SelectionManager.Instance;
         var cells = GridCellSelectionManager.Instance;
 
-        // A card-driven minion pick (anything but an attack, which the attack arrow owns) or a cell pick.
-        bool minionPick = sel != null && sel.HasActiveMinionRequest && sel.ActiveIntent != HoverIntent.ToAttack;
+        // A card-driven minion pick (any KIND but an attacker's attack pick, which the attack arrow owns —
+        // keyed off the request kind, not the intent value, so a spell may still declare ToAttack intent for
+        // hover feedback and keep its arrow) or a cell pick.
+        bool minionPick = sel != null && sel.HasActiveCardMinionPick;
         bool cellPick = cells != null && cells.HasActiveSession;
         if (!minionPick && !cellPick) return false;
 

@@ -57,6 +57,15 @@ public class SelectionManager
         _active != null && _active.Kind == SelectionKind.AttackTarget ? _active.Attacker : null;
 
     /// <summary>
+    /// True while a card/spell minion pick is active (as opposed to an attacker's attack-target pick).
+    /// The general targeting arrow keys off this KIND rather than the intent value, because a card may
+    /// legitimately declare any <see cref="HoverIntent"/> — even <see cref="HoverIntent.ToAttack"/> for
+    /// weapon/attack hover feedback — while still being a card-driven pick the general arrow should draw.
+    /// The attack arrow, in turn, keys off <see cref="ActiveAttacker"/>, so the two never both fire.
+    /// </summary>
+    public bool HasActiveCardMinionPick => _active != null && _active.Kind == SelectionKind.Minion;
+
+    /// <summary>
     /// What the active request means for a hovered minion, so hover feedback can be picked from it.
     /// Falls back to <see cref="HoverIntent.SeeRange"/> when nothing is being selected.
     /// </summary>
