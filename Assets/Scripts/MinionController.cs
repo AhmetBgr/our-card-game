@@ -705,7 +705,14 @@ public class MinionController : MonoBehaviour
         int effectiveDamage = Mathf.Max(damage - modal.armor, 0);
         modal.health -= effectiveDamage;
 
-        DOVirtual.DelayedCall(0.75f, () => view.UpdateView(modal));
+        DOVirtual.DelayedCall(0.75f, () =>
+        {
+            view.UpdateView(modal);
+            if (effectiveDamage > 0)
+            {
+                view.PlayDamageIndicator(effectiveDamage);
+            }
+        });
         Debug.Log("minion take damage: " + modal.name);
 
         if (modal.health <= 0)

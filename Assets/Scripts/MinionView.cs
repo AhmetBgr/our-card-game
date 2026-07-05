@@ -20,6 +20,12 @@ public class MinionView : MonoBehaviour
     [SerializeField] private SpriteRenderer friendlyInline;
     [SerializeField] private float heroDropDelay = 0.2f;
 
+    [SerializeField] private Transform damageIndicator;
+    [SerializeField] private SpriteRenderer damageIndicatorBg;
+    [SerializeField] private TextMeshProUGUI damageIndicatorText;
+    [SerializeField] private CanvasGroup damageIndicatorGroup;
+    [SerializeField] private float damageIndicatorHoldDuration = 0.4f;
+
     private float heroDropHeight = 10f;
 
     // Which team's inline this minion should show, and whether the spawn animation has finished. The
@@ -102,6 +108,32 @@ public class MinionView : MonoBehaviour
         art.DOFade(0f, dur);
         enemyInline.DOFade(0f, dur);
 
+    }
+
+    // Fast pop-in of the damage number, held briefly, then faded out (via CanvasGroup, with the
+    // world-space background synced to the same alpha) and hidden.
+    public void PlayDamageIndicator(int damage)
+    {
+        damageIndicator.DOKill();
+        damageIndicatorGroup.DOKill();
+
+        damageIndicatorText.text = "-" + damage;
+        damageIndicatorGroup.alpha = 1f;
+        damageIndicatorBg.color = new Color(damageIndicatorBg.color.r, damageIndicatorBg.color.g, damageIndicatorBg.color.b, 1f);
+
+        damageIndicator.gameObject.SetActive(true);
+        damageIndicator.localScale = Vector3.zero;
+        damageIndicator.DOScale(Vector3.one, 0.12f).SetEase(Ease.OutBack)
+            .OnComplete(() =>
+            {
+                DOVirtual.DelayedCall(damageIndicatorHoldDuration, () =>
+                {
+                    damageIndicatorGroup.DOFade(0f, 0.18f)
+                        .OnUpdate(() => damageIndicatorBg.color = new Color(
+                            damageIndicatorBg.color.r, damageIndicatorBg.color.g, damageIndicatorBg.color.b, damageIndicatorGroup.alpha))
+                        .OnComplete(() => damageIndicator.gameObject.SetActive(false));
+                });
+            });
     }
 
 }
