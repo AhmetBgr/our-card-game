@@ -499,6 +499,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6991507790297533912}
   - component: {fileID: 3895986251986615728}
+  - component: {fileID: 1943346824808119975}
   m_Layer: 0
   m_Name: Skull
   m_TagString: Untagged
@@ -581,6 +582,19 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!210 &1943346824808119975
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1943346824808119974}
+  m_Enabled: 1
+  m_SortingLayerID: -1869315837
+  m_SortingLayer: 1
+  m_SortingOrder: 2
+  m_SortAtRoot: 1
+  m_Sort3DAs2D: 0
 --- !u!1 &2021740270165731105
 GameObject:
   m_ObjectHideFlags: 0
@@ -2646,6 +2660,12 @@ PrefabInstance:
       propertyPath: col
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 5194185331185293962, guid: cc33949db4b1cb54c9317c475ac673ed,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 91e9e4a6d0f7cf24f9eee4d34bee9e57,
+        type: 3}
     - target: {fileID: 5194185331185293962, guid: cc33949db4b1cb54c9317c475ac673ed,
         type: 3}
       propertyPath: m_Color.a

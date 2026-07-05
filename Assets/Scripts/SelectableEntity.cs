@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +13,13 @@ public class SelectableEntity : MonoBehaviour
     private bool _isHoverPreview;
 
     public bool IsSelectable => iSselectable;
+
+    /// <summary>
+    /// Raised whenever the normal selection highlight is toggled, carrying its new on/off state. Lets a
+    /// coupled indicator that shares the entity's face — e.g. a minion's attack (sword) highlight — hide
+    /// while the normal highlight is showing and return when it clears, so the two never light at once.
+    /// </summary>
+    public event Action<bool> SelectableChanged;
 
     public SpriteRenderer highlight;
     public SpriteRenderer hover;
@@ -62,9 +70,10 @@ public class SelectableEntity : MonoBehaviour
 
         //PlayBreathAnimation();
 
-        if (col == null) return;  
+        if (col != null)
+            col.enabled = value;
 
-        col.enabled = value;
+        SelectableChanged?.Invoke(iSselectable);
     }
 
     private Sequence breathSequence;
@@ -98,9 +107,10 @@ public class SelectableEntity : MonoBehaviour
         iSselectable = false;
         UpdateVisuals();
 
-        if (col == null) return;
+        if (col != null)
+            col.enabled = true;
 
-        col.enabled = true;
+        SelectableChanged?.Invoke(iSselectable);
     }
 
     /*public void ClearVisuals()

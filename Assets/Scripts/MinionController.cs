@@ -92,16 +92,22 @@ public class MinionController : MonoBehaviour
     private void OnEnable()
     {
         GameManager.OnTurnEnd += OnTurnSwitch;
+        // React to the normal selection highlight turning on/off so the sword indicator can yield to it
+        // (they must never light at once) and return when the selection clears.
+        if (selectable != null) selectable.SelectableChanged += OnSelectableChanged;
     }
 
     private void OnDisable()
     {
         GameManager.OnTurnEnd -= OnTurnSwitch;
+        if (selectable != null) selectable.SelectableChanged -= OnSelectableChanged;
         _skullTween?.Kill();
         _skullTween = null;
         _statChangeTween?.Kill();
         _statChangeTween = null;
     }
+
+    private void OnSelectableChanged(bool isSelectable) => ApplyAttackHighlight();
 
     protected virtual void Start()
     {
@@ -543,8 +549,7 @@ public class MinionController : MonoBehaviour
         // The attack highlight reflects eligibility, not range: it stays lit whenever the minion can
         // still attack this turn, even if there is no enemy in range to hit yet.
         _attackReady = eligible;
-        if (attackHighlight != null)
-            attackHighlight.enabled = _attackReady;
+        ApplyAttackHighlight();
 
         // An attack-ready minion shows the attack highlight (above), NOT the normal selection highlight,
         // yet must stay clickable so the player can start its attack. The normal highlight is reserved
@@ -567,8 +572,17 @@ public class MinionController : MonoBehaviour
     // Restore the attack indicator to its resting state after an overlay that hid it goes away.
     public void RefreshAttackHighlight()
     {
+        ApplyAttackHighlight();
+    }
+
+    // The sword indicator and the normal selection highlight are mutually exclusive: whenever the minion
+    // is lit as a selection target (a spell / attack-target pick driven by SelectionManager), the sword
+    // yields, and it returns once that highlight clears. So it shows only when the minion rests
+    // attack-ready AND is not currently highlighted as a selectable target.
+    private void ApplyAttackHighlight()
+    {
         if (attackHighlight != null)
-            attackHighlight.enabled = _attackReady;
+            attackHighlight.enabled = _attackReady && (selectable == null || !selectable.IsSelectable);
     }
 
     public virtual bool CanAttack(Agent opponent)
