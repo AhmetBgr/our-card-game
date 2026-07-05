@@ -108,9 +108,12 @@ Shader "Custom/2D/SpriteBreath"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 c = tex2D(_MainTex, i.uv);
-                c.rgb *= i.color.rgb;
-                c *= i.color.a;   // premultiply
+                // Apply tint + vertex/breath alpha (rgb and a), then premultiply by the FINAL alpha —
+                // which includes the texture's own alpha. Premultiplying by only the vertex alpha (the
+                // old code) left semi-transparent/anti-aliased texels with un-scaled rgb, so they fringed
+                // bright/white and the sprite washed out as the alpha pulse faded. Matches Sprites-Default.
+                fixed4 c = tex2D(_MainTex, i.uv) * i.color;
+                c.rgb *= c.a;
                 return c;
             }
             ENDCG

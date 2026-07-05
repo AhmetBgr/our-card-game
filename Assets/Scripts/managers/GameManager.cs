@@ -573,17 +573,17 @@ public class GameManager : Singleton<GameManager>
         Debug.Log("should set palyer minions ready to attack");
 
         player.curState = Player.State.Waiting;
-        // Set player minions Ready to attack
+        // Set player minions Ready to attack. SetReadyToAttack owns the visual + clickable state
+        // (attack highlight for attack-ready minions, no normal highlight), so we don't re-toggle
+        // SetSelectable here — doing so would light the normal highlight on attack-ready minions.
         foreach (var item in player.minions)
         {
             item.SetReadyToAttack();
-            item.selectable.SetSelectable(item.canAttack);
         }
 
         if (player.hero != null)
         {
             player.hero.SetReadyToAttack();
-            player.hero.selectable.SetSelectable(player.hero.canAttack);
         }
     }
 

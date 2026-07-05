@@ -129,9 +129,15 @@ public class SelectionManager
             {
                 foreach (var friendly in player.minions)
                 {
-                    if (friendly != null && friendly.selectable != null) friendly.selectable.SetSelectable(false);
+                    if (friendly == null) continue;
+                    if (friendly.selectable != null) friendly.selectable.SetSelectable(false);
+                    friendly.HideAttackHighlight();
                 }
-                if (player.hero != null && player.hero.selectable != null) player.hero.selectable.SetSelectable(false);
+                if (player.hero != null)
+                {
+                    if (player.hero.selectable != null) player.hero.selectable.SetSelectable(false);
+                    player.hero.HideAttackHighlight();
+                }
             }
 
             // The attacker keeps its collider (so clicking it again cancels) but shows no highlight.

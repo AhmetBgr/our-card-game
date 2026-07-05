@@ -30,6 +30,17 @@ public class MinionController : MonoBehaviour
 
     public MinionController LastTarget;
 
+    [Header("Attack Ready Indicator")]
+    // The sword icon shown on a minion while it still has its attack this turn. It reflects attack
+    // *eligibility* only: it stays lit even when no enemy is currently in range (the minion is still
+    // "ready", it just has nothing to hit yet). Being selectable/clickable still requires a target.
+    public SpriteRenderer attackHighlight;
+    // Source of truth for whether the sword indicator should rest lit (set by SetReadyToAttack). Transient
+    // overlays that share the minion's face — the move-preview arrow, attack-target selection — hide the
+    // sword renderer without clearing this, and RefreshAttackHighlight() restores it from this flag when
+    // the overlay goes away.
+    private bool _attackReady;
+
     [Header("Move Preview")]
     public SpriteRenderer moveArrow;
     public Color moveArrowColor = Color.white;
@@ -113,6 +124,12 @@ public class MinionController : MonoBehaviour
         age++;
         isAttackedThisTurn = false;
         isMovementValidated = false;
+
+        // Clear the attack indicator on every turn end; it is re-lit for the player's minions at the
+        // start of their turn via SetReadyToAttack.
+        _attackReady = false;
+        if (attackHighlight != null)
+            attackHighlight.enabled = false;
 
     }
 
@@ -495,7 +512,11 @@ public class MinionController : MonoBehaviour
 
     public virtual void SetReadyToAttack()
     {
-        if (!modal.canAttack || !modal.canAttackManually || isAttackedThisTurn || age < 1)
+        // Eligibility: does this minion still have its attack this turn? This is independent of whether
+        // a target is currently in range.
+        bool eligible = modal.canAttack && modal.canAttackManually && !isAttackedThisTurn && age >= 1;
+
+        if (!eligible)
         {
             canAttack = false;
         }
@@ -514,13 +535,42 @@ public class MinionController : MonoBehaviour
                 }
             }
 
+            // canAttack (selectable/clickable) still requires a target to be in range.
             canAttack = targetExists;
 
         }
+
+        // The attack highlight reflects eligibility, not range: it stays lit whenever the minion can
+        // still attack this turn, even if there is no enemy in range to hit yet.
+        _attackReady = eligible;
+        if (attackHighlight != null)
+            attackHighlight.enabled = _attackReady;
+
+        // An attack-ready minion shows the attack highlight (above), NOT the normal selection highlight,
+        // yet must stay clickable so the player can start its attack. The normal highlight is reserved
+        // for other selection flows (spell / push / attack-target picking driven by SelectionManager).
         //showInfo.gameObject.SetActive(!canAttack);
-        selectable.SetSelectable(canAttack);
+        if (canAttack)
+            selectable.SetClickableWithoutHighlight();
+        else
+            selectable.SetSelectable(false);
 
     }
+    // Force the attack indicator off for a transient overlay (attack-target selection, move-preview
+    // arrow) without clearing _attackReady, so RefreshAttackHighlight() / SetReadyToAttack can restore it.
+    public void HideAttackHighlight()
+    {
+        if (attackHighlight != null)
+            attackHighlight.enabled = false;
+    }
+
+    // Restore the attack indicator to its resting state after an overlay that hid it goes away.
+    public void RefreshAttackHighlight()
+    {
+        if (attackHighlight != null)
+            attackHighlight.enabled = _attackReady;
+    }
+
     public virtual bool CanAttack(Agent opponent)
     {
         if (!modal.canAttack || !modal.canAttackManually || isAttackedThisTurn || age == 0) return false;
@@ -861,11 +911,18 @@ public class MinionController : MonoBehaviour
         Color c = willCollide ? moveArrowCollideColor : moveArrowColor;
         moveArrow.color = c;
         moveArrow.gameObject.SetActive(true);
+
+        // The move arrow and the attack sword share the minion's face — while the arrow shows, hide the
+        // sword. It's restored from _attackReady in HideMoveArrow when the arrow goes away.
+        HideAttackHighlight();
     }
 
     public void HideMoveArrow()
     {
         if (moveArrow != null) moveArrow.gameObject.SetActive(false);
+
+        // Bring the attack indicator back to its resting state now that the arrow is gone.
+        RefreshAttackHighlight();
     }
 
     public virtual MoveInfo CanMove(Vector3Int pos)
