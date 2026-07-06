@@ -1,17 +1,23 @@
 public static class ActionLogMessageFactory
 {
-    private static string OwnerLabel(Agent owner)
+    private static bool IsPlayer(Agent owner)
     {
-        return owner == GameManager.Instance.player ? "Player (You)" : "Opponent";
+        return owner == GameManager.Instance.player;
     }
 
-    public static ActionLogEntry MinionPlayed(MinionController minion)
+    private static string OwnerLabel(Agent owner)
+    {
+        return IsPlayer(owner) ? "(P)" : "(E)";
+    }
+
+    public static ActionLogEntry MinionSummoned(MinionController minion)
     {
         return new ActionLogEntry
         {
-            EventType = ActionLogEventType.MinionPlayed,
-            Message = $"{OwnerLabel(minion.owner)} played <color=yellow>{minion.card.cardName}</color>",
+            EventType = ActionLogEventType.MinionSummoned,
+            Message = $"{OwnerLabel(minion.owner)} summoned <color=yellow>{minion.card.cardName}</color>",
             PreviewCard = minion.card,
+            IsPlayerOwned = IsPlayer(minion.owner),
         };
     }
 
@@ -22,6 +28,7 @@ public static class ActionLogMessageFactory
             EventType = ActionLogEventType.MinionDied,
             Message = $"{OwnerLabel(minion.owner)}'s <color=yellow>{minion.card.cardName}</color> died",
             PreviewCard = minion.card,
+            IsPlayerOwned = IsPlayer(minion.owner),
         };
     }
 
@@ -32,6 +39,7 @@ public static class ActionLogMessageFactory
             EventType = ActionLogEventType.CardPlayed,
             Message = $"{OwnerLabel(owner)} played <color=yellow>{card.cardName}</color>",
             PreviewCard = card,
+            IsPlayerOwned = IsPlayer(owner),
         };
     }
 }

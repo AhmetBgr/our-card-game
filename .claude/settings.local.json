@@ -39,7 +39,18 @@
       "Bash(git checkout *)",
       "WebFetch(domain:packages.unity.com)",
       "Bash(grep *)",
-      "WebSearch"
+      "WebSearch",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Select-String *)",
+      "PowerShell($f=\"C:\\\\Users\\\\Ahmet\\\\AppData\\\\Local\\\\Unity\\\\Editor\\\\Editor-prev.log\"; $lines=Get-Content $f; $idx=\\($lines | Select-String -Pattern \"StackOverflowException\" | Select-Object -First 1\\).LineNumber; Write-Output \"StackOverflow at line: $idx of $\\($lines.Count\\)\"; Write-Output \"=== 40 lines BEFORE the overflow \\(context: what triggered it\\) ===\"; $start=[Math]::Max\\(0,$idx-40\\); $lines[$start..\\($idx+1\\)])",
+      "Bash(tar --version)",
+      "Bash(time tar --transform 's,^com\\\\.unity\\\\.ai\\\\.assistant@fc16ca46e208,package,' -cf - \"com.unity.ai.assistant@fc16ca46e208\")",
+      "Bash(gzip -1)",
+      "Bash(tar --force-local -xzf \"com.unity.ai.assistant-2.6.0-pre.1.tgz\" -O \"package/Modules/Unity.AI.MCP.Editor/Helpers/GameObjectSerializer.cs\")",
+      "Bash(xargs -I{} echo \"patch marker occurrences in tarball copy: {} \\(expect 2: class def + usage\\)\")",
+      "Bash(python -c \"import json;d=json.load\\(open\\('Packages/manifest.json'\\)\\);print\\('JSON OK ->', d['dependencies']['com.unity.ai.assistant']\\)\")",
+      "Bash(node -e \"const d=require\\('./Packages/manifest.json'\\);console.log\\('JSON OK ->',d.dependencies['com.unity.ai.assistant']\\)\")",
+      "Bash(awk '{print $5,$9}')"
     ]
   }
 }

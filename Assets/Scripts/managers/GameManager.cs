@@ -665,6 +665,14 @@ public class GameManager : Singleton<GameManager>
 
         Debug.LogWarning("playing card: " + card.card.cardName);
 
+        // Spell (non-minion) cards log their "played" entry here, before their effects resolve, so it
+        // sits above the deaths/summons the spell triggers. It stays pending until the play commits so
+        // a cancelled play leaves no orphaned entry. Minion cards instead log when they're summoned.
+        if (card.modal.health <= 0)
+        {
+            ActionLogPanel.Instance?.SetPending(ActionLogMessageFactory.CardPlayed(playingAgent, card.card));
+        }
+
         yield return StartCoroutine(ExecuteActions(card));
 
         Debug.LogWarning("played card");
@@ -753,12 +761,9 @@ public class GameManager : Singleton<GameManager>
         //Destroy(card.gameObject);
         //Debug.Log("execution complete2");
 
-        // Minion cards get their own log entry from OnMinionSummonedForLog when they're summoned;
-        // logging here too would duplicate it, so only non-minion (spell) cards log here.
-        if (card != null && card.modal.health <= 0)
-        {
-            ActionLogPanel.Instance?.AddEntry(ActionLogMessageFactory.CardPlayed(playingAgent, card.card));
-        }
+        // Show the spell's pending "played" entry if none of its effects already did (e.g. a spell with
+        // no minion deaths/summons). No-op for minion cards, which never set a pending entry.
+        ActionLogPanel.Instance?.FlushPending();
 
         if (isPlayerTurn)
         {
@@ -863,6 +868,9 @@ public class GameManager : Singleton<GameManager>
 
     private void FinishCancelPlayingCard()
     {
+        // The cancelled card never resolved, so drop its unshown "played" entry.
+        ActionLogPanel.Instance?.DiscardPending();
+
         if (playingAgent != null)
         {
             playingAgent.availibleMana = playingAgentManaBeforePlay;
@@ -1017,7 +1025,7 @@ public class GameManager : Singleton<GameManager>
 
     private void OnMinionSummonedForLog(MinionController minion)
     {
-        ActionLogPanel.Instance?.AddEntry(ActionLogMessageFactory.MinionPlayed(minion));
+        ActionLogPanel.Instance?.AddEntry(ActionLogMessageFactory.MinionSummoned(minion));
     }
 
     private void OnMinionCollided(MinionController minion, MinionController collidedMinion)
