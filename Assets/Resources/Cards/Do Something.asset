@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 6916123040440849322, guid: dd34327dbd036d341a820ea01054fe91, type: 3}
+  cardArt: {fileID: 21300000, guid: de0cdaa078b9f1042bb7072ac82e12fa, type: 3}
   cardName: Do Something
   desc: "Draw 2 card. \nAdd a 'Do Nothing' to your deck."
   attack: 0
@@ -26,6 +26,7 @@ MonoBehaviour:
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

@@ -63,6 +63,7 @@ public class GameManager : Singleton<GameManager>
     public bool isTestingFailed = false;
     public static event Action<GameState> OnTurnEnd;
     public static event Action<GameState> OnTurnStarted;
+    public static event Action<MinionController> OnMinionSummoned;
 
     void Start()
     {
@@ -70,12 +71,14 @@ public class GameManager : Singleton<GameManager>
         MinionController.OnDied += OnMinionDied;
         MinionController.OnCollided += OnMinionCollided;
         MinionController.OnTookDamage += OnMinionTookDamage;
+        OnMinionSummoned += OnMinionSummonedForLog;
     }
     private void OnDestroy()
     {
         MinionController.OnDied -= OnMinionDied;
         MinionController.OnCollided -= OnMinionCollided;
         MinionController.OnTookDamage -= OnMinionTookDamage;
+        OnMinionSummoned -= OnMinionSummonedForLog;
 
     }
 
@@ -741,14 +744,21 @@ public class GameManager : Singleton<GameManager>
             yield break;
         }
 
-        if (isTesting) 
+        if (isTesting)
         {
             Debug.Log("is testing true");
 
             yield break;
-        } 
+        }
         //Destroy(card.gameObject);
         //Debug.Log("execution complete2");
+
+        // Minion cards get their own log entry from OnMinionSummonedForLog when they're summoned;
+        // logging here too would duplicate it, so only non-minion (spell) cards log here.
+        if (card != null && card.modal.health <= 0)
+        {
+            ActionLogPanel.Instance?.AddEntry(ActionLogMessageFactory.CardPlayed(playingAgent, card.card));
+        }
 
         if (isPlayerTurn)
         {
@@ -959,6 +969,7 @@ public class GameManager : Singleton<GameManager>
 
         }
 
+        OnMinionSummoned?.Invoke(minion);
     }
     private void ClearSelectables()
     {
@@ -1000,7 +1011,13 @@ public class GameManager : Singleton<GameManager>
 
     private void OnMinionDied(MinionController minion)
     {
+        ActionLogPanel.Instance?.AddEntry(ActionLogMessageFactory.MinionDied(minion));
         EnqueueTriggeredAction(() => StartCoroutine(InvokeOnMinionDeathActions(minion)));
+    }
+
+    private void OnMinionSummonedForLog(MinionController minion)
+    {
+        ActionLogPanel.Instance?.AddEntry(ActionLogMessageFactory.MinionPlayed(minion));
     }
 
     private void OnMinionCollided(MinionController minion, MinionController collidedMinion)

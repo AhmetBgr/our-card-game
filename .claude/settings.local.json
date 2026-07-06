@@ -36,7 +36,10 @@
       "mcp__unity-mcp__Unity_ManageScene",
       "mcp__unity-mcp__Unity_ManageGameObject",
       "Bash(git mv *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "WebFetch(domain:packages.unity.com)",
+      "Bash(grep *)",
+      "WebSearch"
     ]
   }
 }

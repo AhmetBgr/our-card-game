@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: -6231044458718751821, guid: 67b7ac67fa59d1748bf68e3e63de1112,
-    type: 3}
+  cardArt: {fileID: 21300000, guid: 6d1716ffe7a1bef44b2eb34d69c02c6e, type: 3}
   cardName: Do Nothing
   desc: Do nothing.
   attack: 0
@@ -27,6 +26,7 @@ MonoBehaviour:
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
