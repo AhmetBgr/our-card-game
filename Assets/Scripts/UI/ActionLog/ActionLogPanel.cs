@@ -77,6 +77,19 @@ public class ActionLogPanel : Singleton<ActionLogPanel>
         pendingEntry = null;
     }
 
+    // Inserts a divider row marking a turn boundary. Skipped when the log is empty (no leading
+    // spacer) or already ends in a spacer (no double dividers for a turn that logged nothing).
+    public void AddTurnSpacer()
+    {
+        // A still-pending "played" header means the current turn had activity worth separating.
+        FlushPending();
+
+        if (activeEntries.Count == 0) return;
+        if (activeEntries[activeEntries.Count - 1].IsSpacer) return;
+
+        AddEntryInternal(ActionLogMessageFactory.TurnEndSpacer());
+    }
+
     public void AddEntry(ActionLogEntry entry)
     {
         // Any pending "played" header must appear above this sub-event, so emit it first.

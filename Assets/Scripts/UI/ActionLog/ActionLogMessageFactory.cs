@@ -42,4 +42,13 @@ public static class ActionLogMessageFactory
             IsPlayerOwned = IsPlayer(owner),
         };
     }
+
+    public static ActionLogEntry TurnEndSpacer()
+    {
+        return new ActionLogEntry
+        {
+            EventType = ActionLogEventType.TurnEnded,
+            IsSpacer = true,
+        };
+    }
 }

@@ -214,6 +214,7 @@ public class GameManager : Singleton<GameManager>
     {
         // A turn boundary aborts any in-progress selection so it can't leak into the next turn.
         SelectionManager.Instance.Cancel();
+        ActionLogPanel.Instance?.AddTurnSpacer();
         OnTurnEnd?.Invoke(currentState);
 
         yield break;
