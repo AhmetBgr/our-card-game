@@ -6,6 +6,7 @@ using DG.Tweening;
 public class ManaBarController : MonoBehaviour
 {
     public TextMeshProUGUI[] maxBarTextObjects;
+    public TextMeshProUGUI mainText;
     public Animator animator;
     public Color maxManaColor;
     public Transform gear;
@@ -20,6 +21,15 @@ public class ManaBarController : MonoBehaviour
 
         gearRotateTween = gear.DORotate(Vector3.forward * 360, 5f, RotateMode.FastBeyond360).SetEase(Ease.Linear).SetLoops(-1);
         gearRotateTween.timeScale = 0;
+
+        UpdateMainText(GameManager.Instance.player.availibleMana);
+    }
+
+    private void UpdateMainText(int currentMana)
+    {
+        if (mainText == null) return;
+
+        mainText.text = currentMana + "/" + GameManager.Instance.maxMana;
     }
 
     private void OnDestroy()
@@ -53,6 +63,8 @@ public class ManaBarController : MonoBehaviour
         //Debug.Log("max mana: " + GameManager.Instance.maxMana);
 
         gearRotateTween.timeScale = ((float)newValue) / 1f;
+
+        UpdateMainText(newValue);
 
 
         if (newValue > oldValue)

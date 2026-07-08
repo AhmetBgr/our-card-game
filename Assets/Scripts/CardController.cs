@@ -76,6 +76,12 @@ public class CardController : MonoBehaviour
         canPeek = false;
         isPeeking = true;
 
+        // Only playable cards get a mana preview — show where the bar would land after playing this.
+        if (ManaBarSlider.Instance != null && modal.cost <= GameManager.Instance.player.availibleMana)
+        {
+            ManaBarSlider.Instance.PreviewPlay(modal.cost);
+        }
+
         transform.SetParent(handLayout.transform.parent);
         transform.SetSiblingIndex(handLayout.transform.parent.childCount - 1);
         transform.localRotation = Quaternion.identity;
@@ -92,6 +98,7 @@ public class CardController : MonoBehaviour
 
         transform.localScale = Vector3.one;
         handLayout.EndPeek();
+        if (ManaBarSlider.Instance != null) ManaBarSlider.Instance.ClearPreview();
 
         canPeek = true;
         isPeeking = false;
@@ -159,6 +166,7 @@ public class CardController : MonoBehaviour
                     _returnIndex = handLayout.RemoveCard(transform);
                 }
             }
+            if (isPeeking && ManaBarSlider.Instance != null) ManaBarSlider.Instance.ClearPreview();
             transform.localScale = Vector3.one;
             canPeek = false;
             isPeeking = false;
@@ -171,6 +179,7 @@ public class CardController : MonoBehaviour
         {
             transform.localScale = Vector3.one;
             handLayout.EndPeek();
+            if (ManaBarSlider.Instance != null) ManaBarSlider.Instance.ClearPreview();
         }
         canPeek = false;
         isPeeking = false;

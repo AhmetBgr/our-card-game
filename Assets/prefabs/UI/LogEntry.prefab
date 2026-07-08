@@ -230,8 +230,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LogEntryHandler
   messageText: {fileID: 7347024848642258510}
   background: {fileID: 6789503357585096322}
-  playerTint: {r: 0, g: 0.17506322, b: 0.4245283, a: 0.2}
-  opponentTint: {r: 0.41509432, g: 0, b: 0, a: 0.2}
+  playerTint: {r: 0, g: 0.17506322, b: 0.4245283, a: 0.4}
+  opponentTint: {r: 0.41509432, g: 0, b: 0, a: 0.4}
 --- !u!114 &1073756411785373062
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -98,9 +98,12 @@ Shader "Custom/2D/MovementLoop"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 c = tex2D(_MainTex, i.uv);
-                c.rgb *= i.color.rgb;
-                c *= i.color.a;   // premultiply
+                // Tint + vertex/fade alpha, then premultiply by the FINAL alpha (which
+                // includes the texture's own alpha). Premultiplying by only the vertex
+                // alpha left semi-transparent texels with un-scaled rgb, so alpha edges
+                // fringed bright under the One / OneMinusSrcAlpha blend. Matches Sprites-Default.
+                fixed4 c = tex2D(_MainTex, i.uv) * i.color;
+                c.rgb *= c.a;
                 return c;
             }
             ENDCG

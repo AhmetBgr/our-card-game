@@ -7,7 +7,7 @@ public static class ActionLogMessageFactory
 
     private static string OwnerLabel(Agent owner)
     {
-        return IsPlayer(owner) ? "(P)" : "(E)";
+        return IsPlayer(owner) ? "P:" : "E:";
     }
 
     public static ActionLogEntry MinionSummoned(MinionController minion)
