@@ -25,7 +25,8 @@ public class ManaBarSlider : MonoBehaviour
     public TextMeshProUGUI manaText;
 
     [Header("Movement")]
-    public float moveDuration = 0.3f;
+    [Tooltip("Bar travel speed in world units per second.")]
+    public float moveSpeed = 3f;
     public Ease moveEase = Ease.OutCubic;
 
     [Header("Hover breathe (barParent2)")]
@@ -126,8 +127,8 @@ public class ManaBarSlider : MonoBehaviour
         }
         else
         {
-            if (barParent != null) moveTween = barParent.DOMoveY(targetY, moveDuration).SetEase(moveEase);
-            if (barParent2 != null) moveTween2 = barParent2.DOMoveY(targetY, moveDuration).SetEase(moveEase);
+            if (barParent != null) moveTween = barParent.DOMoveY(targetY, moveSpeed).SetSpeedBased().SetEase(moveEase);
+            if (barParent2 != null) moveTween2 = barParent2.DOMoveY(targetY, moveSpeed).SetSpeedBased().SetEase(moveEase);
         }
     }
 
