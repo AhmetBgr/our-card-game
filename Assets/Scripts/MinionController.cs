@@ -218,7 +218,7 @@ public class MinionController : MonoBehaviour
     // back if it is in this minion's range — so its skull can light from taking damage too), or a lethal
     // damage spell targeting this minion. Uses TakeDamage's armor math (damage after armor >= health means
     // dead). No health text is touched; the skull is the only feedback.
-    private void ShowDeathPreview()
+    protected void ShowDeathPreview()
     {
         var selection = SelectionManager.Instance;
         if (!selection.IsActiveTarget(this))

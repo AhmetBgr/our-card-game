@@ -21,6 +21,12 @@ public class HeroController : MinionController
         if (SelectionManager.Instance.HasActiveMinionRequest)
         {
             // show weapon image
+
+            // Light the death skull when hovering this hero as a lethal attack/spell target, exactly
+            // like a minion. The base MinionController.OnMouseEnter does this inline; the hero overrides
+            // OnMouseEnter, so mirror it here. Hiding is inherited via MinionController.OnMouseExit ->
+            // HideDeathPreview.
+            ShowDeathPreview();
         }
         else if (!DraggableItem.AnyCardDragging)
         {

@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 21300000, guid: 83eb8f595f282e942be332309e33200d, type: 3}
   cardArt: {fileID: 21300000, guid: 83eb8f595f282e942be332309e33200d, type: 3}
   cardName: 
-  desc: 
+  desc: Gain +1 Attack for every 5 Health lost.
   attack: 2
   health: 15
   cost: 0
