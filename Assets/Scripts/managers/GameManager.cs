@@ -41,6 +41,7 @@ public class GameManager : Singleton<GameManager>
     private Queue<IEnumerator> onMinionDeathActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionCollidedActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionTookDamageActions = new Queue<IEnumerator>();
+    private readonly List<HeroPassiveSO> _heroPassiveMatchBuffer = new List<HeroPassiveSO>();
 
     // Triggered-action execution uses shared ActionHolder globals. To prevent different triggers
     // (death, took damage, collision, etc.) from stomping each other's state mid-execution,
@@ -65,6 +66,8 @@ public class GameManager : Singleton<GameManager>
     public static event Action<GameState> OnTurnStarted;
     public static event Action<MinionController> OnMinionSummoned;
 
+    private readonly HeroPassiveSystem heroPassives = new HeroPassiveSystem();
+
     void Start()
     {
         StartCoroutine(GameLoop());
@@ -79,6 +82,7 @@ public class GameManager : Singleton<GameManager>
         MinionController.OnCollided -= OnMinionCollided;
         MinionController.OnTookDamage -= OnMinionTookDamage;
         OnMinionSummoned -= OnMinionSummonedForLog;
+        heroPassives.Clear();
 
     }
 
@@ -154,6 +158,12 @@ public class GameManager : Singleton<GameManager>
 
     IEnumerator SetupGame()
     {
+        // Registered here rather than in Start(): SetupGame is a coroutine driven from GameLoop, so
+        // every HeroController.Start() has already run and hero.card/owner are populated. Start()
+        // ordering between GameManager and HeroController is undefined.
+        heroPassives.Register(player != null ? player.hero : null);
+        heroPassives.Register(opponent != null ? opponent.hero : null);
+
         switchController.PlaySwitchAnim(true);
         currentState = GameState.Setup;
         //Debug.Log("Setting up game...");
@@ -1080,6 +1090,10 @@ public class GameManager : Singleton<GameManager>
                 this.isTesting = false;
                 minion.modal.OnTookDamage.Invoke();
 
+                // Hero "took damage" passives ride the same queue and scope as the self-trigger above,
+                // so they can't race it. Registers are already set to the damaged minion (the hero).
+                DispatchHeroTookDamagePassives(minion, damage);
+
                 yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
             }
             finally
@@ -1087,6 +1101,34 @@ public class GameManager : Singleton<GameManager>
                 FinishTriggeredAction();
             }
         }
+    }
+
+    /// <summary>
+    /// Enqueues the verbs of every hero passive that fires for a "hero took damage" self-trigger onto
+    /// the queue the caller is already draining.
+    ///
+    /// This is called INLINE from InvokeOnMinionTookDamageActions, inside the triggered-action scope
+    /// GameManager already opened, with thisMinion/selectedAgent already set to the damaged hero. It
+    /// deliberately does NOT open its own scope or start its own triggered action: doing that races the
+    /// enclosing scope and gets its registers clobbered by the outer Restore (see HeroPassiveSystem for
+    /// the full explanation). The passive verbs simply ride the caller's single ExecuteActions pass.
+    /// </summary>
+    private void DispatchHeroTookDamagePassives(MinionController hero, int damage)
+    {
+        HeroRuntime runtime = heroPassives.GetRuntime(hero);
+        if (runtime == null) return;
+
+        var ctx = new HeroPassiveContext(hero, subject: hero, amount: damage,
+            ownerTurnNumber: runtime.ownerTurnNumber);
+
+        _heroPassiveMatchBuffer.Clear();
+        heroPassives.CollectMatching(runtime, HeroPassiveTrigger.HeroTookDamage, ctx, _heroPassiveMatchBuffer);
+
+        // Registers are already set by the caller (thisMinion = hero, selectedAgent = hero.owner), which
+        // is exactly what a self-trigger needs; the owner-relative selectors then resolve the correct
+        // board half even though the hero was damaged on the opponent's turn.
+        foreach (var passive in _heroPassiveMatchBuffer)
+            passive.Run(ctx);
     }
 
     private IEnumerator InvokeOnMinionCollidedActions(MinionController minion, MinionController collidedMinion)

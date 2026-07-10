@@ -1099,10 +1099,129 @@ public class ActionHolder : ScriptableObject
     }
 
 
+    // The spawn row of a given agent. The player summons on row 2, the opponent on row 0 — the same
+    // 2 / (2 - rowIndex) convention _SelectCell and _SelectSpawnCells use, but resolved from the AGENT
+    // rather than from isPlayerTurn. Hero passives fire on the opponent's turn, so a turn-relative
+    // answer would name the wrong row.
+    private static int SpawnRowOf(Agent agent)
+    {
+        return agent == GameManager.Instance.player ? 2 : 0;
+    }
+
+    private static Agent EnemyOf(Agent agent)
+    {
+        return agent == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+    }
+
+    /// <summary>Fills selectedCells with the spawn row of thisMinion's enemy. Owner-relative.</summary>
+    public void SelectEnemySpawnCells()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SelectEnemySpawnCells());
+    }
+    public IEnumerator _SelectEnemySpawnCells()
+    {
+        selectedCells.Clear();
+
+        if (thisMinion == null) yield break;
+
+        int rowIndex = SpawnRowOf(EnemyOf(thisMinion.owner));
+
+        foreach (var cell in GridManager.Instance.GetGrid())
+        {
+            if (cell.index.y != rowIndex) continue;
+            if (cell.cellObj == null) continue;
+            selectedCells.Add(cell.cellObj.transform);
+        }
+
+        yield return null;
+    }
+
+    /// <summary>
+    /// Picks one random minion standing in selectedCells that is hostile to thisMinion, into
+    /// selectedMinions. Leaves the list empty when there is no candidate, so a following
+    /// ChangeMinionHealth iterates nothing and the effect fizzles rather than throwing.
+    /// </summary>
+    public void SelectRandomEnemyMinionInSelectedCells()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_SelectRandomEnemyMinionInSelectedCells());
+    }
+    public IEnumerator _SelectRandomEnemyMinionInSelectedCells()
+    {
+        selectedMinions.Clear();
+        selectedMinion = null;
+
+        if (thisMinion == null) yield break;
+
+        List<MinionController> candidates = new List<MinionController>();
+        foreach (var cellTransform in selectedCells)
+        {
+            if (cellTransform == null) continue;
+
+            var obj = GridManager.Instance.GetCell(cellTransform.position).obj;
+            if (obj == null) continue;
+
+            var minion = obj.GetComponent<MinionController>();
+            if (minion == null || minion.owner == thisMinion.owner) continue;
+
+            candidates.Add(minion);
+        }
+
+        if (candidates.Count > 0)
+        {
+            selectedMinion = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+            selectedMinions.Add(selectedMinion);
+        }
+
+        yield return null;
+    }
+
     #endregion
     public void AtestAction()
     {
 
+    }
+
+    /// <summary>
+    /// Berserker: grants thisMinion (a hero) +1 attack per `healthPerAttack` health it has lost.
+    ///
+    /// The bonus is permanent — healing never takes it back — so we only ever apply the positive delta
+    /// between the bonus we owe and the one already granted, tracked on HeroRuntime. Applying a delta
+    /// rather than assigning `attack = base + bonus` also means the bonus stacks with, instead of
+    /// clobbering, any other attack buff on the hero.
+    /// </summary>
+    public void ScaleAttackWithHealthLost(int healthPerAttack)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_ScaleAttackWithHealthLost(healthPerAttack));
+    }
+    public IEnumerator _ScaleAttackWithHealthLost(int healthPerAttack)
+    {
+        var hero = thisMinion;
+        var runtime = HeroRuntime.For(hero);
+
+        if (hero == null || runtime == null)
+        {
+            Debug.LogWarning("ScaleAttackWithHealthLost: no hero runtime on " + (hero != null ? hero.name : "null"));
+            yield break;
+        }
+
+        int per = Mathf.Max(1, healthPerAttack);
+        int healthLost = Mathf.Max(0, hero.modal.defHealth - hero.modal.health);
+        int owedBonus = healthLost / per;
+
+        if (owedBonus > runtime.appliedAttackBonus)
+        {
+            hero.modal.attack += owedBonus - runtime.appliedAttackBonus;
+            runtime.appliedAttackBonus = owedBonus;
+            hero.view.UpdateView(hero.modal);
+        }
+
+        yield return null;
     }
     public void PushSelectedMinionForward()
     {

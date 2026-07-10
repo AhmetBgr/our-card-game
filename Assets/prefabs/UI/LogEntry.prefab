@@ -232,7 +232,7 @@ MonoBehaviour:
   background: {fileID: 6789503357585096322}
   playerTint: {r: 0, g: 0.17506322, b: 0.4245283, a: 0.29803923}
   opponentTint: {r: 0.41509432, g: 0, b: 0, a: 0.29803923}
-  spacerColor: {r: 1, g: 1, b: 1, a: 0.12}
+  spacerColor: {r: 0, g: 0, b: 0, a: 0.5019608}
   spacerHeight: 6
 --- !u!114 &1073756411785373062
 MonoBehaviour:

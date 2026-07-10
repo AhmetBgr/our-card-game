@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
+  m_Script: {fileID: 11500000, guid: 7178b24e5752bd24ebe73c1026f5746b, type: 3}
   m_Name: OpponentHero
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -26,13 +26,14 @@ MonoBehaviour:
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
   isUpgraded: 0
-  defHealth: 20
+  defHealth: 15
   OnPlay:
     m_PersistentCalls:
       m_Calls: []
@@ -60,3 +61,7 @@ MonoBehaviour:
   BonusEvents:
     m_PersistentCalls:
       m_Calls: []
+  heroName: OpponentHero
+  archetype: 1
+  passives:
+  - {fileID: 11400000, guid: 01599933d1cec644ea8a3e64427fb3a5, type: 2}
