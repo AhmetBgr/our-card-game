@@ -23,6 +23,7 @@ MonoBehaviour:
   cost: 0
   range: 2
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
@@ -65,4 +66,4 @@ MonoBehaviour:
   heroName: OpponentHero
   archetype: 1
   passives:
-  - {fileID: 11400000, guid: 8da47f2c25e991942b3673d09f614389, type: 2}
+  - {fileID: 11400000, guid: dccb178f1af1ebf4b98d4e636dae83cd, type: 2}

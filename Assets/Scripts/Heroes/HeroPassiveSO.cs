@@ -31,4 +31,14 @@ public abstract class HeroPassiveSO : ScriptableObject
     /// GameManager is already draining. Same contract as minion.modal.OnDeath.Invoke().
     /// </summary>
     public abstract void Run(in HeroPassiveContext ctx);
+
+    /// <summary>
+    /// Aura hook: called (pure side effect, NO ActionHolder scope / triggered action) when a minion is
+    /// summoned, and for minions already on the board when this passive's hero is registered. Continuous
+    /// aura passives override it to stamp per-minion stats (e.g. collision damage) on the minions they
+    /// affect. `heroOwner` is the owner of the hero carrying this passive, so friendly/enemy is decidable.
+    /// Default no-op, so trigger-based passives ignore it. Must stay side-effect-only: it runs mid-summon,
+    /// outside any triggered-action scope, so it must not enqueue verbs or touch ActionHolder selection.
+    /// </summary>
+    public virtual void ApplyAuraOnSummon(MinionController minion, Agent heroOwner) { }
 }

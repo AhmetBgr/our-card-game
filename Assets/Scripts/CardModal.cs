@@ -16,6 +16,7 @@ public class CardModal : MonoBehaviour
     public int cost;
     public int range;
     public int armor;
+    public int collisionDamage;
 
     public int defHealth;
     public Agent owner;
@@ -50,6 +51,7 @@ public class CardModal : MonoBehaviour
         range = card.range;
         cost = card.cost;
         armor = card.armor;
+        collisionDamage = card.collisionDamage;
         canMove = card.canMove;
         canAttack = card.canAttack;
         canAttackManually = card.canAttackManually;
@@ -98,6 +100,7 @@ public class CardModal : MonoBehaviour
         cost = source.cost;
         range = source.range;
         armor = source.armor;
+        collisionDamage = source.collisionDamage;
         defHealth = source.defHealth;
 
         owner = source.owner;

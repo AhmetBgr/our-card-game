@@ -38,9 +38,38 @@ public class HeroPassiveSystem
         runtime.heroSO = heroSO;
 
         if (!_heroes.Contains(runtime)) _heroes.Add(runtime);
+
+        // Stamp this hero's auras onto any minions already on the board. Usually none at setup (heroes
+        // register before any minion is summoned), but keeps auras correct if a hero is registered later.
+        if (hero.owner != null && hero.owner.minions != null)
+        {
+            foreach (MinionController m in hero.owner.minions)
+                for (int i = 0; i < heroSO.passives.Count; i++)
+                    if (heroSO.passives[i] != null) heroSO.passives[i].ApplyAuraOnSummon(m, hero.owner);
+        }
     }
 
     public void Clear() => _heroes.Clear();
+
+    /// <summary>
+    /// Lets every registered hero's aura passives stamp stats onto a just-summoned minion. Pure side
+    /// effect (no triggered actions / ActionHolder state), so it is safe to call inline from the middle
+    /// of GameManager.SummonMinion.
+    /// </summary>
+    public void ApplyAurasOnSummon(MinionController minion)
+    {
+        if (minion == null) return;
+
+        for (int i = 0; i < _heroes.Count; i++)
+        {
+            HeroRuntime runtime = _heroes[i];
+            if (runtime == null || runtime.heroSO == null || runtime.hero == null) continue;
+
+            List<HeroPassiveSO> passives = runtime.heroSO.passives;
+            for (int j = 0; j < passives.Count; j++)
+                if (passives[j] != null) passives[j].ApplyAuraOnSummon(minion, runtime.hero.owner);
+        }
+    }
 
     /// <summary>The runtime for a minion if it is a registered hero, else null.</summary>
     public HeroRuntime GetRuntime(MinionController minion)

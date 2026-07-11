@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Hunter_SpawnStrike
   m_EditorClassIdentifier: Assembly-CSharp::TriggeredHeroPassiveSO
   passiveName: Spawn Strike
-  description: Whenever your hero takes damage, deal 1 damage to a random enemy minion
+  description: Whenever your hero takes damage, deal 2 damage to a random enemy minion
     on the enemy's spawn tile.
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   trigger: 0
@@ -22,6 +22,7 @@ MonoBehaviour:
     side: 0
     minAttack: 0
     minMaxHealth: 0
+  suppressesCounterAttack: 0
   actions:
     m_PersistentCalls:
       m_Calls:

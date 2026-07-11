@@ -991,6 +991,10 @@ public class GameManager : Singleton<GameManager>
         minion.modal.isPlayerMinion = ownerIsPlayer;
         minion.owner = owner;
 
+        // Let hero aura passives stamp per-minion stats (e.g. collision damage on friendly minions).
+        // Pure side effect — safe here mid-summon; must not enqueue triggered actions.
+        heroPassives.ApplyAurasOnSummon(minion);
+
         OnMinionSummoned?.Invoke(minion);
     }
     private void ClearSelectables()
@@ -1228,6 +1232,24 @@ public class GameManager : Singleton<GameManager>
         return false;
     }
 
+    /// <summary>
+    /// Two minions collided (mover ran into target). Only the minion that MOVED deals damage: if the two
+    /// are on opposite sides, the mover deals its collisionDamage to the target. Being rammed deals
+    /// nothing back — a minion only hurts an enemy when it is the one that collides into it, never when an
+    /// enemy collides into it. A plain minion (collisionDamage 0) deals nothing. Same-side or
+    /// missing-owner collisions are ignored.
+    /// </summary>
+    private void ApplyCollisionDamage(MinionController mover, MinionController target)
+    {
+        if (mover == null || target == null) return;
+        if (mover.modal == null) return;
+        if (mover.owner == null || target.owner == null) return;
+        if (mover.owner == target.owner) return; // friendly bump — no damage
+
+        int moverDamage = mover.modal.collisionDamage;
+        if (moverDamage > 0) target.TakeDamage(moverDamage);
+    }
+
     private IEnumerator InvokeOnMinionCollidedActions(MinionController minion, MinionController collidedMinion)
     {
         // FinishTriggeredAction is OUTSIDE the using (see InvokeOnMinionDeathActions) so this scope's
@@ -1249,6 +1271,14 @@ public class GameManager : Singleton<GameManager>
                 ActionHolder.curActionsList = onMinionCollidedActions;
 
                 this.isTesting = false;
+
+                // Intrinsic collision damage: the minion that moved into another deals its collisionDamage
+                // to that enemy (the rammed minion deals nothing back). Default collisionDamage is 0, so
+                // this is inert unless a passive (the Collision Damage Aura) raised it. Applied before the
+                // scripted OnMinionCollided so card effects observe any deaths it caused, and inside this
+                // scope so the TakeDamage-driven took-damage/death triggers serialize on the same scheduler.
+                ApplyCollisionDamage(minion, collidedMinion);
+
                 minion.modal.OnMinionCollided.Invoke();
 
                 yield return StartCoroutine(ExecuteActions(onMinionCollidedActions));

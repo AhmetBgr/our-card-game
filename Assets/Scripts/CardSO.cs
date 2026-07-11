@@ -17,6 +17,12 @@ public class CardSO : ScriptableObject
     public int range;
 
     public int armor;
+
+    [Tooltip("Damage this minion deals to an enemy minion when it MOVES into it (collides). Only the " +
+             "moving minion deals damage — being rammed deals nothing back. 0 = none. Default 0 keeps " +
+             "existing minions unchanged; the Collision Damage Aura hero passive raises it to 1 on friendly minions.")]
+    public int collisionDamage = 0;
+
     public bool canMove = true;
     [Tooltip("If false, this unit can never attack — not even via triggered/automatic card actions.")]
     public bool canAttack = true;

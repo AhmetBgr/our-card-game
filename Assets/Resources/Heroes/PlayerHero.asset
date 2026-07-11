@@ -22,6 +22,7 @@ MonoBehaviour:
   cost: 0
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 0
