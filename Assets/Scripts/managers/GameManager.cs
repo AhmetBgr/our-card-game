@@ -41,6 +41,7 @@ public class GameManager : Singleton<GameManager>
     private Queue<IEnumerator> onMinionDeathActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionCollidedActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionTookDamageActions = new Queue<IEnumerator>();
+    private Queue<IEnumerator> onHeroAttackedActions = new Queue<IEnumerator>();
     private readonly List<HeroPassiveSO> _heroPassiveMatchBuffer = new List<HeroPassiveSO>();
 
     // Triggered-action execution uses shared ActionHolder globals. To prevent different triggers
@@ -936,13 +937,27 @@ public class GameManager : Singleton<GameManager>
 
     public void SummonMinion(CardSO card, Vector3 pos)
     {
+        // Turn-relative summon: the new minion belongs to whoever's turn it is.
+        SummonMinion(card, pos, isPlayerTurn ? player : opponent);
+    }
+
+    /// <summary>
+    /// Owner-explicit summon. Unlike the turn-relative overload above, the summoned minion belongs to
+    /// `owner` regardless of whose turn it is — needed by hero passives that summon on the *defender's*
+    /// side during the attacker's turn (summon-on-attacked). Push direction and side assignment are all
+    /// resolved from `owner`, not from isPlayerTurn.
+    /// </summary>
+    public void SummonMinion(CardSO card, Vector3 pos, Agent owner)
+    {
+        bool ownerIsPlayer = owner == player;
+
         // If the target cell is already occupied, push the occupant forward one cell first so the new
-        // minion spawns in the vacated cell. _SelectCell only offers pushable cells, so the guard holds.
+        // minion spawns in the vacated cell. Callers only pass cells whose occupant is pushable.
         Vector2Int destIndex = GridManager.Instance.PosToGridIndex(pos);
         GameObject occupantObj = GridManager.Instance.GetCell(destIndex).obj;
         if (occupantObj != null && occupantObj.TryGetComponent(out MinionController occupant))
         {
-            Vector3Int pushDir = ActionHolder.SummonerPushDir();
+            Vector3Int pushDir = ownerIsPlayer ? Vector3Int.up : Vector3Int.down;
             if (occupant.CanBePushedForward(pushDir))
             {
                 occupant.PushForward(pushDir);
@@ -957,13 +972,12 @@ public class GameManager : Singleton<GameManager>
         MinionController minion = Instantiate(prefabToSpawn, pos, Quaternion.identity).GetComponent<MinionController>();
         minion.card = card;
         //minion.modal = new MinionModal(card, minion);
-        // fix: setting isplayerminion like this might set as wrong if you summon minion on opponents turn or vice versa
-        minion.modal.UpdateModal(minion.card, isPlayerTurn ? player : opponent, isPlayerTurn);
+        minion.modal.UpdateModal(minion.card, owner, ownerIsPlayer);
 
         // Everything but events comes from the played hand card's modal (which may include in-hand
         // buffs), not the CardSO. The card's modal was itself populated from the CardSO when the card
         // was drawn. Falls back to the CardSO data (already set by UpdateModal) for summons with no
-        // hand card (e.g. tokens / random summons).
+        // hand card (e.g. tokens / random / passive summons, where thisCard is null).
         CardController sourceCard = ActionHolder.thisCard;
         if (sourceCard != null && sourceCard.modal != null && sourceCard.card == card)
             minion.modal.CopyFrom(sourceCard.modal);
@@ -973,20 +987,9 @@ public class GameManager : Singleton<GameManager>
         ActionHolder.thisMinion = minion;
         ActionHolder.thisCardSO = minion.card;
 
-        if (isPlayerTurn)
-        {
-            player.minions.Add(minion);
-            minion.modal.isPlayerMinion = true;
-            minion.owner = player;
-
-        }
-        else
-        {
-            opponent.minions.Add(minion);
-            minion.modal.isPlayerMinion = false;
-            minion.owner = opponent;
-
-        }
+        owner.minions.Add(minion);
+        minion.modal.isPlayerMinion = ownerIsPlayer;
+        minion.owner = owner;
 
         OnMinionSummoned?.Invoke(minion);
     }
@@ -1142,6 +1145,87 @@ public class GameManager : Singleton<GameManager>
         // board half even though the hero was damaged on the opponent's turn.
         foreach (var passive in _heroPassiveMatchBuffer)
             passive.Run(ctx);
+    }
+
+    /// <summary>
+    /// A minion has struck the given hero. This is an "attack" — distinct from took-damage, which also
+    /// fires for spells — so it drives the HeroAttacked passive trigger only. Routed through the same
+    /// triggered-action scheduler as took-damage/collision so its ActionHolder scope can't race the
+    /// strike's own took-damage trigger. Heroes with no passives are a no-op (behave exactly as before).
+    /// </summary>
+    public void OnHeroAttacked(MinionController hero, MinionController attacker)
+    {
+        if (hero == null) return;
+        if (heroPassives.GetRuntime(hero) == null) return; // not a passive hero — nothing to dispatch
+
+        EnqueueTriggeredAction(() => StartCoroutine(InvokeOnHeroAttackedActions(hero, attacker)));
+    }
+
+    private IEnumerator InvokeOnHeroAttackedActions(MinionController hero, MinionController attacker)
+    {
+        // FinishTriggeredAction is OUTSIDE the using (see InvokeOnMinionTookDamageActions) so this scope's
+        // Restore() can't clobber the selection state of whatever pending trigger it drains next.
+        try
+        {
+            using (ActionHolder.PushScope())
+            {
+                _executingTriggeredActions = true;
+
+                onHeroAttackedActions.Clear();
+                ActionHolder.ResetSelections();
+                ActionHolder.thisMinion = hero;
+                ActionHolder.thisCardSO = hero.card;
+                ActionHolder.thisCard = null;
+                ActionHolder.selectedAgent = hero.owner;
+                ActionHolder.curActionsList = onHeroAttackedActions;
+
+                this.isTesting = false;
+
+                // Registers are set to the hero (thisMinion = hero, selectedAgent = hero.owner) so the
+                // owner-relative summon verb resolves the defender's board half even though the attack
+                // happened on the attacker's turn.
+                DispatchHeroAttackedPassives(hero, attacker);
+
+                yield return StartCoroutine(ExecuteActions(onHeroAttackedActions));
+            }
+        }
+        finally
+        {
+            FinishTriggeredAction();
+        }
+    }
+
+    /// <summary>Enqueues the verbs of every HeroAttacked passive on this hero onto the drain the caller owns.</summary>
+    private void DispatchHeroAttackedPassives(MinionController hero, MinionController attacker)
+    {
+        HeroRuntime runtime = heroPassives.GetRuntime(hero);
+        if (runtime == null) return;
+
+        var ctx = new HeroPassiveContext(hero, subject: attacker,
+            ownerTurnNumber: runtime.ownerTurnNumber);
+
+        _heroPassiveMatchBuffer.Clear();
+        heroPassives.CollectMatching(runtime, HeroPassiveTrigger.HeroAttacked, ctx, _heroPassiveMatchBuffer);
+
+        foreach (var passive in _heroPassiveMatchBuffer)
+            passive.Run(ctx);
+    }
+
+    /// <summary>
+    /// True if `hero` is a registered passive hero carrying a passive that cancels the counter-attack an
+    /// attacker would otherwise take. Non-heroes and heroes without such a passive return false, so the
+    /// normal retaliation path in MinionController.Attack is untouched for everything else.
+    /// </summary>
+    public bool HeroSuppressesCounterAttack(MinionController hero)
+    {
+        HeroRuntime runtime = heroPassives.GetRuntime(hero);
+        if (runtime == null || runtime.heroSO == null) return false;
+
+        var passives = runtime.heroSO.passives;
+        for (int i = 0; i < passives.Count; i++)
+            if (passives[i] != null && passives[i].SuppressesCounterAttack) return true;
+
+        return false;
     }
 
     private IEnumerator InvokeOnMinionCollidedActions(MinionController minion, MinionController collidedMinion)

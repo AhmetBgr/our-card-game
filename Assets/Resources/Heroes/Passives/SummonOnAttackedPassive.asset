@@ -10,45 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e4270f2963f5e7a46ac06d374e4d4561, type: 3}
-  m_Name: Hunter_SpawnStrike
+  m_Name: SummonOnAttackedPassive
   m_EditorClassIdentifier: Assembly-CSharp::TriggeredHeroPassiveSO
-  passiveName: Spawn Strike
-  description: Whenever your hero takes damage, deal 1 damage to a random enemy minion
-    on the enemy's spawn tile.
+  passiveName: 
+  description: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  trigger: 0
+  trigger: 1
   everyNTurns: 1
   subjectFilter:
     side: 0
     minAttack: 0
     minMaxHealth: 0
+  suppressesCounterAttack: 1
   actions:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectEnemySpawnCells
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectRandomEnemyMinionInSelectedCells
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
         m_MethodName: Wait
@@ -63,12 +39,13 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: ChangeMinionHealth
-        m_Mode: 3
+        m_MethodName: SummonMinionOnOwnSpawnRow
+        m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: -2
+          m_ObjectArgument: {fileID: 11400000, guid: a1e416c7ad9913848ac3413e5802f091,
+            type: 2}
+          m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

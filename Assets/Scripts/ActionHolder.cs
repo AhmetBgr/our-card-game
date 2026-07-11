@@ -1391,6 +1391,51 @@ public class ActionHolder : ScriptableObject
         }
         //Debug.Log("summonned minion");
     }
+
+    /// <summary>
+    /// Declarative summon verb: summons `card` on a random tile of the CURRENT context owner's spawn row
+    /// (thisMinion's owner — e.g. the attacked hero). A tile qualifies if it is empty OR holds a minion
+    /// that can be pushed forward (SummonMinion performs the push). If no tile qualifies, nothing is
+    /// summoned. Owner-relative, so it lands on the correct side even when it fires on the enemy's turn
+    /// (hero summon-on-attacked passive). Single Object argument, so it is wireable from a UnityEvent.
+    ///
+    /// Owner is captured now, at wiring-invoke/enqueue time (when thisMinion is still the hero), so a
+    /// later verb in the same list — including the summon itself, which retargets thisMinion — cannot
+    /// move the summon to the wrong side.
+    /// </summary>
+    public void SummonMinionOnOwnSpawnRow(CardSO card)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        Agent owner = thisMinion != null ? thisMinion.owner : null;
+        curActionsList.Enqueue(_SummonMinionForAgentOnSpawnRow(card, owner));
+    }
+    public IEnumerator _SummonMinionForAgentOnSpawnRow(CardSO card, Agent owner)
+    {
+        if (card == null || owner == null) yield break;
+
+        int rowIndex = SpawnRowOf(owner);
+        Vector3Int pushDir = owner == GameManager.Instance.player ? Vector3Int.up : Vector3Int.down;
+
+        List<Transform> candidates = new List<Transform>();
+        foreach (var cell in GridManager.Instance.GetGrid())
+        {
+            if (cell.index.y != rowIndex) continue;
+            if (cell.cellObj == null) continue;
+
+            if (cell.obj == null)
+                candidates.Add(cell.cellObj.transform);
+            else if (cell.obj.TryGetComponent(out MinionController occupant) && occupant.CanBePushedForward(pushDir))
+                candidates.Add(cell.cellObj.transform);
+        }
+
+        if (candidates.Count == 0) yield break; // no empty tile and no pushable occupant — skip the summon
+
+        Transform target = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+        GameManager.Instance.SummonMinion(card, target.position, owner);
+
+        yield return null;
+    }
     public void Attack()
     {
         if (GameManager.Instance.isTesting) return;

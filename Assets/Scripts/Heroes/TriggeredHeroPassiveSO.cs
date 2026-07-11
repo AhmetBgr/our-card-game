@@ -23,10 +23,16 @@ public class TriggeredHeroPassiveSO : HeroPassiveSO
     [Tooltip("Gates on the minion that triggered this passive (who died / was summoned / collided).")]
     [SerializeField] private MinionFilter subjectFilter;
 
+    [Tooltip("When set, a minion that attacks this hero takes no counter-attack back. Only meaningful " +
+             "with the HeroAttacked trigger; queried by MinionController.Attack independently of `actions`.")]
+    [SerializeField] private bool suppressesCounterAttack = false;
+
     [Tooltip("ActionHolder verbs, run in order. Selection verbs first, then the effect.")]
     public UnityEvent actions;
 
     public override HeroPassiveTrigger Trigger => trigger;
+
+    public override bool SuppressesCounterAttack => suppressesCounterAttack;
 
     private void Awake()
     {

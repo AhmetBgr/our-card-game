@@ -64,4 +64,4 @@ MonoBehaviour:
   heroName: PlayerHero
   archetype: 1
   passives:
-  - {fileID: 11400000, guid: ad30b26a2b11fbe4eb83f37efa5a4637, type: 2}
+  - {fileID: 11400000, guid: 8da47f2c25e991942b3673d09f614389, type: 2}

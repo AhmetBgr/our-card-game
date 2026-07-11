@@ -19,6 +19,13 @@ public abstract class HeroPassiveSO : ScriptableObject
     public virtual bool Matches(in HeroPassiveContext ctx) => true;
 
     /// <summary>
+    /// When true, a minion that attacks the hero owning this passive takes no counter-attack
+    /// (retaliation) back. Checked in MinionController.Attack via GameManager.HeroSuppressesCounterAttack.
+    /// This is a standing property of the passive, not tied to whether its trigger effect ran.
+    /// </summary>
+    public virtual bool SuppressesCounterAttack => false;
+
+    /// <summary>
     /// Called inline from GameManager's trigger coroutine (e.g. InvokeOnMinionTookDamageActions) *after*
     /// the ActionHolder registers are set for this hero, so verbs enqueued here land on the queue
     /// GameManager is already draining. Same contract as minion.modal.OnDeath.Invoke().

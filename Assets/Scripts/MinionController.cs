@@ -665,7 +665,12 @@ public class MinionController : MonoBehaviour
         transform.DOPunchPosition(dir*0.2f, 0.5f / 1.2f, vibrato: 1).SetEase(Ease.InOutBack).SetDelay(0.5f);
         chosen.TakeDamage(modal.attack);
         chosen.transform.DOPunchPosition(dir * 0.03f, 0.15f, vibrato: 5).SetDelay(0.75f);
-        if (RangeUtility.IsInRange(chosen, this)) // target retaliates if attacker is in ITS range
+
+        // A struck hero may carry a passive that cancels its counter-attack (e.g. the defensive summoner).
+        bool chosenIsHero = chosen.owner != null && chosen == chosen.owner.hero;
+        bool suppressCounter = chosenIsHero && GameManager.Instance.HeroSuppressesCounterAttack(chosen);
+
+        if (RangeUtility.IsInRange(chosen, this) && !suppressCounter) // target retaliates if attacker is in ITS range
         {
             TakeDamage(chosen.modal.attack);
             // Counter-attack is delayed an extra 0.25s so it reads as a response to the strike
@@ -679,6 +684,12 @@ public class MinionController : MonoBehaviour
                 StartCoroutine(chosen.animationController.PlayArrowAnimation(-dir, transform.position, 0.9f, animationController.PlayArrowHitAnimation));
             }
         }
+
+        // A minion strike on a hero is an "attack" — distinct from the took-damage a spell deals — so it
+        // drives the HeroAttacked passive trigger. Skip if the strike was lethal: the hero is dying and
+        // GameManager.CheckWinCondition owns the game-over, so a reinforcement summon would be pointless.
+        if (chosenIsHero && chosen.modal.health > 0)
+            GameManager.Instance.OnHeroAttacked(chosen, this);
 
         if(modal.range < 2)
         {
