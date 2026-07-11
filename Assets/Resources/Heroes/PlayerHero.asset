@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: PlayerHero
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 21300000, guid: 83eb8f595f282e942be332309e33200d, type: 3}
-  cardArt: {fileID: 21300000, guid: 83eb8f595f282e942be332309e33200d, type: 3}
+  minionArt: {fileID: 21300000, guid: 8f77bf553928200459668f488b93f495, type: 3}
+  cardArt: {fileID: 21300000, guid: 8f77bf553928200459668f488b93f495, type: 3}
   cardName: 
   desc: Gain +1 Attack for every 5 Health lost.
   attack: 2
