@@ -16,12 +16,12 @@ MonoBehaviour:
   minionArt: {fileID: 21300000, guid: 83eb8f595f282e942be332309e33200d, type: 3}
   cardArt: {fileID: 21300000, guid: 83eb8f595f282e942be332309e33200d, type: 3}
   cardName: 
-  desc: When damaged, deal 1 damage to a random enemy minion on the enemy's spawn
+  desc: When damaged, deal 2 damage to a random enemy minion on the enemy's spawn
     tile.
-  attack: 2
+  attack: 1
   health: 15
   cost: 0
-  range: 1
+  range: 2
   armor: 0
   canMove: 1
   canAttack: 1

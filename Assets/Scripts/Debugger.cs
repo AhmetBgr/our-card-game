@@ -31,7 +31,17 @@ public class Debugger : MonoBehaviour
             StartCoroutine(UnloadAsyncScene(SceneManager.GetActiveScene().buildIndex));
 
             //StartCoroutine(LoadAsyncScene(SceneManager.GetActiveScene().buildIndex));
-        }    
+        }
+
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            SceneManager.LoadScene("Menu");
+        }
+
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            SceneManager.LoadScene("Game");
+        }
     }
     IEnumerator LoadAsyncScene(int index)
     {

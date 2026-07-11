@@ -1135,6 +1135,7 @@ public class ActionHolder : ScriptableObject
             selectedCells.Add(cell.cellObj.transform);
         }
 
+        Debug.Log($"[HUNTER] _SelectEnemySpawnCells: thisMinion='{thisMinion?.card?.cardName}' rowIndex={rowIndex} -> {selectedCells.Count} cells");
         yield return null;
     }
 
@@ -1167,6 +1168,8 @@ public class ActionHolder : ScriptableObject
             var minion = obj.GetComponent<MinionController>();
             if (minion == null || minion.owner == thisMinion.owner) continue;
 
+            bool isHero = minion.owner != null && minion == minion.owner.hero;
+            Debug.Log($"[HUNTER]   candidate cell obj='{minion.card?.cardName}' owner={(minion.owner == GameManager.Instance.player ? "player" : "opp")} isHero={isHero} hp={minion.modal?.health}");
             candidates.Add(minion);
         }
 
@@ -1174,6 +1177,11 @@ public class ActionHolder : ScriptableObject
         {
             selectedMinion = candidates[UnityEngine.Random.Range(0, candidates.Count)];
             selectedMinions.Add(selectedMinion);
+            Debug.Log($"[HUNTER] _SelectRandomEnemyMinion: {candidates.Count} candidate(s) -> CHOSE '{selectedMinion.card?.cardName}'");
+        }
+        else
+        {
+            Debug.Log($"[HUNTER] _SelectRandomEnemyMinion: 0 candidates from {selectedCells.Count} cells -> passive fizzles");
         }
 
         yield return null;

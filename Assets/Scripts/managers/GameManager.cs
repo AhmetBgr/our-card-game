@@ -1000,11 +1000,16 @@ public class GameManager : Singleton<GameManager>
     private IEnumerator InvokeOnMinionDeathActions(MinionController minion)
     {
         // PushScope() snapshots selection state + isTesting; Dispose restores both.
-        // FinishTriggeredAction runs after Dispose so the outer trigger queue resumes against
-        // restored state.
-        using (ActionHolder.PushScope())
+        // FinishTriggeredAction runs after Dispose (finally OUTSIDE the using, not inside it) so the outer
+        // trigger queue resumes against restored state. Order matters: FinishTriggeredAction drains the
+        // next pending trigger and starts it SYNCHRONOUSLY up to its first yield. If it ran before this
+        // scope's Restore(), that Restore would fire while the drained trigger is suspended mid-selection
+        // and wipe the selection state it just set up — e.g. a deathrattle that damages a hero re-entrantly
+        // drains that hero's took-damage passive here, and this Restore would clobber the passive's
+        // selectedCells, making it silently select nothing.
+        try
         {
-            try
+            using (ActionHolder.PushScope())
             {
                 _executingTriggeredActions = true;
 
@@ -1021,10 +1026,10 @@ public class GameManager : Singleton<GameManager>
 
                 yield return StartCoroutine(ExecuteActions(onMinionDeathActions));
             }
-            finally
-            {
-                FinishTriggeredAction();
-            }
+        }
+        finally
+        {
+            FinishTriggeredAction();
         }
     }
 
@@ -1046,7 +1051,8 @@ public class GameManager : Singleton<GameManager>
 
     private void OnMinionTookDamage(MinionController minion, int damage)
     {
-        Debug.Log("OnMinionTookDamage");
+        bool isHero = minion != null && minion.owner != null && minion == minion.owner.hero;
+        Debug.Log($"[HUNTER] OnMinionTookDamage: minion='{minion?.card?.cardName}' dmg={damage} isHero={isHero} _executingTriggeredActions={_executingTriggeredActions} pending={_pendingTriggeredCallbacks.Count}");
 
         EnqueueTriggeredAction(() => StartCoroutine(InvokeOnMinionTookDamageActions(minion, damage)));
     }
@@ -1073,9 +1079,11 @@ public class GameManager : Singleton<GameManager>
     }
     private IEnumerator InvokeOnMinionTookDamageActions(MinionController minion, int damage)
     {
-        using (ActionHolder.PushScope())
+        // FinishTriggeredAction is OUTSIDE the using (see InvokeOnMinionDeathActions) so this scope's
+        // Restore() can't clobber the selection state of whatever pending trigger it drains next.
+        try
         {
-            try
+            using (ActionHolder.PushScope())
             {
                 _executingTriggeredActions = true;
 
@@ -1096,10 +1104,10 @@ public class GameManager : Singleton<GameManager>
 
                 yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
             }
-            finally
-            {
-                FinishTriggeredAction();
-            }
+        }
+        finally
+        {
+            FinishTriggeredAction();
         }
     }
 
@@ -1116,13 +1124,18 @@ public class GameManager : Singleton<GameManager>
     private void DispatchHeroTookDamagePassives(MinionController hero, int damage)
     {
         HeroRuntime runtime = heroPassives.GetRuntime(hero);
-        if (runtime == null) return;
+        if (runtime == null)
+        {
+            Debug.Log($"[HUNTER] DispatchHeroTookDamage: hero='{hero?.card?.cardName}' dmg={damage} -> NO RUNTIME (not a registered passive hero), passive will NOT fire");
+            return;
+        }
 
         var ctx = new HeroPassiveContext(hero, subject: hero, amount: damage,
             ownerTurnNumber: runtime.ownerTurnNumber);
 
         _heroPassiveMatchBuffer.Clear();
         heroPassives.CollectMatching(runtime, HeroPassiveTrigger.HeroTookDamage, ctx, _heroPassiveMatchBuffer);
+        Debug.Log($"[HUNTER] DispatchHeroTookDamage: hero='{hero?.card?.cardName}' dmg={damage} matched {_heroPassiveMatchBuffer.Count} HeroTookDamage passive(s), curActionsList==onTookDamage:{ReferenceEquals(ActionHolder.curActionsList, onMinionTookDamageActions)}");
 
         // Registers are already set by the caller (thisMinion = hero, selectedAgent = hero.owner), which
         // is exactly what a self-trigger needs; the owner-relative selectors then resolve the correct
@@ -1133,9 +1146,11 @@ public class GameManager : Singleton<GameManager>
 
     private IEnumerator InvokeOnMinionCollidedActions(MinionController minion, MinionController collidedMinion)
     {
-        using (ActionHolder.PushScope())
+        // FinishTriggeredAction is OUTSIDE the using (see InvokeOnMinionDeathActions) so this scope's
+        // Restore() can't clobber the selection state of whatever pending trigger it drains next.
+        try
         {
-            try
+            using (ActionHolder.PushScope())
             {
                 _executingTriggeredActions = true;
 
@@ -1154,10 +1169,10 @@ public class GameManager : Singleton<GameManager>
 
                 yield return StartCoroutine(ExecuteActions(onMinionCollidedActions));
             }
-            finally
-            {
-                FinishTriggeredAction();
-            }
+        }
+        finally
+        {
+            FinishTriggeredAction();
         }
     }
 }
