@@ -17,16 +17,18 @@ MonoBehaviour:
     type: 3}
   cardArt: {fileID: 136297622846076780, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
   cardName: Nailpuncher
-  desc: 'At the end of your turn: Deal 1 damage  to random enemy minion in range.'
+  desc: 'At the end of your turn: Deal 1 damage to a random enemy minion in range.'
   attack: 4
   health: 3
   cost: 4
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
@@ -94,6 +96,18 @@ MonoBehaviour:
   OnOwnerTurnEnd:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisMinion
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
         m_MethodName: SelectRandomEnemyMinionInRange

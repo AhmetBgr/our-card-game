@@ -369,6 +369,8 @@ public class GameManager : Singleton<GameManager>
     {
         if (currentState != GameState.PlayerTurn) yield break;
 
+        switchController.PlaySwitchAnim(false);
+
         // Lock held across the whole OnOwnerTurnEnd loop so the per-minion passes can't interleave with
         // each other or a queued sibling pass (see InvokeOnCardDrawActions for the rationale).
         _executingTriggeredActions = true;
@@ -411,7 +413,6 @@ public class GameManager : Singleton<GameManager>
 
         isPlayerTurn = false;
 
-        switchController.PlaySwitchAnim(false);
 
         yield return new WaitForSeconds(0.5f);
 

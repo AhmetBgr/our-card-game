@@ -752,7 +752,10 @@ public class MinionController : MonoBehaviour
     {
         OnDied?.Invoke(this);
         selectable.SetSelectable(false);
-        gridEntity.RemoveFromGridCell();
+        // Detach (not just remove) from the grid: the GameObject lingers to play its death animation,
+        // so it must also stop re-registering on GridChanged, or its stale reference reclaims the cell
+        // a subsequent mover advances into — corrupting occupancy (e.g. the enemy then summons on top).
+        gridEntity.DetachFromGrid();
         if (GameManager.Instance.isPlayerTurn)
         {
             GameManager.Instance.player.minions.Remove(this);

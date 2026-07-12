@@ -23,10 +23,12 @@ MonoBehaviour:
   cost: 6
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
@@ -96,7 +98,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectOpponentAgent
+        m_MethodName: SelectThisMinion
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -108,7 +110,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectAllMinionsOfSelectedAgent
+        m_MethodName: SelectAllEnemyMinionsInRange
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

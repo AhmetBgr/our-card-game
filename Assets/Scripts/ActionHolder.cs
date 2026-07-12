@@ -945,7 +945,9 @@ public class ActionHolder : ScriptableObject
 
         if (minionsInRange.Count > 0)
         {
-            selectedTargetMinions.Add(minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)]);
+            var chosen = minionsInRange[UnityEngine.Random.Range(0, minionsInRange.Count)];
+            selectedMinions.Add(chosen);        // consumed by effects like ChangeMinionHealth (e.g. Nailpuncher)
+            selectedTargetMinions.Add(chosen);  // consumed by effects like Attack (e.g. Turret)
         }
 
         yield return null;
@@ -1731,8 +1733,12 @@ public class ActionHolder : ScriptableObject
             {
                 bool isDied = minion.TakeDamage(Mathf.Abs(value));
 
-                if (isDied)
+                if (isDied) { 
+             
                     DiedMinionAmount++;
+
+                    yield return new WaitForSeconds(1f);
+                }
             }
             else
             {
