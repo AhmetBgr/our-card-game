@@ -5656,7 +5656,7 @@ PrefabInstance:
         type: 3}
       propertyPath: card
       value: 
-      objectReference: {fileID: 11400000, guid: 95344209609e87e418538287a9e5eda2,
+      objectReference: {fileID: 11400000, guid: ae6ef9bcb7cc27b4c850601f1eafce1c,
         type: 2}
     - target: {fileID: 9060544395095922235, guid: 29ef1783c50c9224085bb0da6684ebbc,
         type: 3}
@@ -6063,7 +6063,7 @@ MonoBehaviour:
   - {fileID: 1184556070}
   selectables: []
   currentState: 0
-  maxMana: 5
+  maxMana: 0
   isPlayerTurn: 1
   isTesting: 0
   isTestingFailed: 0
@@ -10060,7 +10060,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1598425300
 MonoBehaviour:
   m_ObjectHideFlags: 0

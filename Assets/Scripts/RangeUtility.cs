@@ -25,6 +25,9 @@ public static class RangeUtility
     // row; every other unit is a single cell.
     public static IEnumerable<Vector2Int> GetOccupiedCells(MinionController unit)
     {
+        // A destroyed-but-still-referenced minion (Unity "fake null") would throw on .transform. Treat
+        // it as occupying nothing so stale roster entries can never crash range/targeting code.
+        if (unit == null) yield break;
         Vector2Int c = ToGridIndex(unit.transform.position);
         if (unit is HeroController)
         {
@@ -43,6 +46,7 @@ public static class RangeUtility
     // from (and can reach) any cell adjacent to its body.
     public static bool IsInRange(MinionController source, MinionController target)
     {
+        if (source == null || target == null) return false;
         int range = source.modal.range;
         foreach (var s in GetOccupiedCells(source))
             foreach (var t in GetOccupiedCells(target))

@@ -102,19 +102,27 @@ public class OpponentRando : Agent
             ActionHolder.OnWaitingCellSelect += SelectCell;
             ActionHolder.OnWaitingMinionSelect += SelectMinion;
 
+            // The unsubscribe MUST run no matter how the action ends — a leaked handler would auto-resolve
+            // the PLAYER's cell/minion picks on their turn (summoning with no prompt). A finally guarantees
+            // it even if the action throws; the empty-target case cancels the current card gracefully
+            // (see SelectCell/SelectMinion) instead of stopping this coroutine, which would skip the finally.
+            try
+            {
+                IEnumerator action = availableActions[UnityEngine.Random.Range(0, availableActions.Count)];
 
-            IEnumerator action = availableActions[UnityEngine.Random.Range(0, availableActions.Count)];
+                yield return new WaitForSeconds(1f);
 
-            yield return new WaitForSeconds(1f);
+                Debug.LogWarning("Start action");
 
-            Debug.LogWarning("Start action");
+                yield return StartCoroutine(action);
 
-            yield return StartCoroutine(action);
-
-            Debug.LogWarning("end of  action");
-
-            ActionHolder.OnWaitingCellSelect -= SelectCell;
-            ActionHolder.OnWaitingMinionSelect -= SelectMinion;
+                Debug.LogWarning("end of  action");
+            }
+            finally
+            {
+                ActionHolder.OnWaitingCellSelect -= SelectCell;
+                ActionHolder.OnWaitingMinionSelect -= SelectMinion;
+            }
 
             if (GameManager.Instance.currentState == GameState.EndGame)
                 break;
@@ -131,7 +139,10 @@ public class OpponentRando : Agent
         //friendlyMinions = minions.Where(minion => !minion.modal.isPlayerMinion).ToList();
         if (minions.Count == 0)
         {
-            StopAllCoroutines();
+            // No valid target: cancel THIS card's resolution gracefully. Never StopAllCoroutines here —
+            // that kills PlayTurn mid-turn and leaks our event subscription onto the player's selections.
+            ActionHolder.cancelRequested = true;
+            return;
         }
         var filteredList  = new List<MinionController>();
 
@@ -154,11 +165,13 @@ public class OpponentRando : Agent
     {
         if(cells.Count == 0)
         {
-            StopAllCoroutines();
-
+            // No valid cell: cancel THIS card's resolution gracefully. Never StopAllCoroutines here —
+            // that kills PlayTurn mid-turn and leaks our event subscription onto the player's selections.
+            ActionHolder.cancelRequested = true;
+            return;
         }
 
-        ActionHolder.selectedcell = cells[UnityEngine.Random.Range(0, cells.Count)];    
+        ActionHolder.selectedcell = cells[UnityEngine.Random.Range(0, cells.Count)];
     }
 
     public override bool IsPlayer()

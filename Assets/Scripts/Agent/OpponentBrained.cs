@@ -69,24 +69,33 @@ public class OpponentBrained : Agent
             ActionHolder.OnWaitingCellSelect += SelectCell;
             ActionHolder.OnWaitingMinionSelect += SelectMinion;
 
-            IEnumerator action = PickBestAction();
+            // The unsubscribe MUST run no matter how the action ends — a leaked handler would auto-resolve
+            // the PLAYER's cell/minion picks on their turn (summoning with no prompt). A finally guarantees
+            // it even if the action throws; the empty-target case cancels the current card gracefully
+            // (see SelectCell/SelectMinion) instead of stopping this coroutine, which would skip the finally.
+            try
+            {
+                IEnumerator action = PickBestAction();
 
-            yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(1f);
 
-            Debug.LogWarning("Start action");
-            yield return StartCoroutine(action);
-            Debug.LogWarning("end of  action");
+                Debug.LogWarning("Start action");
+                yield return StartCoroutine(action);
+                Debug.LogWarning("end of  action");
 
-            // An action (especially an attack) can spawn triggered actions — e.g. a minion that kills
-            // itself on the counter-attack fires its OnDeath a frame or two later. Those run as separate
-            // coroutines over the shared ActionHolder selection globals, so we must let them fully drain
-            // before issuing the next action; otherwise the next play/turn-end clobbers their state and
-            // the trigger's effect (the seed's +1/+1 buff) silently does nothing.
-            while (GameManager.Instance.HasInFlightTriggeredActions)
-                yield return null;
-
-            ActionHolder.OnWaitingCellSelect -= SelectCell;
-            ActionHolder.OnWaitingMinionSelect -= SelectMinion;
+                // An action (especially an attack) can spawn triggered actions — e.g. a minion that kills
+                // itself on the counter-attack fires its OnDeath a frame or two later. Those run as separate
+                // coroutines over the shared ActionHolder selection globals, so we must let them fully drain
+                // before issuing the next action; otherwise the next play/turn-end clobbers their state and
+                // the trigger's effect (the seed's +1/+1 buff) silently does nothing.
+                while (GameManager.Instance.HasInFlightTriggeredActions)
+                    yield return null;
+            }
+            finally
+            {
+                ActionHolder.OnWaitingCellSelect -= SelectCell;
+                ActionHolder.OnWaitingMinionSelect -= SelectMinion;
+            }
 
             if (GameManager.Instance.currentState == GameState.EndGame)
                 break;
@@ -115,7 +124,9 @@ public class OpponentBrained : Agent
     {
         if (minions.Count == 0)
         {
-            StopAllCoroutines();
+            // No valid target: cancel THIS card's resolution gracefully. Never StopAllCoroutines here —
+            // that kills PlayTurn mid-turn and leaks our event subscription onto the player's selections.
+            ActionHolder.cancelRequested = true;
             return;
         }
 
@@ -160,7 +171,9 @@ public class OpponentBrained : Agent
     {
         if (cells.Count == 0)
         {
-            StopAllCoroutines();
+            // No valid cell: cancel THIS card's resolution gracefully. Never StopAllCoroutines here —
+            // that kills PlayTurn mid-turn and leaks our event subscription onto the player's selections.
+            ActionHolder.cancelRequested = true;
             return;
         }
 

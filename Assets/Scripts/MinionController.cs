@@ -756,12 +756,16 @@ public class MinionController : MonoBehaviour
         // so it must also stop re-registering on GridChanged, or its stale reference reclaims the cell
         // a subsequent mover advances into — corrupting occupancy (e.g. the enemy then summons on top).
         gridEntity.DetachFromGrid();
-        if (GameManager.Instance.isPlayerTurn)
+        // Remove from the ACTUAL owner's roster, not whoever's turn it currently is. A minion that
+        // dies on the other agent's turn would otherwise be removed from the wrong list and linger as
+        // a destroyed reference, later crashing range/targeting code that walks owner.minions.
+        if (owner != null)
         {
-            GameManager.Instance.player.minions.Remove(this);
+            owner.minions.Remove(this);
         }
         else
         {
+            GameManager.Instance.player.minions.Remove(this);
             GameManager.Instance.opponent.minions.Remove(this);
         }
         Invoke("PlayDeathAnimation", 1f);
@@ -806,6 +810,16 @@ public class MinionController : MonoBehaviour
     public virtual void Move(Vector3Int pos)
     {
         gridEntity.WorldPos = pos;
+
+        // A move is authoritative over this transform's position, so cancel any position tween still
+        // running on it before starting the DOMove. Without this, a minion relocated mid-animation — e.g.
+        // the attacker of a summon-on-attacked hero, pushed to make room for the reinforcement while its
+        // own attack lunge (DOPunchPosition) is still in flight — has that lunge fight and then override
+        // the push, snapping it back onto the newly-summoned minion. Only position tweens target this
+        // transform (scale/appear live on the child MinionView), so killing them here is safe. complete:
+        // false leaves it at its current spot so the DOMove interpolates smoothly from there.
+        transform.DOKill(false);
+
         // Recompute attack-readiness once the move finishes: a changed position changes which targets
         // are in range (both for this minion and for any minion that could reach it). We hook OnComplete
         // because RangeUtility reads transform.position, which only reaches `pos` when the tween ends.

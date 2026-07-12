@@ -932,6 +932,7 @@ public class ActionHolder : ScriptableObject
 
         foreach (var minion in agent.minions)
         {
+            if (minion == null) continue;
             Debug.Log("checking if minion is in range: ");
             if (RangeUtility.IsInRange(thisMinion, minion) && minion != thisMinion)
             {
@@ -966,7 +967,7 @@ public class ActionHolder : ScriptableObject
         selectedMinions.Clear();
         foreach (var minion in thisAgent.minions)
         {
-            if (minion == thisMinion) continue;
+            if (minion == null || minion == thisMinion) continue;
             Debug.Log("checking if minion is in range: ");
             if (RangeUtility.IsInRange(thisMinion, minion))
             {
