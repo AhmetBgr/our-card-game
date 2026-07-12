@@ -373,7 +373,7 @@ TextureImporter:
         width: 96
         height: 160
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -382,6 +382,28 @@ TextureImporter:
       bones: []
       spriteID: a210fae7364022b459a0dcd167b97444
       internalID: 1881493719
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: minionrange_12
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 384
+        width: 96
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 84dd6a6b65fdd7f438302ccee3150d13
+      internalID: -471034209
       vertices: []
       indices: 
       edges: []
@@ -404,6 +426,7 @@ TextureImporter:
       minionrange_1: -1137987039
       minionrange_10: 2078569128
       minionrange_11: -839441941
+      minionrange_12: -471034209
       minionrange_2: 1090080228
       minionrange_3: -1210905570
       minionrange_4: 941582646

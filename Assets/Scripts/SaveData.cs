@@ -7,6 +7,7 @@ public class SaveData
     public DeckData[] Decks;
     public int HighScore;
     public int SelectedDeckIndex;
+    public int SelectedHeroIndex;
 }
 
 [Serializable]

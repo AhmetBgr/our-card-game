@@ -173,6 +173,11 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
         saveData.SelectedDeckIndex = Mathf.Clamp(saveData.SelectedDeckIndex, 0, Mathf.Max(0, saveData.Decks.Length - 1));
 
+        // Keep the RandomHero sentinel (-1); otherwise floor at 0. The upper bound is clamped at
+        // read time by HeroDatabase.GetHeroByIndex, so this stays independent of load order.
+        if (saveData.SelectedHeroIndex < HeroDatabase.RandomHeroIndex)
+            saveData.SelectedHeroIndex = 0;
+
         foreach (var deck in saveData.Decks)
         {
             if (deck == null)
@@ -195,6 +200,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
         {
             HighScore = 0,
             SelectedDeckIndex = 0,
+            SelectedHeroIndex = 0,
             Decks = new DeckData[10]
 
 

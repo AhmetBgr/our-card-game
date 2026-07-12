@@ -20,6 +20,11 @@ public class MinionView : MonoBehaviour
     [SerializeField] private SpriteRenderer friendlyInline;
     [SerializeField] private float heroDropDelay = 0.2f;
 
+    [Tooltip("Melee attack icon (range 1). Assigned on the Hero prefab; left null on minion prefabs.")]
+    [SerializeField] private GameObject attackIconSword;
+    [Tooltip("Ranged attack icon (range >= 2). Assigned on the Hero prefab; left null on minion prefabs.")]
+    [SerializeField] private GameObject attackIconBow;
+
     [SerializeField] private Transform damageIndicator;
     [SerializeField] private SpriteRenderer damageIndicatorBg;
     [SerializeField] private TextMeshProUGUI damageIndicatorText;
@@ -40,6 +45,7 @@ public class MinionView : MonoBehaviour
         UpdateAttackText(modal.attack);
         UpdateHealthText(modal.health);
         UpdateFrame(modal);
+        UpdateAttackIcon(modal.range);
 
         art.sprite = modal.minionArt;
         _isPlayerMinion = modal.isPlayerMinion;
@@ -62,6 +68,17 @@ public class MinionView : MonoBehaviour
     private void UpdateHealthText(int value)
     {
         healthtext.text = value.ToString();
+    }
+
+    // Melee (range 1) shows the sword icon; ranged (range >= 2) shows the bow. Both refs are only
+    // assigned on the Hero prefab, so this is a no-op for minion prefabs that leave them null.
+    private void UpdateAttackIcon(int range)
+    {
+        if (attackIconSword == null || attackIconBow == null) return;
+
+        bool isRanged = range >= 2;
+        attackIconBow.SetActive(isRanged);
+        attackIconSword.SetActive(!isRanged);
     }
 
     private void UpdateFrame(CardModal modal)

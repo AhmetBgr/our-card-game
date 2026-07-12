@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7178b24e5752bd24ebe73c1026f5746b, type: 3}
-  m_Name: PlayerHero
+  m_Name: 4-Engineer
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 21300000, guid: 8f77bf553928200459668f488b93f495, type: 3}
-  cardArt: {fileID: 21300000, guid: 8f77bf553928200459668f488b93f495, type: 3}
-  cardName: 
-  desc: Gain +1 Attack for every 5 Health lost.
+  minionArt: {fileID: 21300000, guid: 6a57c7dca517e6148a97d3e937dc17c8, type: 3}
+  cardArt: {fileID: 21300000, guid: 6a57c7dca517e6148a97d3e937dc17c8, type: 3}
+  cardName: Engineer
+  desc: ' Friendly minions deal 1 damage to enemy minion when they collide.'
   attack: 2
   health: 15
   cost: 0
@@ -65,4 +65,4 @@ MonoBehaviour:
   heroName: PlayerHero
   archetype: 1
   passives:
-  - {fileID: 11400000, guid: 8da47f2c25e991942b3673d09f614389, type: 2}
+  - {fileID: 11400000, guid: dccb178f1af1ebf4b98d4e636dae83cd, type: 2}

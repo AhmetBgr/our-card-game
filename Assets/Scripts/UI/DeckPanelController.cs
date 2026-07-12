@@ -74,10 +74,18 @@ public class DeckPanelController : Singleton<DeckPanelController>
     }
     public void ShowCard(string cardName, Vector3 screenPos)
     {
+        var card = DeckDatabase.Instance.GetCard(cardName);
+        ShowCard(card);
+    }
+
+    // Heroes (HeroSO : CardSO) aren't in DeckDatabase, so they drive the shared preview directly.
+    public void ShowCard(CardSO card)
+    {
+        if (card == null) return;
+
         if (hideCardCor != null)
             StopCoroutine(hideCardCor);
 
-        var card  = DeckDatabase.Instance.GetCard(cardName);
         //mouseHoverCard.card = card;
         var modal = mouseHoverCard.GetComponent<CardModal>();
         modal.UpdateModal(card, null, true);

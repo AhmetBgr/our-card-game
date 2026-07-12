@@ -31,6 +31,15 @@ public class Player : Agent
         SaveManager saveManager = SaveManager.Instance;
         var selectedDeck = saveManager.saveData.Decks[saveManager.saveData.SelectedDeckIndex];
 
+        // Apply the hero chosen in the menu. Runs in Awake so HeroController.Start()/Initialize()
+        // and GameManager.SetupGame() (passive registration) pick up the selected HeroSO.
+        if (hero != null)
+        {
+            var selectedHero = HeroDatabase.Instance.GetSelectedHero();
+            if (selectedHero != null)
+                hero.card = selectedHero;
+        }
+
         deck.Clear();
         // Load Deck
         foreach (var cardName in selectedDeck.Deck)

@@ -8,6 +8,10 @@ public class MainMenuManager : MonoBehaviour
     public Button playButton;
     public Button exitButton;
 
+    // Play requires BOTH a complete deck and a selected hero.
+    private bool deckReady;
+    private bool heroReady;
+
     void Start()
     {
         playButton.onClick.AddListener(() => {
@@ -17,19 +21,30 @@ public class MainMenuManager : MonoBehaviour
     }
     private void OnEnable()
     {
-        DeckPanelController.DeckChanged += UpdatePlayButton;
-
+        DeckPanelController.DeckChanged += OnDeckChanged;
+        HeroSelectionController.HeroSelectionChanged += OnHeroSelectionChanged;
     }
     private void OnDisable()
     {
-        DeckPanelController.DeckChanged -= UpdatePlayButton;
+        DeckPanelController.DeckChanged -= OnDeckChanged;
+        HeroSelectionController.HeroSelectionChanged -= OnHeroSelectionChanged;
     }
     private void OnDestroy()
     {
 
     }
-    void UpdatePlayButton(bool value)
+    void OnDeckChanged(bool value)
     {
-        playButton.interactable = value;
+        deckReady = value;
+        UpdatePlayButton();
+    }
+    void OnHeroSelectionChanged(bool value)
+    {
+        heroReady = value;
+        UpdatePlayButton();
+    }
+    void UpdatePlayButton()
+    {
+        playButton.interactable = deckReady && heroReady;
     }
 }
