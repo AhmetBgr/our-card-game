@@ -66,6 +66,9 @@ public class GameManager : Singleton<GameManager>
     public static event Action<GameState> OnTurnEnd;
     public static event Action<GameState> OnTurnStarted;
     public static event Action<MinionController> OnMinionSummoned;
+    // Fired once when a card play successfully commits (past the cancel checks). Purely additive:
+    // consumed by the stats system; no core logic depends on it.
+    public static event Action<Agent, CardSO> OnCardPlayed;
 
     private readonly HeroPassiveSystem heroPassives = new HeroPassiveSystem();
 
@@ -609,13 +612,13 @@ public class GameManager : Singleton<GameManager>
         {
             Debug.Log("Player Loses!");
             currentState = GameState.EndGame;
-            PopupManager.Instance.OpenPopup(PopupManager.Instance.defeatPopup, 1f);
+            PopupManager.Instance.OpenGameOverPopup(false, 1f);
         }
         else if (opponent.hero.modal.health <= 0)
         {
             Debug.Log("Player Wins!");
             currentState = GameState.EndGame;
-            PopupManager.Instance.OpenPopup(PopupManager.Instance.victoryPopup, 1f);
+            PopupManager.Instance.OpenGameOverPopup(true, 1f);
 
         }
     }
@@ -625,13 +628,13 @@ public class GameManager : Singleton<GameManager>
     public void TriggerVictory()
     {
         currentState = GameState.EndGame;
-        PopupManager.Instance.OpenPopup(PopupManager.Instance.victoryPopup);
+        PopupManager.Instance.OpenGameOverPopup(true);
     }
 
     public void TriggerDefeat()
     {
         currentState = GameState.EndGame;
-        PopupManager.Instance.OpenPopup(PopupManager.Instance.defeatPopup);
+        PopupManager.Instance.OpenGameOverPopup(false);
     }
     public void Addtoactions(IEnumerator action)
     {
@@ -777,6 +780,10 @@ public class GameManager : Singleton<GameManager>
         // Show the spell's pending "played" entry if none of its effects already did (e.g. a spell with
         // no minion deaths/summons). No-op for minion cards, which never set a pending entry.
         ActionLogPanel.Instance?.FlushPending();
+
+        // Confirmed-commit point: this is past the cancel checks above, so cancelled/failed plays never
+        // reach here. Broadcast for the stats system (cards played / mana spent / upgraded count).
+        OnCardPlayed?.Invoke(playingAgent, card != null ? card.card : null);
 
         if (isPlayerTurn)
         {

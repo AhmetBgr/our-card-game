@@ -6,22 +6,23 @@ using UnityEngine.UI;
 
 public class PopupManager : Singleton<PopupManager>
 {
-    public Transform victoryPopup;
-    public Transform defeatPopup;
+    [Header("End-game popup (the same panel is used for victory and defeat)")]
+    public Transform gameOverPopup;
 
-    public Button victoryReplayButton;
-    public Button victoryExitButton;
-    public Button defeatReplayButton;
-    public Button defeatExitButton;
+    [Header("Titles - only the one matching the outcome is enabled")]
+    public Transform victoryTitle;
+    public Transform defeatTitle;
+
+    [Header("Buttons")]
+    public Button replayButton;
+    public Button exitButton;
 
     private Transform curPopup = null;
 
     void Start()
     {
-        if (victoryReplayButton != null) victoryReplayButton.onClick.AddListener(Replay);
-        if (victoryExitButton != null) victoryExitButton.onClick.AddListener(ExitToMenu);
-        if (defeatReplayButton != null) defeatReplayButton.onClick.AddListener(Replay);
-        if (defeatExitButton != null) defeatExitButton.onClick.AddListener(ExitToMenu);
+        if (replayButton != null) replayButton.onClick.AddListener(Replay);
+        if (exitButton != null) exitButton.onClick.AddListener(ExitToMenu);
     }
 
     public void Replay()
@@ -34,8 +35,19 @@ public class PopupManager : Singleton<PopupManager>
         SceneTransitionManager.Instance.TransitionToScene("Menu");
     }
 
+    // Win and loss show the identical panel (background, stats, buttons); the only difference is
+    // which title transform is enabled.
+    public void OpenGameOverPopup(bool won, float delay = 0f)
+    {
+        if (gameOverPopup == null) return;
 
-    public void OpenPopup(Transform popup, float delay = 0f)
+        if (victoryTitle != null) victoryTitle.gameObject.SetActive(won);
+        if (defeatTitle != null) defeatTitle.gameObject.SetActive(!won);
+
+        OpenPopup(gameOverPopup, won, delay);
+    }
+
+    public void OpenPopup(Transform popup, bool won = false, float delay = 0f)
     {
         CloseCurPopup();
         curPopup = popup;
@@ -43,10 +55,12 @@ public class PopupManager : Singleton<PopupManager>
         curPopup.gameObject.SetActive(true);
         curPopup.localScale = Vector3.zero;
 
-        curPopup.DOScale(1f, 0.5f).SetDelay(delay).OnComplete(() =>
-        {
+        // Populate the end-game stats/score on this panel, if it has a view. Additive: does nothing on
+        // panels without a MatchStatsView. Covers both real wins/losses and the editor debug triggers.
+        var statsView = popup.GetComponentInChildren<MatchStatsView>(true);
+        if (statsView != null) statsView.Show(won);
 
-        });
+        curPopup.DOScale(1f, 0.5f).SetDelay(delay);
     }
 
     public void CloseCurPopup()

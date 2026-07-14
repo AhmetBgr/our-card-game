@@ -47,6 +47,20 @@ public class SaveManager : PermanentSingleton<SaveManager>
         PlayerPrefs.SetString(saveDataKey, value);
         PlayerPrefs.Save();
     }
+
+    public int HighScore => saveData != null ? saveData.HighScore : 0;
+
+    // Records `score` as the new best if it beats the stored one, persisting immediately (a match ends
+    // with Replay/Exit, both of which reload a scene, so we can't wait for OnApplicationQuit).
+    // Returns true only when a new record was written.
+    public bool TrySetHighScore(int score)
+    {
+        if (saveData == null || score <= saveData.HighScore) return false;
+
+        saveData.HighScore = score;
+        SaveData();
+        return true;
+    }
     public string GetSaveData()
     {
         // Retrieve deck data from PlayerPrefs or other storage

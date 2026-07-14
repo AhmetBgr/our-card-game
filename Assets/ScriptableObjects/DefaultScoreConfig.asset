@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e13d91457d2b87041bfa6c62e1ccf4e2, type: 3}
+  m_Name: DefaultScoreConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ScoreConfig
+  baseWinScore: 100
+  baseLossScore: 0
+  perEnemyKilled: 5
+  perFriendlyLost: -5
+  perCardPlayed: 0
+  perUpgradedCard: 0
+  perHeroHpRemaining: 5
+  turnStartValue: 60
+  perTurnPenalty: -5
+  perMaxBoardMinion: 2
+  perLongestAgeTurn: 5
+  manaEfficiencyWeight: 30
+  overkillEfficiencyWeight: 20
+  multiKill2Bonus: 5
+  multiKill3Bonus: 15
+  multiKill4Bonus: 40
+  flawlessBonus: 50
+  comebackBonus: 30
+  oneTurnKillBonus: 75
+  comebackHpThreshold: 5
+  gradeS: 300
+  gradeA: 220
+  gradeB: 150
+  gradeC: 80
