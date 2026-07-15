@@ -1669,7 +1669,7 @@ MonoBehaviour:
   - {fileID: 94201301}
   - {fileID: 1663888671}
   - {fileID: 1919276588}
-  cardsPerPage: 30
+  cardsPerPage: 20
 --- !u!114 &308984788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5623,7 +5623,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1503314957
 MonoBehaviour:
   m_ObjectHideFlags: 0

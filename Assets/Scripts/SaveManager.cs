@@ -6,11 +6,42 @@ public class SaveManager : PermanentSingleton<SaveManager>
     public const int PlayerDeckIndex = 0;
     public const int MysteryDeckIndex = 1;
 
+    public const int DeckSlotCount = 10;
+
     public string saveDataKey = "DeckData";
 
     public SaveData saveData;
     public DeckSO defaultDeck;
+    [Tooltip("Seeds the opponent's default deck slot, so a fresh save starts the AI on its authored deck.")]
+    public DeckSO defaultOpponentDeck;
     public int DeckSize = 10;
+
+    // Every deck operation is addressed by side, so the player's and the opponent's ten slots stay
+    // independent. The `side` parameter defaults to Player throughout, keeping single-side callers simple.
+    public DeckData[] GetDecks(SelectionSide side) =>
+        side == SelectionSide.Opponent ? saveData.OpponentDecks : saveData.Decks;
+
+    public int GetSelectedDeckIndex(SelectionSide side) =>
+        side == SelectionSide.Opponent ? saveData.SelectedOpponentDeckIndex : saveData.SelectedDeckIndex;
+
+    public void SetSelectedDeckIndex(SelectionSide side, int value)
+    {
+        if (side == SelectionSide.Opponent)
+            saveData.SelectedOpponentDeckIndex = value;
+        else
+            saveData.SelectedDeckIndex = value;
+    }
+
+    public int GetSelectedHeroIndex(SelectionSide side) =>
+        side == SelectionSide.Opponent ? saveData.SelectedOpponentHeroIndex : saveData.SelectedHeroIndex;
+
+    public void SetSelectedHeroIndex(SelectionSide side, int value)
+    {
+        if (side == SelectionSide.Opponent)
+            saveData.SelectedOpponentHeroIndex = value;
+        else
+            saveData.SelectedHeroIndex = value;
+    }
 
     protected override void Awake()
     {
@@ -67,54 +98,40 @@ public class SaveManager : PermanentSingleton<SaveManager>
         string deckData = PlayerPrefs.GetString(saveDataKey, string.Empty);
         return deckData;
     }
-    public void RemoveCard(string cardName, int deckIndex)
+    public void RemoveCard(string cardName, int deckIndex, SelectionSide side = SelectionSide.Player)
     {
-        // todo: remove card from savedata
-        if (!IsValidDeckIndex(deckIndex))
+        if (!IsValidDeckIndex(deckIndex, side))
             return;
 
-        if (!saveData.Decks[deckIndex].Deck.Contains(cardName)) return;
+        var decks = GetDecks(side);
 
-        saveData.Decks[deckIndex].Deck.Remove(cardName);
-            SaveData();
+        if (!decks[deckIndex].Deck.Contains(cardName)) return;
 
-
-        /*List<string> cards = new List<string>(saveData.Decks[deckIndex].Deck);
-
-        if (cards.Remove(cardName))
-        {
-            saveData.Decks[deckIndex].Deck = cards.ToArray();
-            SaveData();
-        }*/
+        decks[deckIndex].Deck.Remove(cardName);
+        SaveData();
     }
 
-    public bool AddCard(string cardName, int deckIndex)
+    public bool AddCard(string cardName, int deckIndex, SelectionSide side = SelectionSide.Player)
     {
-        // add card to savedata
-
-
-        if (!IsValidDeckIndex(deckIndex))
+        if (!IsValidDeckIndex(deckIndex, side))
             return false;
 
-        if (saveData.Decks[deckIndex].Deck.Contains(cardName)) return false;
+        var decks = GetDecks(side);
 
-        if (saveData.Decks[deckIndex].Deck.Count >= DeckSize) return false;
+        if (decks[deckIndex].Deck.Contains(cardName)) return false;
 
-        saveData.Decks[deckIndex].Deck.Add(cardName);
+        if (decks[deckIndex].Deck.Count >= DeckSize) return false;
 
+        decks[deckIndex].Deck.Add(cardName);
 
-        /*List<string> cards = new List<string>(saveData.Decks[deckIndex].Deck);
-        cards.Add(cardName);
-        saveData.Decks[deckIndex].Deck = cards.ToArray();
-        */
         SaveData();
 
         return true;
     }
 
-    public void GenerateRandomDeck(int deckIndex)
+    public void GenerateRandomDeck(int deckIndex, SelectionSide side = SelectionSide.Player)
     {
-        if (!IsValidDeckIndex(deckIndex))
+        if (!IsValidDeckIndex(deckIndex, side))
             return;
 
         var pool = new List<CardSO>(DeckDatabase.Instance.AllCards);
@@ -129,7 +146,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
             pool[randomIndex] = temp;
         }
 
-        var deck = saveData.Decks[deckIndex].Deck;
+        var deck = GetDecks(side)[deckIndex].Deck;
         deck.Clear();
 
         foreach (var tier in DeckSO.ManaCurve)
@@ -157,14 +174,18 @@ public class SaveManager : PermanentSingleton<SaveManager>
         SaveData();
     }
 
-    bool IsValidDeckIndex(int index)
+    bool IsValidDeckIndex(int index, SelectionSide side = SelectionSide.Player)
     {
-        if (saveData == null || saveData.Decks == null)
+        if (saveData == null)
             return false;
 
-        if (index < 0 || index >= saveData.Decks.Length)
+        var decks = GetDecks(side);
+        if (decks == null)
+            return false;
+
+        if (index < 0 || index >= decks.Length)
         {
-            Debug.LogWarning($"Invalid deck index: {index}");
+            Debug.LogWarning($"Invalid {side} deck index: {index}");
             return false;
         }
 
@@ -185,14 +206,29 @@ public class SaveManager : PermanentSingleton<SaveManager>
         if (saveData.Decks == null)
             saveData.Decks = new DeckData[0];
 
+        // Saves written before the opponent gained its own deck slots deserialize OpponentDecks as
+        // null, so build it here rather than treating the save as corrupt and wiping the player's decks.
+        if (saveData.OpponentDecks == null || saveData.OpponentDecks.Length == 0)
+            saveData.OpponentDecks = BuildDeckSlots(defaultOpponentDeck);
+
         saveData.SelectedDeckIndex = Mathf.Clamp(saveData.SelectedDeckIndex, 0, Mathf.Max(0, saveData.Decks.Length - 1));
+        saveData.SelectedOpponentDeckIndex = Mathf.Clamp(saveData.SelectedOpponentDeckIndex, 0, Mathf.Max(0, saveData.OpponentDecks.Length - 1));
 
         // Keep the RandomHero sentinel (-1); otherwise floor at 0. The upper bound is clamped at
         // read time by HeroDatabase.GetHeroByIndex, so this stays independent of load order.
         if (saveData.SelectedHeroIndex < HeroDatabase.RandomHeroIndex)
             saveData.SelectedHeroIndex = 0;
 
-        foreach (var deck in saveData.Decks)
+        if (saveData.SelectedOpponentHeroIndex < HeroDatabase.RandomHeroIndex)
+            saveData.SelectedOpponentHeroIndex = 0;
+
+        EnsureDecksAreValid(saveData.Decks);
+        EnsureDecksAreValid(saveData.OpponentDecks);
+    }
+
+    static void EnsureDecksAreValid(DeckData[] decks)
+    {
+        foreach (var deck in decks)
         {
             if (deck == null)
                 continue;
@@ -201,11 +237,11 @@ public class SaveManager : PermanentSingleton<SaveManager>
                 deck.Deck = new List<string>();
         }
 
-        if (saveData.Decks.Length > PlayerDeckIndex && saveData.Decks[PlayerDeckIndex] != null)
-            saveData.Decks[PlayerDeckIndex].isLocked = true;
+        if (decks.Length > PlayerDeckIndex && decks[PlayerDeckIndex] != null)
+            decks[PlayerDeckIndex].isLocked = true;
 
-        if (saveData.Decks.Length > MysteryDeckIndex && saveData.Decks[MysteryDeckIndex] != null)
-            saveData.Decks[MysteryDeckIndex].isLocked = true;
+        if (decks.Length > MysteryDeckIndex && decks[MysteryDeckIndex] != null)
+            decks[MysteryDeckIndex].isLocked = true;
     }
 
     void CreateNewSave()
@@ -215,36 +251,47 @@ public class SaveManager : PermanentSingleton<SaveManager>
             HighScore = 0,
             SelectedDeckIndex = 0,
             SelectedHeroIndex = 0,
-            Decks = new DeckData[10]
-
-
+            SelectedOpponentDeckIndex = 0,
+            // Index 1 is 2-Summoner (AllHeroes is sorted by asset name), the hero the AI shipped with.
+            SelectedOpponentHeroIndex = 1,
+            Decks = BuildDeckSlots(defaultDeck),
+            OpponentDecks = BuildDeckSlots(defaultOpponentDeck)
         };
-        saveData.Decks[PlayerDeckIndex] = new DeckData
+    }
+
+    // The ten slots one side gets: slot 0 seeded from `seedDeck` and locked, slot 1 the locked
+    // mystery deck (filled by GenerateRandomDeck), the rest empty and editable.
+    DeckData[] BuildDeckSlots(DeckSO seedDeck)
+    {
+        var decks = new DeckData[DeckSlotCount];
+
+        decks[PlayerDeckIndex] = new DeckData
         {
-            Name = defaultDeck != null ? defaultDeck.deckName : "Default_Deck_0",
+            Name = seedDeck != null ? seedDeck.deckName : "Default_Deck_0",
             isLocked = true,
             Deck = new List<string>()
         };
 
-        if (defaultDeck != null)
+        if (seedDeck != null)
         {
-            for (int i = 0; i < defaultDeck.cards.Count && saveData.Decks[PlayerDeckIndex].Deck.Count < DeckSize; i++)
+            for (int i = 0; i < seedDeck.cards.Count && decks[PlayerDeckIndex].Deck.Count < DeckSize; i++)
             {
-                if (defaultDeck.cards[i] != null)
-                    saveData.Decks[PlayerDeckIndex].Deck.Add(defaultDeck.cards[i].cardName);
+                if (seedDeck.cards[i] != null)
+                    decks[PlayerDeckIndex].Deck.Add(seedDeck.cards[i].cardName);
             }
         }
 
-
-        for (int i = 1; i < saveData.Decks.Length; i++)
+        for (int i = 1; i < decks.Length; i++)
         {
-            saveData.Decks[i] = new DeckData
+            decks[i] = new DeckData
             {
                 Name = "Default_Deck_" + i,
                 isLocked = i == MysteryDeckIndex,
                 Deck = new List<string>()
             };
         }
+
+        return decks;
     }
 
     protected void OnApplicationQuit()

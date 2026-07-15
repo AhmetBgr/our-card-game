@@ -176,54 +176,54 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Result: <size=24><color=#E4E4E4>Victory</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+1000</color></b></size>
+  m_text: 'Result: <size=24><color=#BCA63B>Victory</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+1000</color></b></size>
 
     Enemy
-    minions killed: <size=24><color=#E4E4E4>6</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+300</color></b></size>
+    minions killed: <size=24><color=#BCA63B>6</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+300</color></b></size>
 
     Friendly
-    minions lost: <size=24><color=#E4E4E4>2</color></size><pos=81.7%><size=26.4><b><color=#A80000>-40</color></b></size>
+    minions lost: <size=24><color=#BCA63B>2</color></size><pos=81.7%><size=26.4><b><color=#A80000>-40</color></b></size>
 
     Cards
-    played: <size=24><color=#E4E4E4>11</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+110</color></b></size>
+    played: <size=24><color=#BCA63B>11</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+110</color></b></size>
 
     Upgraded
-    cards played: <size=24><color=#E4E4E4>3</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+75</color></b></size>
+    cards played: <size=24><color=#BCA63B>3</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+75</color></b></size>
 
     Hero
-    HP remaining: <size=24><color=#E4E4E4>18</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+270</color></b></size>
+    HP remaining: <size=24><color=#BCA63B>18</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+270</color></b></size>
 
     Turns:
-    <size=24><color=#E4E4E4>7</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+65</color></b></size>
+    <size=24><color=#BCA63B>7</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+65</color></b></size>
 
     Board
-    control (max minions): <size=24><color=#E4E4E4>4</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+60</color></b></size>
+    control (max minions): <size=24><color=#BCA63B>4</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+60</color></b></size>
 
     Longest-surviving
-    minion: <size=24><color=#E4E4E4>5 turns</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+50</color></b></size>
+    minion: <size=24><color=#BCA63B>5 turns</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+50</color></b></size>
 
     Mana
-    efficiency: <size=24><color=#E4E4E4>83%</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+167</color></b></size>
+    efficiency: <size=24><color=#BCA63B>83%</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+167</color></b></size>
 
     Overkill
-    efficiency: <size=24><color=#E4E4E4>80%</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+80</color></b></size>
+    efficiency: <size=24><color=#BCA63B>80%</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+80</color></b></size>
 
     Multi-kill:
-    <size=24><color=#E4E4E4>3 in a turn</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+150</color></b></size>
+    <size=24><color=#BCA63B>3 in a turn</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+150</color></b></size>
 
     Comeback:
-    <size=24><color=#E4E4E4>clutch!</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+500</color></b></size>'
+    <size=24><color=#BCA63B>clutch!</color></size><pos=81.7%><size=26.4><b><color=#00C01E>+500</color></b></size>'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: cb2dc93349b49fe4cbbea8095b20ae39, type: 2}
-  m_sharedMaterial: {fileID: 1063647338759458002, guid: cb2dc93349b49fe4cbbea8095b20ae39,
+  m_fontAsset: {fileID: 11400000, guid: c902c5847e945b5428f4eb29622c257f, type: 2}
+  m_sharedMaterial: {fileID: 1063647338759458002, guid: c902c5847e945b5428f4eb29622c257f,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278782217
-  m_fontColor: {r: 0.035, g: 0.035, b: 0.035, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2474,6 +2474,10 @@ MonoBehaviour:
   rankText: {fileID: 1134931083}
   scoreText: {fileID: 343333228}
   bodyText: {fileID: 2013720380}
+  highScoreText: {fileID: 0}
+  highScoreFormat: Best {0}
+  newHighScoreLabel: New Best!
+  newHighScoreColor: {r: 1, g: 0.82, b: 0.25, a: 1}
   positivePointsColor: {r: 0.12677999, g: 0.7264151, b: 0.21903162, a: 1}
   negativePointsColor: {r: 0.6886792, g: 0.1786668, b: 0.1786668, a: 1}
   neutralPointsColor: {r: 1, g: 1, b: 1, a: 1}
@@ -5038,7 +5042,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -320, y: 121.1}
+  m_AnchoredPosition: {x: -314.2, y: 121.1}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &671098449
@@ -5545,7 +5549,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -207}
+  m_AnchoredPosition: {x: 0, y: -214.88}
   m_SizeDelta: {x: 647.3, y: 8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &770598956
@@ -5561,7 +5565,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.34901962, g: 0.3254902, b: 0.2901961, a: 1}
+  m_Color: {r: 0.135, g: 0.135, b: 0.135, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5994,7 +5998,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 2,787
+  m_text: 278
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb2dc93349b49fe4cbbea8095b20ae39, type: 2}
   m_sharedMaterial: {fileID: 1063647338759458002, guid: cb2dc93349b49fe4cbbea8095b20ae39,
@@ -8678,7 +8682,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: Defeat!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: cb2dc93349b49fe4cbbea8095b20ae39, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 63fbe47bc4a8a854a881448c43071c16, type: 2}
   m_sharedMaterial: {fileID: 172730309}
   m_fontSharedMaterials:
   - {fileID: 172730309}
@@ -8747,7 +8751,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1138072479
@@ -12782,6 +12786,10 @@ MonoBehaviour:
   rankText: {fileID: 932975376}
   scoreText: {fileID: 1962085879}
   bodyText: {fileID: 2055002637}
+  highScoreText: {fileID: 0}
+  highScoreFormat: Best {0}
+  newHighScoreLabel: New Best!
+  newHighScoreColor: {r: 1, g: 0.82, b: 0.25, a: 1}
   positivePointsColor: {r: 0.3, g: 0.85, b: 0.4, a: 1}
   negativePointsColor: {r: 0.9, g: 0.35, b: 0.35, a: 1}
   neutralPointsColor: {r: 0.6, g: 0.63, b: 0.66, a: 1}
@@ -13150,6 +13158,10 @@ MonoBehaviour:
   rankText: {fileID: 671098449}
   scoreText: {fileID: 815426698}
   bodyText: {fileID: 2651842}
+  highScoreText: {fileID: 0}
+  highScoreFormat: Best {0}
+  newHighScoreLabel: New Best!
+  newHighScoreColor: {r: 1, g: 0.82, b: 0.25, a: 1}
   positivePointsColor: {r: 0, g: 0.7529412, b: 0.11764706, a: 1}
   negativePointsColor: {r: 0.6603774, g: 0, b: 0, a: 1}
   neutralPointsColor: {r: 1, g: 1, b: 1, a: 1}
@@ -13157,7 +13169,7 @@ MonoBehaviour:
   pointsBold: 1
   pointsItalic: 0
   pointsFontSize: 26.4
-  valueTextColor: {r: 0.895, g: 0.895, b: 0.895, a: 1}
+  valueTextColor: {r: 0.735849, g: 0.6524632, b: 0.23255605, a: 1}
   valueTextBold: 0
   valueTextItalic: 0
   valueTextFontSize: 24
@@ -13335,6 +13347,7 @@ MonoBehaviour:
   defeatTitle: {fileID: 1138072477}
   replayButton: {fileID: 1822518902}
   exitButton: {fileID: 1176276317}
+  setupSceneName: CreateCustomGame
 --- !u!1 &1751038070
 GameObject:
   m_ObjectHideFlags: 0
@@ -15066,7 +15079,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2001815631
 RectTransform:
   m_ObjectHideFlags: 0
@@ -15108,8 +15121,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Victory!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: cb2dc93349b49fe4cbbea8095b20ae39, type: 2}
-  m_sharedMaterial: {fileID: 1063647338759458002, guid: cb2dc93349b49fe4cbbea8095b20ae39,
+  m_fontAsset: {fileID: 11400000, guid: 63fbe47bc4a8a854a881448c43071c16, type: 2}
+  m_sharedMaterial: {fileID: 1063647338759458002, guid: 63fbe47bc4a8a854a881448c43071c16,
     type: 2}
   m_fontSharedMaterials:
   - {fileID: 172730309}
@@ -15118,7 +15131,7 @@ MonoBehaviour:
   - {fileID: 172730309}
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278226345
   m_fontColor: {r: 0.6627451, g: 0.5529412, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -15495,7 +15508,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2059521453, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
+  m_Sprite: {fileID: -796585969, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1

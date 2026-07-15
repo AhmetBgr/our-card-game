@@ -18,10 +18,17 @@ public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public string cardName;
 
     public Action OnClicked;
+
+    // The panel this button belongs to. Resolved by walking up the hierarchy rather than being
+    // injected, because these buttons are created from several places (the all-cards grid and each
+    // custom-deck view) and are always descendants of their DeckPanel.
+    private DeckPanelController owner;
+
     // Start is called before the first frame update
     void Awake()
     {
         Button = GetComponent<Button>();
+        owner = GetComponentInParent<DeckPanelController>(true);
         //Button.onClick.AddListener(() => OnClicked?.Invoke());
     }
 
@@ -45,13 +52,15 @@ public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (string.IsNullOrEmpty(cardName)) return;
+        if (string.IsNullOrEmpty(cardName) || owner == null) return;
 
-        DeckPanelController.Instance.ShowCard(cardName, GetCardPosition(eventData.position));
+        owner.ShowCard(cardName, GetCardPosition(eventData.position));
     }
     public void OnPointerExit(PointerEventData eventData)
     {
-        DeckPanelController.Instance.HideCard();
+        if (owner == null) return;
+
+        owner.HideCard();
     }
 
     public void OnPointerMove(PointerEventData eventData)

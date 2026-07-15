@@ -50,7 +50,8 @@
       "Bash(xargs -I{} echo \"patch marker occurrences in tarball copy: {} \\(expect 2: class def + usage\\)\")",
       "Bash(python -c \"import json;d=json.load\\(open\\('Packages/manifest.json'\\)\\);print\\('JSON OK ->', d['dependencies']['com.unity.ai.assistant']\\)\")",
       "Bash(node -e \"const d=require\\('./Packages/manifest.json'\\);console.log\\('JSON OK ->',d.dependencies['com.unity.ai.assistant']\\)\")",
-      "Bash(awk '{print $5,$9}')"
+      "Bash(awk '{print $5,$9}')",
+      "mcp__unity-mcp__Unity_CreateScript"
     ]
   }
 }

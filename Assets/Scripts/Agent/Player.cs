@@ -27,44 +27,9 @@ public class Player : Agent
 
     protected override void Awake()
     {
-        // todo: get selected deck
-        SaveManager saveManager = SaveManager.Instance;
-        var selectedDeck = saveManager.saveData.Decks[saveManager.saveData.SelectedDeckIndex];
-
-        // Apply the hero chosen in the menu. Runs in Awake so HeroController.Start()/Initialize()
-        // and GameManager.SetupGame() (passive registration) pick up the selected HeroSO.
-        if (hero != null)
-        {
-            var selectedHero = HeroDatabase.Instance.GetSelectedHero();
-            if (selectedHero != null)
-                hero.card = selectedHero;
-        }
-
-        deck.Clear();
-        // Load Deck
-        foreach (var cardName in selectedDeck.Deck)
-        {
-            CardSO cardSO = DeckDatabase.Instance.GetCard(cardName);
-            if (cardSO != null)
-            {
-                deck.Add(cardSO);
-            }
-            else
-            {
-                Debug.LogWarning($"Card with name {cardName} not found in database.");
-            }
-        }
-
-        // Shuffle Deck
-        for (int i = deck.Count - 1; i > 0; i--)
-        {
-            int randomIndex = UnityEngine.Random.Range(0, i + 1); // UnityEngine.Random
-            var temp = deck[i];
-            deck[i] = deck[randomIndex];
-            deck[randomIndex] = temp;
-        }
-
-        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
+        ApplySavedSelection(SelectionSide.Player);
+        ShuffleDeck();
+        RefreshDeckView();
     }
 
     public override IEnumerator PlayTurn()

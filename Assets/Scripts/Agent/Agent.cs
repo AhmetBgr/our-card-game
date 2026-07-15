@@ -29,14 +29,51 @@ public class Agent : MonoBehaviour
         set { _availibleMana = value; }
     }
 
+    // The base Awake is the opponents' (Player overrides it): load whatever was chosen for the AI in
+    // the setup scene, falling back to the authored deckSO so Game.unity still runs when opened directly.
     protected virtual void Awake()
     {
-        if (deckSO != null)
-        {
-            deck.Clear();
+        ApplySavedSelection(SelectionSide.Opponent);
+
+        if (deck.Count == 0 && deckSO != null)
             deck.AddRange(deckSO.cards);
+
+        ShuffleDeck();
+        RefreshDeckView();
+    }
+
+    /// <summary>
+    /// Applies the deck and hero chosen for <paramref name="side"/> in the setup scene. Runs in Awake
+    /// so HeroController.Start()/Initialize() and GameManager.SetupGame() (passive registration) see
+    /// the selected HeroSO.
+    /// </summary>
+    protected void ApplySavedSelection(SelectionSide side)
+    {
+        var saveManager = SaveManager.Instance;
+
+        if (hero != null)
+        {
+            var selectedHero = HeroDatabase.Instance.GetSelectedHero(side);
+            if (selectedHero != null)
+                hero.card = selectedHero;
         }
 
+        var decks = saveManager.GetDecks(side);
+        var selectedDeck = decks[saveManager.GetSelectedDeckIndex(side)];
+
+        deck.Clear();
+        foreach (var cardName in selectedDeck.Deck)
+        {
+            CardSO cardSO = DeckDatabase.Instance.GetCard(cardName);
+            if (cardSO != null)
+                deck.Add(cardSO);
+            else
+                Debug.LogWarning($"Card with name {cardName} not found in database.");
+        }
+    }
+
+    protected void ShuffleDeck()
+    {
         for (int i = deck.Count - 1; i > 0; i--)
         {
             int randomIndex = Random.Range(0, i + 1);
@@ -44,8 +81,13 @@ public class Agent : MonoBehaviour
             deck[i] = deck[randomIndex];
             deck[randomIndex] = temp;
         }
+    }
 
-        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
+    protected void RefreshDeckView()
+    {
+        if (deckViewHandler == null) return;
+
+        deckViewHandler.UpdateView(deck.Count, deck.Count > 0 && deck[deck.Count - 1].isUpgraded);
     }
 
     private void Start()

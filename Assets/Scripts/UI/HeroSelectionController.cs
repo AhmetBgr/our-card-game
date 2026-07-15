@@ -26,17 +26,42 @@ public class HeroSelectionController : MonoBehaviour
     [Tooltip("Art shown on the Random Hero slot's overlay.")]
     [SerializeField] private Sprite randomHeroArt;
 
+    [Header("Preview")]
+    [Tooltip("Deck panel whose card preview shows the hovered hero. Leave empty to resolve it from " +
+             "the DeckSelectionContext above this panel (the deck panel is a sibling prefab, so this " +
+             "cannot be baked into the prefab).")]
+    [SerializeField] private DeckPanelController cardPreviewPanel;
+
     private readonly List<HeroButtonHandler> heroButtons = new List<HeroButtonHandler>();
     private int selectedIndex; // carousel position: 0..realHeroCount-1 = a hero, last = Random slot
     private float distanceBetweenHeroes;
     private Vector3 initialContentPos;
 
-    /// <summary>Raised with whether a valid hero is currently selected (for the Play gate).</summary>
-    public static event Action<bool> HeroSelectionChanged;
+    /// <summary>Whose hero this panel selects. Player when there is no context above it.</summary>
+    public SelectionSide Side { get; private set; }
+
+    /// <summary>Raised with the side and whether a valid hero is currently selected (for the Play gate).</summary>
+    public static event Action<SelectionSide, bool> HeroSelectionChanged;
 
     // The Random slot is always the last button in the carousel.
     private int RandomSlotPosition => heroButtons.Count - 1;
     private bool IsRandom(int position) => position == RandomSlotPosition;
+
+    void Awake()
+    {
+        Side = DeckSelectionContext.SideOf(this);
+
+        if (cardPreviewPanel == null)
+        {
+            var context = GetComponentInParent<DeckSelectionContext>(true);
+
+            // Fall back to the only panel in the scene when there is no context (the Menu scene,
+            // which has a single un-sided DeckPanel/HeroSelectionPanel pair).
+            cardPreviewPanel = context != null
+                ? context.DeckPanel
+                : FindObjectOfType<DeckPanelController>();
+        }
+    }
 
     void Start()
     {
@@ -53,6 +78,7 @@ public class HeroSelectionController : MonoBehaviour
             var hero = heroes[i];
 
             var heroButton = Instantiate(heroButtonPrefab, content);
+            heroButton.PreviewPanel = cardPreviewPanel;
             heroButton.SetHero(hero);
             heroButton.OnClicked = () => SelectPosition(index, animate: true);
 
@@ -62,6 +88,7 @@ public class HeroSelectionController : MonoBehaviour
         // Trailing "Random Hero" slot, mirroring the mystery/random deck.
         {
             var randomButton = Instantiate(heroButtonPrefab, content);
+            randomButton.PreviewPanel = cardPreviewPanel;
             randomButton.SetRandom(randomHeroArt);
             int randomPos = heroButtons.Count; // its position once added
             randomButton.OnClicked = () => SelectPosition(randomPos, animate: true);
@@ -78,7 +105,7 @@ public class HeroSelectionController : MonoBehaviour
         if (previousButton != null) previousButton.onClick.AddListener(() => ChangeSelected(-1));
 
         // Restore the persisted choice: the RandomHero sentinel maps to the last slot.
-        int stored = SaveManager.Instance.saveData.SelectedHeroIndex;
+        int stored = SaveManager.Instance.GetSelectedHeroIndex(Side);
         int startPos = stored == HeroDatabase.RandomHeroIndex
             ? RandomSlotPosition
             : Mathf.Clamp(stored, 0, RandomSlotPosition);
@@ -102,8 +129,8 @@ public class HeroSelectionController : MonoBehaviour
         if (persist)
         {
             // Persist the sentinel for the Random slot so it survives new heroes being added.
-            SaveManager.Instance.saveData.SelectedHeroIndex =
-                IsRandom(position) ? HeroDatabase.RandomHeroIndex : position;
+            SaveManager.Instance.SetSelectedHeroIndex(
+                Side, IsRandom(position) ? HeroDatabase.RandomHeroIndex : position);
             SaveManager.Instance.SaveData();
         }
 
@@ -163,6 +190,6 @@ public class HeroSelectionController : MonoBehaviour
 
     private void TriggerHeroSelectionChanged()
     {
-        HeroSelectionChanged?.Invoke(heroButtons.Count > 0);
+        HeroSelectionChanged?.Invoke(Side, heroButtons.Count > 0);
     }
 }

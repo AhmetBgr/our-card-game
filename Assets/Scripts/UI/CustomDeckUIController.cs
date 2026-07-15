@@ -14,6 +14,14 @@ public class CustomDeckUIController : MonoBehaviour
     private List<CardButtonHandler> cardButtonPool;
     private bool hideCardContents;
 
+    // The panel this deck view lives in — it owns the side whose deck we mutate.
+    private DeckPanelController owner;
+
+    void Awake()
+    {
+        owner = GetComponentInParent<DeckPanelController>(true);
+    }
+
     public void Initialize(DeckData deck, bool isRandomDeck = false)
     {
         hideCardContents = isRandomDeck;
@@ -56,7 +64,7 @@ public class CustomDeckUIController : MonoBehaviour
 
         cardButton.gameObject.SetActive(true);
         cardButton.OnClicked = isLocked ? null : () => {
-            DeckPanelController.Instance.RemoveFromCurrentCustomDeck(card);
+            owner.RemoveFromCurrentCustomDeck(card);
         };
 
         cardButton.Card = cardSO;

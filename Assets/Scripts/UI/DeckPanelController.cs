@@ -7,7 +7,13 @@ using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DeckPanelController : Singleton<DeckPanelController>
+/// <summary>
+/// Drives one deck-selection panel. There is one instance per <see cref="SelectionSide"/> (the
+/// player's and the opponent's panels are the same prefab), so this deliberately holds no static
+/// state: the side comes from the <see cref="DeckSelectionContext"/> above it, and every read and
+/// write is addressed through it.
+/// </summary>
+public class DeckPanelController : MonoBehaviour
 {
     [SerializeField] private CardButtonHandler cardButtonPrefab;
     [SerializeField] private Transform allCardsPanel;
@@ -23,29 +29,43 @@ public class DeckPanelController : Singleton<DeckPanelController>
     [SerializeField] private GameObject mouseHoverCard;
     [SerializeField] private GameObject upgradedMouseHoverCard;
 
+    [Tooltip("Shown when the selected deck is locked (the default/mystery decks aren't editable).")]
+    [SerializeField] private GameObject lockImage;
+    [Tooltip("Shown when the selected deck is unlocked/editable.")]
+    [SerializeField] private GameObject transferImage;
+
     private List<CustomDeckUIController> customDeckUIControllers = new();
     public AllCardsUIController AllCardsUIController;
 
-    private SaveData saveData => SaveManager.Instance.saveData;
-    public List<string> curCustomDeck => saveData.Decks[saveData.SelectedDeckIndex].Deck;
+    /// <summary>Whose selection this panel edits. Player when there is no context above it.</summary>
+    public SelectionSide Side { get; private set; }
+
+    private DeckData[] Decks => SaveManager.Instance.GetDecks(Side);
+    private int SelectedDeckIndex => SaveManager.Instance.GetSelectedDeckIndex(Side);
+    public List<string> curCustomDeck => Decks[SelectedDeckIndex].Deck;
 
     private float distanceBetweenToDecks;
     private Vector3 initialSelectablePanelPos;
 
-    public static event Action<bool> DeckChanged;
+    public static event Action<SelectionSide, bool> DeckChanged;
+
+    void Awake()
+    {
+        Side = DeckSelectionContext.SideOf(this);
+    }
 
     void Start()
     {
-        // Regenerate the mystery deck before building any views, so the panel
+        // Regenerate this side's mystery deck before building any views, so the panel
         // reads the freshly-generated cards instead of a just-cleared list.
         // Runs in Start (not Awake) so DeckDatabase/SaveManager Awakes are done.
-        SaveManager.Instance.GenerateRandomDeck(SaveManager.MysteryDeckIndex);
+        SaveManager.Instance.GenerateRandomDeck(SaveManager.MysteryDeckIndex, Side);
 
         PopulateAllCards();
 
         initialSelectablePanelPos = selectableDecksPanel.localPosition;
 
-        var decks = SaveManager.Instance.saveData.Decks;
+        var decks = Decks;
         for (int i = 0; i < decks.Length; i++)
         {
             var deckView = Instantiate(deckPrefab, selectableDecksPanel);
@@ -60,12 +80,13 @@ public class DeckPanelController : Singleton<DeckPanelController>
         nextButton.onClick.AddListener(() => ChangeSelectedDeck(1));
         previousButton.onClick.AddListener(() => ChangeSelectedDeck(-1));
 
-        var selectedDeckIndex = SaveManager.Instance.saveData.SelectedDeckIndex;
+        var selectedDeckIndex = SelectedDeckIndex;
 
         SetSelectableDecksPanelToIndex(selectedDeckIndex, instant: true);
 
         UpdateDeckName(selectedDeckIndex);
         UpdateCardAmount();
+        UpdateLockState();
 
         AllCardsUIController.UpdateSelectableCards();
 
@@ -125,25 +146,29 @@ public class DeckPanelController : Singleton<DeckPanelController>
     }
     public void RemoveFromCurrentCustomDeck(string card)
     {
-        SaveManager.Instance.RemoveCard(card, SaveManager.Instance.saveData.SelectedDeckIndex);
+        int index = SelectedDeckIndex;
+
+        SaveManager.Instance.RemoveCard(card, index, Side);
         AllCardsUIController.UpdateSelectableCards();
         UpdateCardAmount();
         TriggerDeckChanged();
 
-        customDeckUIControllers[SaveManager.Instance.saveData.SelectedDeckIndex].RemoveCard(card);
+        customDeckUIControllers[index].RemoveCard(card);
 
     }
     public bool IsCurCustomDeckLocked()
     {
-        return saveData.Decks[saveData.SelectedDeckIndex].isLocked;
+        return Decks[SelectedDeckIndex].isLocked;
     }
     public bool TryAddToCurrentCustomDeck(string card)
     {
-        bool success = SaveManager.Instance.AddCard(card, SaveManager.Instance.saveData.SelectedDeckIndex);
+        int index = SelectedDeckIndex;
 
-        if (success) { 
-            customDeckUIControllers[SaveManager.Instance.saveData.SelectedDeckIndex].AddCard(card);
-            customDeckUIControllers[SaveManager.Instance.saveData.SelectedDeckIndex].UpdateOrder();
+        bool success = SaveManager.Instance.AddCard(card, index, Side);
+
+        if (success) {
+            customDeckUIControllers[index].AddCard(card);
+            customDeckUIControllers[index].UpdateOrder();
             TriggerDeckChanged();
         }
 
@@ -158,24 +183,25 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
     private void UpdateControlButtons(float selectableDeckPanelPosX)
     {
-        nextButton.interactable = selectableDeckPanelPosX > -1 * (SaveManager.Instance.saveData.Decks.Length - 1) * distanceBetweenToDecks + initialSelectablePanelPos.x;
+        nextButton.interactable = selectableDeckPanelPosX > -1 * (Decks.Length - 1) * distanceBetweenToDecks + initialSelectablePanelPos.x;
         previousButton.interactable = selectableDeckPanelPosX < initialSelectablePanelPos.x;
     }
 
     private void ChangeSelectedDeck(int amount)
     {
-        var oldIndex = SaveManager.Instance.saveData.SelectedDeckIndex;
-        var newIndex = Mathf.Clamp(oldIndex + amount, 0, SaveManager.Instance.saveData.Decks.Length - 1);
+        var oldIndex = SelectedDeckIndex;
+        var newIndex = Mathf.Clamp(oldIndex + amount, 0, Decks.Length - 1);
 
         if (newIndex == oldIndex)
             return;
 
-        SaveManager.Instance.saveData.SelectedDeckIndex = newIndex;
+        SaveManager.Instance.SetSelectedDeckIndex(Side, newIndex);
         SetSelectableDecksPanelToIndex(newIndex, instant: false);
 
         AllCardsUIController.UpdateSelectableCards();
         UpdateDeckName(newIndex);
         UpdateCardAmount();
+        UpdateLockState();
         TriggerDeckChanged();
     }
 
@@ -200,8 +226,8 @@ public class DeckPanelController : Singleton<DeckPanelController>
     }
     private void TriggerDeckChanged()
     {
-        bool isMysteryDeck = saveData.SelectedDeckIndex == SaveManager.MysteryDeckIndex;
-        DeckChanged?.Invoke(isMysteryDeck || curCustomDeck.Count >= SaveManager.Instance.DeckSize);
+        bool isMysteryDeck = SelectedDeckIndex == SaveManager.MysteryDeckIndex;
+        DeckChanged?.Invoke(Side, isMysteryDeck || curCustomDeck.Count >= SaveManager.Instance.DeckSize);
 
     }
     private void UpdateDeckName(int index)
@@ -222,10 +248,18 @@ public class DeckPanelController : Singleton<DeckPanelController>
 
         }
 
-        if (saveData.Decks[saveData.SelectedDeckIndex].isLocked)
-        {
-            cardAmount.text = cardAmount.text + "\nLOCKED";
-        }
+    }
 
+    // Locked decks (default/mystery) can't be edited: show the lock image and hide the transfer
+    // control; unlocked decks show the transfer control instead.
+    private void UpdateLockState()
+    {
+        bool locked = IsCurCustomDeckLocked();
+
+        if (lockImage != null)
+            lockImage.SetActive(locked);
+
+        if (transferImage != null)
+            transferImage.SetActive(!locked);
     }
 }

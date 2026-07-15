@@ -33,13 +33,18 @@ public class MainMenuManager : MonoBehaviour
     {
 
     }
-    void OnDeckChanged(bool value)
+    // This menu only configures the player; an opponent panel (CreateCustomGame) never gates Play here.
+    void OnDeckChanged(SelectionSide side, bool value)
     {
+        if (side != SelectionSide.Player) return;
+
         deckReady = value;
         UpdatePlayButton();
     }
-    void OnHeroSelectionChanged(bool value)
+    void OnHeroSelectionChanged(SelectionSide side, bool value)
     {
+        if (side != SelectionSide.Player) return;
+
         heroReady = value;
         UpdatePlayButton();
     }

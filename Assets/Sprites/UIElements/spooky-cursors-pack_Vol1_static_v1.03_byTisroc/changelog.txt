@@ -1,0 +1,28 @@
+Spooky cursors pack
+
+Changelog
+
+#################################################################################
+
+Update 1.03 - 07/07/2026
+
+- Added a new cursor: Alien fingers
+
+#################################################################################
+
+Update 1.02 - 25/06/2026
+
+- Added a new cursor: Ghost hand
+- Added a new cursor state: hold/drag
+
+#################################################################################
+
+Update 1.01 - 20/06/2026
+
+- Added a new cursor: Witch hand
+- The zombie hand was redesigned
+- Added a new cursor state: wait
+- Added a changelog file
+- The .png files were renamed to preserve the proper order
+
+#################################################################################

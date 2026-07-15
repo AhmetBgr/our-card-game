@@ -57,11 +57,14 @@ public class HeroDatabase : PermanentSingleton<HeroDatabase>
         return AllHeroes[UnityEngine.Random.Range(0, AllHeroes.Count)];
     }
 
-    public HeroSO GetSelectedHero()
+    public HeroSO GetSelectedHero() => GetSelectedHero(SelectionSide.Player);
+
+    public HeroSO GetSelectedHero(SelectionSide side)
     {
-        int index = SaveManager.Instance.saveData.SelectedHeroIndex;
+        int index = SaveManager.Instance.GetSelectedHeroIndex(side);
 
         // "Random Hero" was chosen in the menu: roll a real hero now (once, at game setup).
+        // Each side rolls independently.
         if (index == RandomHeroIndex)
             return GetRandomHero();
 

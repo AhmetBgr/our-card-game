@@ -17,22 +17,28 @@ public class PopupManager : Singleton<PopupManager>
     public Button replayButton;
     public Button exitButton;
 
+    [Header("Scenes")]
+    [Tooltip("Scene the Exit button returns to: the match-setup scene, which reopens on the player's step.")]
+    [SerializeField] private string setupSceneName = "CreateCustomGame";
+
     private Transform curPopup = null;
 
     void Start()
     {
         if (replayButton != null) replayButton.onClick.AddListener(Replay);
-        if (exitButton != null) exitButton.onClick.AddListener(ExitToMenu);
+        if (exitButton != null) exitButton.onClick.AddListener(ExitToSetup);
     }
 
+    // Replay reruns the match with the decks and heroes already chosen for both sides.
     public void Replay()
     {
         SceneTransitionManager.Instance.TransitionToScene("Game");
     }
 
-    public void ExitToMenu()
+    // Exit goes back to match setup so both sides can be reconfigured, rather than to the legacy Menu.
+    public void ExitToSetup()
     {
-        SceneTransitionManager.Instance.TransitionToScene("Menu");
+        SceneTransitionManager.Instance.TransitionToScene(setupSceneName);
     }
 
     // Win and loss show the identical panel (background, stats, buttons); the only difference is

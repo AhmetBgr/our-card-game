@@ -12,6 +12,14 @@ public class AllCardsUIController : MonoBehaviour
     private List<CardButtonHandler> orderedCards = new List<CardButtonHandler>();
     private int currentPage = 0;
 
+    // The panel this grid belongs to; it decides which side's deck a click edits.
+    private DeckPanelController owner;
+
+    void Awake()
+    {
+        owner = GetComponentInParent<DeckPanelController>(true);
+    }
+
     public void Initialize()
     {
         var allCardSOs = new List<CardSO>(DeckDatabase.Instance.AllCards);
@@ -23,15 +31,15 @@ public class AllCardsUIController : MonoBehaviour
             var name = item.cardName;
             var cardButton = Instantiate(cardButtonPrefab, transform);
             cardButton.OnClicked = () => {
-                if (!DeckPanelController.Instance.IsCurCustomDeckLocked())
+                if (!owner.IsCurCustomDeckLocked())
                 {
                     if (!cardButton.Button.interactable)
                     {
-                        DeckPanelController.Instance.RemoveFromCurrentCustomDeck(name);
+                        owner.RemoveFromCurrentCustomDeck(name);
                     }
                     else
                     {
-                        if (DeckPanelController.Instance.TryAddToCurrentCustomDeck(name))
+                        if (owner.TryAddToCurrentCustomDeck(name))
                             UpdateSelectableCards();
                     }
                 }
@@ -82,14 +90,16 @@ public class AllCardsUIController : MonoBehaviour
         foreach (var button in allCards.Values)
             button.Button.interactable = true;
 
+        var side = owner.Side;
+
         // The mystery/randomized deck hides its contents (its cards show as "???"). Marking
         // that deck's cards as selected here would grey out exactly the cards it contains in
         // the all-cards grid, revealing the hidden deck — so leave every card unmarked while
         // it's the selected deck. It's locked, so nothing can be added/removed anyway.
-        if (SaveManager.Instance.saveData.SelectedDeckIndex == SaveManager.MysteryDeckIndex)
+        if (SaveManager.Instance.GetSelectedDeckIndex(side) == SaveManager.MysteryDeckIndex)
             return;
 
-        List<string> cardsInCustomDeck = SaveManager.Instance.saveData.Decks[SaveManager.Instance.saveData.SelectedDeckIndex].Deck;
+        List<string> cardsInCustomDeck = owner.curCustomDeck;
         foreach (var item in cardsInCustomDeck)
         {
             if (!allCards.ContainsKey(item)) continue;
