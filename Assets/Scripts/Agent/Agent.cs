@@ -135,6 +135,19 @@ public class Agent : MonoBehaviour
         minions.Remove(minion);
     }
 
+    // Extra cards this agent is owed at the start of its NEXT turn (e.g. Do Nothing's delayed draw).
+    // Banked here rather than on a trigger because the effect comes from a spell, which leaves no
+    // minion behind to carry an OnTurnStart. Paid and cleared by GameManager.DrawTurnStartCards.
+    public int pendingExtraDraws = 0;
+
+    // Hands back the owed draws and clears the debt, so it can only ever be paid once.
+    public int ConsumePendingExtraDraws()
+    {
+        int owed = pendingExtraDraws;
+        pendingExtraDraws = 0;
+        return owed;
+    }
+
     public void DrawCard()
     {
         UpdateHand();

@@ -10,19 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
-  m_Name: Do Something
+  m_Name: _Do Nothing 1
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 21300000, guid: de0cdaa078b9f1042bb7072ac82e12fa, type: 3}
-  cardName: Something Happens
-  desc: Turn into a random spell and play it.
+  cardArt: {fileID: 21300000, guid: 6d1716ffe7a1bef44b2eb34d69c02c6e, type: 3}
+  cardName: Do Nothing
+  desc: Do nothing.
   attack: 0
   health: 0
-  cost: 3
+  cost: 1
   range: 0
   armor: 0
-  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
@@ -31,9 +30,9 @@ MonoBehaviour:
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
-  upgradedVersion: {fileID: 0}
+  upgradedVersion: {fileID: 11400000, guid: 444f8a9b60d7c8c4b87aef788441b616, type: 2}
   normalVersion: {fileID: 0}
-  isUpgraded: 1
+  isUpgraded: 0
   defHealth: 0
   OnPlay:
     m_PersistentCalls:
@@ -41,10 +40,10 @@ MonoBehaviour:
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
         m_MethodName: SelectThisAgent
-        m_Mode: 0
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -57,31 +56,6 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: Wait
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: PlayRandomCardFromPool
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 26b1033354759bf4596a388e47f7a9c8,
-            type: 2}
-          m_ObjectArgumentAssemblyTypeName: CardPoolSO, Assembly-CSharp
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 

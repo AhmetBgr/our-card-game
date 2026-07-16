@@ -77,6 +77,27 @@ public class CardView : MonoBehaviour
 
 
     }
+    /// <summary>
+    /// Turn-into-another-card flip: one full 360° spin around Y, with `onHalfway` fired at the halfway
+    /// point (180°) so the card's identity is swapped while it is turned away from the viewer and its
+    /// face is unreadable, instead of popping in place.
+    ///
+    /// Two +180° LocalAxisAdd steps rather than one absolute 360° tween: added rotation lands back on
+    /// whatever rotation the card started at, so this is safe on a card sitting at a hand-fan angle and
+    /// can't fight the play/discard tweens by snapping it upright.
+    /// </summary>
+    public void PlayTurnIntoAnimation(Action onHalfway, float duration)
+    {
+        float half = duration * 0.5f;
+
+        Sequence seq = DOTween.Sequence();
+        seq.Append(transform.DOLocalRotate(new Vector3(0f, 180f, 0f), half, RotateMode.LocalAxisAdd)
+            .SetEase(Ease.InSine));
+        seq.AppendCallback(() => onHalfway?.Invoke());
+        seq.Append(transform.DOLocalRotate(new Vector3(0f, 180f, 0f), half, RotateMode.LocalAxisAdd)
+            .SetEase(Ease.OutSine));
+    }
+
     public void UpdateGearSpeed(CardModal card)
     {
         if (gearRotateTween == null) return;

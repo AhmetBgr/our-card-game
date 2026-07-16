@@ -1438,6 +1438,132 @@ public class ActionHolder : ScriptableObject
         }
     }
 
+    // Set while a rolled spell is resolving, so a random cast can't roll another random cast and recurse
+    // forever. The pool is authored data — nothing stops someone dropping a card that carries this very
+    // verb into it, which without this guard would hang the editor rather than fail visibly.
+    private static bool _castingRandomSpell = false;
+
+    // Length of the card's turn-into-another-card flip. Shared by the animation and the wait that lets it
+    // play out, so the effect can't fire before the card has finished becoming what it rolled.
+    private const float TurnIntoAnimationDuration = 0.6f;
+
+    /// <summary>
+    /// Turns the card being played INTO a random card from `pool`, then plays that card's effect for free.
+    ///
+    /// The rolled card resolves through its own OnPlay chain, so it picks targets exactly as it would from
+    /// hand: the player gets the normal prompt, and the AI answers it through its OnWaitingMinionSelect /
+    /// OnWaitingCellSelect handlers. Those handlers score targets from thisCardSO's aiIntent, which is why
+    /// the registers point at the ROLLED card rather than the card that cast it — otherwise the AI would
+    /// aim a damage spell using a draw spell's intent.
+    /// </summary>
+    public void PlayRandomCardFromPool(CardPoolSO pool)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_PlayRandomCardFromPool(pool));
+    }
+    public IEnumerator _PlayRandomCardFromPool(CardPoolSO pool)
+    {
+        if (_castingRandomSpell)
+        {
+            Debug.LogWarning("PlayRandomCardFromPool: already casting a rolled card, skipping to avoid recursion");
+            yield break;
+        }
+
+        if (pool == null)
+        {
+            Debug.LogWarning("PlayRandomCardFromPool: no pool assigned");
+            yield break;
+        }
+
+        // The card being played is the one that transforms, so it has to exist: this verb is only
+        // meaningful on a card played from hand, not on a minion trigger (where thisCard is null).
+        CardController casting = thisCard;
+        if (casting == null || casting.modal == null)
+        {
+            Debug.LogWarning("PlayRandomCardFromPool: no card is being played");
+            yield break;
+        }
+
+        // Resolved lazily (when this coroutine runs) so it casts for the agent this play selected.
+        Agent caster = selectedAgent != null
+            ? selectedAgent
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
+        CardSO rolled = pool.GetRandom();
+        if (rolled == null)
+        {
+            Debug.LogWarning("PlayRandomCardFromPool: pool '" + pool.name + "' has no usable card");
+            yield break;
+        }
+
+        Debug.Log("rolled card: " + rolled.cardName);
+
+        CardSO originalSO = casting.card;
+
+        // Spin the card a full turn and become the rolled card at the halfway point, where the flip hides
+        // the swap. Waiting the same duration lets the flip finish (and read) before the effect fires.
+        casting.view.PlayTurnIntoAnimation(() =>
+        {
+            // Becoming the rolled card is also what makes thisCard the correct context for the chain
+            // below: every spell's OnPlay ends in PayCardCost, which bills thisCard.modal.cost, so the
+            // transformed card is billed 0 — the caster already paid for the card that rolled this.
+            casting.modal.UpdateModal(rolled, caster, caster.IsPlayer());
+            casting.modal.cost = 0;
+            // Clear the inherited upgrade: on resolve, GameManager spawns modal.upgradedVerdion into the
+            // owner's deck. Left set, rolling a basic spell would quietly gift its upgraded version — an
+            // upgrade the player never earned and the casting card never promised.
+            casting.modal.upgradedVerdion = null;
+            casting.view.UpdateView(casting.modal);
+        }, TurnIntoAnimationDuration);
+
+        yield return new WaitForSeconds(TurnIntoAnimationDuration);
+
+        bool cancelled = false;
+
+        _castingRandomSpell = true;
+        try
+        {
+            // Scope the nested play so the rolled card's selections and queue can't leak back into the
+            // rest of the casting card's chain; Dispose restores every register overwritten here.
+            using (PushScope())
+            {
+                var nestedActions = new Queue<IEnumerator>();
+
+                // Mirror what PlayCard sets up for a real play. thisMinion is deliberately left alone —
+                // PlayCard doesn't reset it either.
+                ResetSelections();
+                selectedAgent = caster;
+                thisCardSO = rolled;
+                thisCard = casting;
+                curActionsList = nestedActions;
+
+                GameManager.Instance.isTesting = false;
+                rolled.OnPlay.Invoke();
+
+                yield return GameManager.Instance.StartCoroutine(
+                    GameManager.Instance.ExecuteActions(nestedActions));
+
+                // Read before Dispose restores the snapshot value.
+                cancelled = cancelRequested;
+            }
+        }
+        finally
+        {
+            _castingRandomSpell = false;
+        }
+
+        if (cancelled)
+        {
+            // Cancelling the rolled card's targeting cancels the whole play, and FinishCancelPlayingCard
+            // puts this card back in the player's hand and refunds the mana. Change it back first, or it
+            // returns as a free, cost-0 copy of whatever it rolled — replayable for the rest of the game.
+            Debug.Log("rolled card cancelled, restoring " + originalSO.cardName);
+            casting.modal.UpdateModal(originalSO, caster, caster.IsPlayer());
+            casting.view.UpdateView(casting.modal);
+        }
+    }
+
     public void SummonRandomMinion(int cost)
     {
         if (GameManager.Instance.isTesting) return;
@@ -1619,6 +1745,32 @@ public class ActionHolder : ScriptableObject
         }
 
     }
+    /// <summary>
+    /// Owes selectedAgent `amount` extra cards at the start of its NEXT turn (Do Nothing). Deliberately
+    /// draws nothing now — the debt is banked on the agent and paid by GameManager.DrawTurnStartCards,
+    /// which is what lets a spell have a delayed effect without leaving a minion behind to trigger on.
+    /// </summary>
+    public void DrawExtraCardNextTurn(int amount)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_DrawExtraCardNextTurn(amount));
+    }
+    public IEnumerator _DrawExtraCardNextTurn(int amount)
+    {
+        // Resolved lazily so it banks the debt on the agent selected by this play, not a stale one.
+        if (selectedAgent == null)
+        {
+            Debug.LogWarning("DrawExtraCardNextTurn: no selected agent");
+            yield break;
+        }
+
+        selectedAgent.pendingExtraDraws += amount;
+        Debug.Log("owed extra draws next turn: " + selectedAgent.pendingExtraDraws);
+
+        yield return null;
+    }
+
     public void DrawCardFromOpponentDeck()
     {
         Debug.Log("try draw card");

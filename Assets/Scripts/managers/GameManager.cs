@@ -213,7 +213,7 @@ public class GameManager : Singleton<GameManager>
         player.availibleMana = maxMana;
         player.curState = Player.State.Waiting;
         //Debug.Log("Player's Turn");
-        player.DrawCard();
+        yield return StartCoroutine(DrawTurnStartCards(player));
         // Queue turn-start through the same serializer as the draw above so it runs AFTER the on-draw
         // pass completes, instead of racing it and clobbering shared ActionHolder state.
         EnqueueTriggeredAction(() => StartCoroutine(InvokeOnTurnStarted()));
@@ -233,6 +233,24 @@ public class GameManager : Singleton<GameManager>
 
         yield break;
     }
+    /// <summary>
+    /// The agent's turn-start draw, plus any extra cards a delayed effect owes it (Do Nothing). The
+    /// debt is consumed up front so it is paid exactly once even if a draw fizzles on the hand cap.
+    /// Runs before InvokeOnTurnStarted is queued, so the extra card is in hand before any OnTurnStart
+    /// trigger reads it, and each draw's on-draw pass (turrets) still serializes behind the last.
+    /// </summary>
+    private IEnumerator DrawTurnStartCards(Agent agent)
+    {
+        agent.DrawCard();
+
+        int extra = agent.ConsumePendingExtraDraws();
+        for (int i = 0; i < extra; i++)
+        {
+            yield return new WaitForSeconds(0.35f);
+            agent.DrawCard();
+        }
+    }
+
     public IEnumerator InvokeOnTurnStarted()
     {
         OnTurnStarted?.Invoke(currentState);
@@ -468,7 +486,7 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log("Opponent's Turn");
         opponent.availibleMana = maxMana;
 
-        opponent.DrawCard();
+        yield return StartCoroutine(DrawTurnStartCards(opponent));
 
         // Queue turn-start behind the on-draw pass (same serializer) instead of racing it.
         EnqueueTriggeredAction(() => StartCoroutine(InvokeOnTurnStarted()));

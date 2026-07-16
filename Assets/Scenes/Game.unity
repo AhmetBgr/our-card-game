@@ -2126,6 +2126,7 @@ MonoBehaviour:
   cardPrefab: {fileID: 5083467201469550001, guid: fee8230318367e0469503ddb35cbd494,
     type: 3}
   cardPlayPos: {fileID: 1771407256}
+  pendingExtraDraws: 0
   brain: {fileID: 11400000, guid: 5dd268227e698534aa14a3f5a5badfab, type: 2}
 --- !u!1 &251172274
 GameObject:
@@ -7359,6 +7360,7 @@ MonoBehaviour:
   cardPrefab: {fileID: 5083467201469550001, guid: fee8230318367e0469503ddb35cbd494,
     type: 3}
   cardPlayPos: {fileID: 1771407256}
+  pendingExtraDraws: 0
 --- !u!4 &984600826
 Transform:
   m_ObjectHideFlags: 0
@@ -15434,6 +15436,7 @@ MonoBehaviour:
   cardPrefab: {fileID: 5083467201469550001, guid: fee8230318367e0469503ddb35cbd494,
     type: 3}
   cardPlayPos: {fileID: 1278171871}
+  pendingExtraDraws: 0
   curState: 4
 --- !u!4 &2039252584
 Transform:
