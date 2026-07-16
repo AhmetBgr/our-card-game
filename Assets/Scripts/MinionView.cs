@@ -105,6 +105,17 @@ public class MinionView : MonoBehaviour
             .OnComplete(RevealInline);
     }
 
+    // The minion is being consumed by another (Angry Soul's on-summon absorb): it slides into the
+    // absorber while shrinking away, instead of dying in place. Both tweens target this transform —
+    // MinionView shares the root GameObject with MinionController, so this is the same transform
+    // Move() animates; killing tweens here first stops a still-running appear/move from fighting it.
+    public void PlayAbsorbAnimation(Vector3 absorberPos, float duration)
+    {
+        transform.DOKill(false);
+        transform.DOMove(absorberPos, duration).SetEase(Ease.InQuad);
+        transform.DOScale(Vector3.zero, duration).SetEase(Ease.InBack);
+    }
+
     public void PlayHeroAppearAnimation()
     {
         Vector3 target = transform.localPosition;

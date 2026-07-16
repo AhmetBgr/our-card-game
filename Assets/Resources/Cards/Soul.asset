@@ -16,15 +16,23 @@ MonoBehaviour:
   minionArt: {fileID: -687908176, guid: da72e2f90dbea6343b75ee75449b177e, type: 3}
   cardArt: {fileID: -27246829, guid: da72e2f90dbea6343b75ee75449b177e, type: 3}
   cardName: Soul
-  desc: 'When played, give a random friendly minion in range +2 health. '
+  desc: 'On Summon: Give a random friendly minion in range +2 health. '
   attack: 2
   health: 3
   cost: 2
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 1
+  selectionIntent: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 3
   OnPlay:
@@ -126,7 +134,7 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
@@ -134,7 +142,31 @@ MonoBehaviour:
       m_Calls: []
   OnTookDamage:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: SelectThisMinion
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
+        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
+        m_MethodName: ChangeMinionAttack
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   BonusEvents:
     m_PersistentCalls:
       m_Calls: []

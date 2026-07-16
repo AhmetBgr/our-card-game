@@ -16,19 +16,30 @@ MonoBehaviour:
   minionArt: {fileID: -338611786, guid: e206d4d6209337e4a9a8e4e86992786d, type: 3}
   cardArt: {fileID: 702928343, guid: e206d4d6209337e4a9a8e4e86992786d, type: 3}
   cardName: Angry Soul
-  desc: "When Played: Give a friendly minion +2 Health. \nWhenever this minion takes
-    damage, gain +1 Attack.\n"
-  attack: 4
-  health: 4
+  desc: 'On Summon: Absorb a random friendly adjacent minion to Gain Its stats.
+
+    Whenever
+    this minion takes damage, gain +1 Attack.
+
+'
+  attack: 2
+  health: 3
   cost: 4
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 1
+  selectionIntent: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
   isUpgraded: 1
-  defHealth: 4
+  defHealth: 3
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -82,7 +93,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisMinion
+        m_MethodName: Wait
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -94,7 +105,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectRandomFriendlyMinionInRange
+        m_MethodName: SelectRandomFriendlyMinionAdjacentToThis
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -106,12 +117,12 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: ChangeMinionDefHealth
-        m_Mode: 3
+        m_MethodName: AbsorbSelectedMinions
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 2
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -128,7 +139,7 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:

@@ -444,12 +444,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14.9
+  m_fontSize: 13
   m_fontSizeBase: 14.9
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 13
+  m_fontSizeMax: 18
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -457,7 +457,7 @@ MonoBehaviour:
   m_characterSpacing: -6
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
-  m_lineSpacing: 0
+  m_lineSpacing: -25
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
@@ -1521,6 +1521,7 @@ MonoBehaviour:
   cost: 0
   range: 0
   armor: 0
+  collisionDamage: 0
   defHealth: 0
   owner: {fileID: 0}
   isPlayerMinion: 0
@@ -1684,6 +1685,7 @@ MonoBehaviour:
   Image: {fileID: 2313503055580993989}
   Interactable: 1
   isdragging: 0
+  dropHandled: 0
   ParentAfterDrag: {fileID: 0}
 --- !u!1 &8026559297920496987
 GameObject:

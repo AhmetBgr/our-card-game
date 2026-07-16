@@ -985,6 +985,110 @@ public class ActionHolder : ScriptableObject
         }
         yield return null;
     }
+    /// <summary>
+    /// Picks one random minion orthogonally adjacent to thisMinion and owned by the same agent, into
+    /// selectedMinions. Walks the four neighbouring grid cells rather than owner.minions, so the
+    /// off-grid hero is never a candidate. Leaves the list empty when nothing qualifies, so a
+    /// following verb iterates nothing and the effect fizzles rather than throwing.
+    /// </summary>
+    public void SelectRandomFriendlyMinionAdjacentToThis()
+    {
+        curActionsList.Enqueue(_SelectRandomFriendlyMinionAdjacentToThis());
+    }
+    public IEnumerator _SelectRandomFriendlyMinionAdjacentToThis()
+    {
+        // Resolved lazily (when this coroutine actually runs) rather than when it's enqueued, so it sees
+        // thisMinion as set by this same play's SummonMinion step — same reasoning as
+        // _SelectRandomFriendlyMinionInRange.
+        selectedMinions.Clear();
+        selectedMinion = null;
+
+        if (thisMinion == null) yield break;
+
+        Vector2Int center = GridManager.Instance.PosToGridIndex(thisMinion.transform.position);
+        Vector2Int[] offsets =
+        {
+            new Vector2Int(1, 0),
+            new Vector2Int(-1, 0),
+            new Vector2Int(0, 1),
+            new Vector2Int(0, -1),
+        };
+
+        List<MinionController> candidates = new List<MinionController>();
+        foreach (var offset in offsets)
+        {
+            Vector2Int index = center + offset;
+            if (GridManager.Instance.IsOutSideOfGrid(index)) continue;
+
+            var obj = GridManager.Instance.GetCell(index).obj;
+            if (obj == null) continue;
+
+            var minion = obj.GetComponent<MinionController>();
+            if (minion == null || minion == thisMinion) continue;
+            if (minion.owner != thisMinion.owner) continue;
+
+            candidates.Add(minion);
+        }
+
+        if (candidates.Count > 0)
+        {
+            selectedMinion = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+            selectedMinions.Add(selectedMinion);
+        }
+
+        yield return null;
+    }
+
+    /// <summary>
+    /// thisMinion consumes each selected minion: it gains that minion's current attack and health
+    /// (max health grows with it, so the gained health is healable), then the minion is destroyed.
+    /// </summary>
+    public void AbsorbSelectedMinions()
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_AbsorbSelectedMinions());
+    }
+    public IEnumerator _AbsorbSelectedMinions()
+    {
+        // Hold our own reference to the absorber instead of reading the static across the kill below.
+        // A death dispatches its OnDeath trigger synchronously up to that trigger's first yield, and
+        // that path calls ResetSelections() and repoints thisMinion/selectedMinions at the VICTIM
+        // (GameManager.InvokeOnMinionDeathActions) — its PushScope only restores them later, after this
+        // coroutine has moved on. Reading thisMinion after TakeDamage would buff the corpse.
+        var absorber = thisMinion;
+        if (absorber == null) yield break;
+
+        var victims = new List<MinionController>(selectedMinions);
+
+        foreach (var victim in victims)
+        {
+            if (victim == null || victim == absorber) continue;
+
+            Vector3 absorbTarget = absorber.transform.position;
+
+            // Buff before the kill so the victim's own OnDeath trigger observes the absorbed stats.
+            absorber.modal.attack += victim.modal.attack;
+            absorber.modal.health += victim.modal.health;
+            absorber.modal.defHealth += victim.modal.health;
+            absorber.view.UpdateView(absorber.modal);
+
+            // Route the kill through TakeDamage (out-damaging armor) rather than a direct destroy, so
+            // the victim's OnDeath fires and Die()'s grid/roster bookkeeping runs. This must happen
+            // BEFORE the absorb animation moves it: Die() records which cell the minion died on from
+            // transform.position (for revive-in-place effects), so a victim already slid onto the
+            // absorber's tile would be logged as having died there instead of on its own tile.
+            victim.TakeDamage(victim.modal.health + victim.modal.armor);
+
+            // Now that it's dead and off the grid, shrink the corpse into the absorber. The death
+            // animation Die() schedules 1s out is a sprite swap with no scale/position curves, so it
+            // can't undo this — it just plays out invisibly before DestroySelf cleans the object up.
+            victim.view.PlayAbsorbAnimation(absorbTarget, 0.25f);
+
+            yield return new WaitForSeconds(0.25f);
+        }
+    }
+
     public void SelectThisMinionsLastTargetAsTarget()
     {
         if (GameManager.Instance.isTesting) return;

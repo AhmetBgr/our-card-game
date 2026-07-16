@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 4035534108276310073, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
+  cardArt: {fileID: 21300000, guid: 98f3ecb602a979e499e1ad351b002282, type: 3}
   cardName: Gust of Air
   desc: Push a minion Forward and give it +2/+2
   attack: 0
@@ -22,6 +22,7 @@ MonoBehaviour:
   cost: 5
   range: 0
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
