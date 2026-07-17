@@ -42,6 +42,7 @@ public class GameManager : Singleton<GameManager>
     private Queue<IEnumerator> onMinionCollidedActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onMinionTookDamageActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onHeroAttackedActions = new Queue<IEnumerator>();
+    private Queue<IEnumerator> onAnyMinionSummonedActions = new Queue<IEnumerator>();
     private readonly List<HeroPassiveSO> _heroPassiveMatchBuffer = new List<HeroPassiveSO>();
 
     // Triggered-action execution uses shared ActionHolder globals. To prevent different triggers
@@ -1022,6 +1023,55 @@ public class GameManager : Singleton<GameManager>
         heroPassives.ApplyAurasOnSummon(minion);
 
         OnMinionSummoned?.Invoke(minion);
+
+        // Broadcast the summon to every other minion's OnAnyMinionSummoned trigger (e.g. crossbows that
+        // snap-fire at enemies entering play). Routed through the triggered-action scheduler so it can't
+        // race the play/trigger currently draining, exactly like death/collision/took-damage.
+        EnqueueTriggeredAction(() => StartCoroutine(InvokeOnAnyMinionSummonedActions(minion)));
+    }
+
+    private IEnumerator InvokeOnAnyMinionSummonedActions(MinionController summoned)
+    {
+        // FinishTriggeredAction is OUTSIDE the using (see InvokeOnMinionDeathActions) so a scope's Restore()
+        // can't clobber the selection state of whatever pending trigger it drains next.
+        try
+        {
+            _executingTriggeredActions = true;
+
+            // Snapshot the reactors up front: a reaction shot can kill minions mid-pass, which mutates the
+            // live owner.minions lists we'd otherwise be iterating.
+            List<MinionController> reactors = new List<MinionController>();
+            foreach (var m in player.minions) if (m != null && m != summoned) reactors.Add(m);
+            foreach (var m in opponent.minions) if (m != null && m != summoned) reactors.Add(m);
+
+            foreach (var reactor in reactors)
+            {
+                if (reactor == null) continue;
+                // Skip reactors that died earlier in this same broadcast.
+                if (!player.minions.Contains(reactor) && !opponent.minions.Contains(reactor)) continue;
+
+                using (ActionHolder.PushScope())
+                {
+                    onAnyMinionSummonedActions.Clear();
+                    ActionHolder.ResetSelections();
+                    ActionHolder.summonedMinion = summoned;
+                    ActionHolder.thisMinion = reactor;
+                    ActionHolder.thisCardSO = reactor.card;
+                    ActionHolder.thisCard = null;
+                    ActionHolder.selectedAgent = reactor.owner;
+                    ActionHolder.curActionsList = onAnyMinionSummonedActions;
+
+                    this.isTesting = false;
+                    reactor.modal.OnAnyMinionSummoned.Invoke();
+
+                    yield return StartCoroutine(ExecuteActions(onAnyMinionSummonedActions));
+                }
+            }
+        }
+        finally
+        {
+            FinishTriggeredAction();
+        }
     }
     private void ClearSelectables()
     {

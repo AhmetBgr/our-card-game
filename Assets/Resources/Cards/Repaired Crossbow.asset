@@ -16,17 +16,23 @@ MonoBehaviour:
   minionArt: {fileID: -1055013767, guid: fa485ecfc35ca4e4dbad294ce13e43e0, type: 3}
   cardArt: {fileID: 941647230, guid: fa485ecfc35ca4e4dbad294ce13e43e0, type: 3}
   cardName: Repaired Crossbow
-  desc: "Whenever you draw a card, repeat this minion\u2019s last attack.\n(If  in
-    range)\n"
+  desc: 'When an enemy minion is summoned within range, shoot it automatically.
+
+    Target
+    CANNOT counterattack.
+
+'
   attack: 2
   health: 4
   cost: 5
   range: 2
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
@@ -96,13 +102,10 @@ MonoBehaviour:
       m_Calls: []
   OnAnyMinionSummoned:
     m_PersistentCalls:
-      m_Calls: []
-  OnOwnerDrewCard:
-    m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisMinion
+        m_MethodName: SelectSummonedEnemyInRangeAsTarget
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -114,7 +117,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisMinionsLastTargetAsTarget
+        m_MethodName: AttackNoCounter
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -124,18 +127,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: Attack
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+  OnOwnerDrewCard:
+    m_PersistentCalls:
+      m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []

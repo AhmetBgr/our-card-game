@@ -24,6 +24,9 @@ public class ActionHolder : ScriptableObject
 
     public static MinionController selectedMinion = null;
     public static Agent selectedAgent = null;
+    // The minion that just entered play, set by GameManager while broadcasting OnAnyMinionSummoned so
+    // reaction verbs (e.g. the crossbow's auto-attack) can target the new arrival specifically.
+    public static MinionController summonedMinion = null;
     public static MinionController thisMinion = null;
     public static CardSO thisCardSO = null;
     public static CardController thisCard = null;
@@ -155,6 +158,7 @@ public class ActionHolder : ScriptableObject
         selectedcell = null;
         selectedMinion = null;
         selectedAgent = null;
+        summonedMinion = null;
         selectedMinions.Clear();
         selectedTargetMinions.Clear();
         selectedCells.Clear();
@@ -1104,6 +1108,26 @@ public class ActionHolder : ScriptableObject
         yield return null;
     }
 
+    // Targets the minion that just entered play (see ActionHolder.summonedMinion) ONLY if it belongs to
+    // the enemy and sits within thisMinion's range. Otherwise selects nothing, so a following Attack is a
+    // no-op. Used on the OnAnyMinionSummoned trigger to build "shoot enemies as they're summoned in range".
+    public void SelectSummonedEnemyInRangeAsTarget()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_SelectSummonedEnemyInRangeAsTarget());
+    }
+    public IEnumerator _SelectSummonedEnemyInRangeAsTarget()
+    {
+        selectedTargetMinions.Clear();
+        if (thisMinion != null && summonedMinion != null
+            && summonedMinion.owner != thisMinion.owner
+            && RangeUtility.IsInRange(thisMinion, summonedMinion))
+        {
+            selectedTargetMinions.Add(summonedMinion);
+        }
+        yield return null;
+    }
+
     public void SelectSpawnCells()
     {
         curActionsList.Enqueue(_SelectSpawnCells());
@@ -1684,6 +1708,25 @@ public class ActionHolder : ScriptableObject
         {
             if (target == null) continue;
             thisMinion.StartAttack(target.owner, target);
+            thisMinion.isAttackedThisTurn = false;
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
+    // Like Attack, but the struck target takes no counter-attack back (a "clean" reaction shot). Used by
+    // the Repaired Crossbow's auto-attack on OnAnyMinionSummoned.
+    public void AttackNoCounter()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_AttackNoCounter());
+    }
+
+    public IEnumerator _AttackNoCounter()
+    {
+        foreach (var target in selectedTargetMinions)
+        {
+            if (target == null) continue;
+            thisMinion.StartAttack(target.owner, target, noCounter: true);
             thisMinion.isAttackedThisTurn = false;
             yield return new WaitForSeconds(1f);
         }

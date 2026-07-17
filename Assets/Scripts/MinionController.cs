@@ -603,12 +603,12 @@ public class MinionController : MonoBehaviour
         return false;
     }
 
-    public void StartAttack(Agent opponent, MinionController target = null)
+    public void StartAttack(Agent opponent, MinionController target = null, bool noCounter = false)
     {
-        StartCoroutine(Attack(opponent, target));
+        StartCoroutine(Attack(opponent, target, noCounter));
     }
 
-    public virtual IEnumerator Attack(Agent opponent, MinionController target = null)
+    public virtual IEnumerator Attack(Agent opponent, MinionController target = null, bool noCounter = false)
     {
         Debug.Log("starting Attack");
 
@@ -667,8 +667,10 @@ public class MinionController : MonoBehaviour
         chosen.transform.DOPunchPosition(dir * 0.03f, 0.15f, vibrato: 5).SetDelay(0.75f);
 
         // A struck hero may carry a passive that cancels its counter-attack (e.g. the defensive summoner).
+        // noCounter is set by triggered "reaction" shots (e.g. the Repaired Crossbow's auto-attack) that
+        // fire without exposing the attacker to retaliation.
         bool chosenIsHero = chosen.owner != null && chosen == chosen.owner.hero;
-        bool suppressCounter = chosenIsHero && GameManager.Instance.HeroSuppressesCounterAttack(chosen);
+        bool suppressCounter = noCounter || (chosenIsHero && GameManager.Instance.HeroSuppressesCounterAttack(chosen));
 
         if (RangeUtility.IsInRange(chosen, this) && !suppressCounter) // target retaliates if attacker is in ITS range
         {

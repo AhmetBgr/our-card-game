@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -687908176, guid: da72e2f90dbea6343b75ee75449b177e, type: 3}
   cardArt: {fileID: -27246829, guid: da72e2f90dbea6343b75ee75449b177e, type: 3}
   cardName: Soul
-  desc: 'On Summon: Give a random friendly minion in range +2 health. '
+  desc: Whenever this minion takes damage, gain +1 Attack.
   attack: 2
   health: 3
   cost: 2
@@ -82,42 +82,6 @@ MonoBehaviour:
           m_ObjectArgument: {fileID: 11400000}
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
           m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectThisMinion
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectRandomFriendlyMinionInRange
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: ChangeMinionDefHealth
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
