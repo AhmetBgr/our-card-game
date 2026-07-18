@@ -1623,8 +1623,10 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
+        // Only base minions are eligible: AllCards also holds the upgraded variants (same cost, health > 0),
+        // and a random summon (Hexpectations / Overgrowth) is meant to roll the non-upgraded version.
         var candidates = DeckDatabase.Instance.AllCards
-            .Where(c => c != null && c.cost == cost && c.health > 0)
+            .Where(c => c != null && c.cost == cost && c.health > 0 && !c.isUpgraded)
             .ToList();
 
         if (candidates.Count == 0)
