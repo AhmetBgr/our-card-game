@@ -17,22 +17,24 @@ MonoBehaviour:
   cardArt: {fileID: -998509498, guid: 1a8ab178d35011142a6414dcea890fc6, type: 3}
   cardName: Rookie Ranger
   desc: 
-  attack: 2
-  health: 1
+  attack: 1
+  health: 2
   cost: 2
   range: 2
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: 49458b2cd6d1c13449ee275ce033d12e, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0
-  defHealth: 1
+  defHealth: 2
   OnPlay:
     m_PersistentCalls:
       m_Calls:

@@ -18,7 +18,7 @@ MonoBehaviour:
   perFriendlyLost: -5
   perCardPlayed: 0
   perUpgradedCard: 0
-  perHeroHpRemaining: 5
+  perHeroHpRemaining: 3
   turnStartValue: 60
   perTurnPenalty: -5
   perMaxBoardMinion: 2
@@ -28,11 +28,11 @@ MonoBehaviour:
   multiKill2Bonus: 5
   multiKill3Bonus: 15
   multiKill4Bonus: 40
-  flawlessBonus: 50
+  flawlessBonus: 40
   comebackBonus: 30
   oneTurnKillBonus: 75
   comebackHpThreshold: 5
-  gradeS: 300
-  gradeA: 220
-  gradeB: 150
+  gradeS: 310
+  gradeA: 250
+  gradeB: 160
   gradeC: 80

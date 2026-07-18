@@ -16,16 +16,18 @@ MonoBehaviour:
   minionArt: {fileID: 2071410874, guid: 17c69b4cf4d539e439fb996e084169ca, type: 3}
   cardArt: {fileID: -1650270546, guid: 17c69b4cf4d539e439fb996e084169ca, type: 3}
   cardName: Rock
-  desc: 'Can only move when pushed. '
+  desc: 'Deal 2 Damage to other minion when collided. Can only move when pushed. '
   attack: 0
   health: 4
   cost: 2
   range: 1
   armor: 0
+  collisionDamage: 2
   canMove: 0
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

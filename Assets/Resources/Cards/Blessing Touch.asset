@@ -16,16 +16,19 @@ MonoBehaviour:
   minionArt: {fileID: -790872467, guid: ae6ab53bbae54db45b0e101185568174, type: 3}
   cardArt: {fileID: -2095175726, guid: ae6ab53bbae54db45b0e101185568174, type: 3}
   cardName: Blessing Touch
-  desc: Give a minion +2/+2. Whenever this takes damage, draw a card.
+  desc: "Give a minion +2/+2. \nWhenever it takes damage, deal 1 damage to the enemy
+    hero."
   attack: 0
   health: 0
   cost: 4
   range: 0
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 1
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
@@ -134,7 +137,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SelectFriendlyAgent
+        m_MethodName: SelectOpponentAgent
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -146,12 +149,12 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: DrawCard
-        m_Mode: 1
+        m_MethodName: DamageAgent
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

@@ -16,18 +16,28 @@ MonoBehaviour:
   minionArt: {fileID: 77657298, guid: 45d2cf074870c7c46823191f86cb9425, type: 3}
   cardArt: {fileID: 1445312670, guid: 45d2cf074870c7c46823191f86cb9425, type: 3}
   cardName: Broken Crossbow
-  desc: "When an enemy minion is summoned within range, shoot it automatically.\nThe
-    target can counterattack.\n"
+  desc: 'When an enemy minion is summoned within range, shoot it automatically.
+
+    The
+    target can counterattack.
+
+'
   attack: 2
-  health: 3
+  health: 2
   cost: 3
   range: 2
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: b3adf85573653694f897a7c46834db5e, type: 2}
+  normalVersion: {fileID: 0}
   isUpgraded: 0
   defHealth: 3
   OnPlay:
@@ -102,7 +112,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -114,15 +124,18 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

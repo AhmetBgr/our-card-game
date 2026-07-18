@@ -516,6 +516,25 @@ public class MinionController : MonoBehaviour
     }
 #endif
 
+    // Called when this minion changes owner mid-turn (e.g. Exorcist's steal). Strip every scrap of
+    // attack eligibility and clickability it carried from its previous owner: otherwise the losing
+    // player keeps a clickable, "attack-ready" minion (canAttack stays true, collider stays enabled,
+    // the sword indicator stays lit) and can command a minion that now belongs to the enemy. The new
+    // owner re-lights it on their own turn via SetReadyToAttack. isAttackedThisTurn is forced so it
+    // also can't attack for its new owner this turn (summoning-sickness on a fresh steal).
+    public void ClearAttackReadiness()
+    {
+        canAttack = false;
+        isAttackedThisTurn = true;
+        _attackReady = false;
+
+        if (attackHighlight != null)
+            attackHighlight.enabled = false;
+
+        if (selectable != null)
+            selectable.SetSelectable(false);
+    }
+
     public virtual void SetReadyToAttack()
     {
         // Eligibility: does this minion still have its attack this turn? This is independent of whether
@@ -730,13 +749,18 @@ public class MinionController : MonoBehaviour
 
         if (modal.health <= 0)
         {
-            // Lethal hit: go straight to death and deliberately do NOT fire OnTookDamage. The minion is
-            // dying, so its OnDeath trigger supersedes. Firing OnTookDamage first would wrap a took-damage
-            // triggered-action scope around the death: the death gets deferred behind it, then flushed from
-            // inside the took-damage scope's finally, and when that outer scope disposes its Restore()
-            // clobbers the death trigger's freshly-set ActionHolder selection state with stale leftovers —
-            // which made OnDeath effects (e.g. the seed's +1/+1) intermittently no-op.
+            // Lethal hit: fire OnTookDamage for the killing blow FIRST, then die, so "whenever this takes
+            // damage" effects (e.g. Blessing Touch) still resolve on the fatal hit instead of being
+            // silently skipped. This is safe because the took-damage and death triggered actions are
+            // serialized by the scheduler: EnqueueTriggeredAction defers the death behind the took-damage
+            // action (we're now mid-triggered-action), and FinishTriggeredAction runs in each action's
+            // finally OUTSIDE its ActionHolder scope — so the death trigger takes a fresh selection
+            // snapshot AFTER the took-damage scope restores, never clobbering its own OnDeath state.
             Debug.Log("minion died: " + modal.name);
+            if (effectiveDamage > 0)
+            {
+                OnTookDamage?.Invoke(this, effectiveDamage);
+            }
             Die();
             return true;
         }

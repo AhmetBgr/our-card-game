@@ -2166,6 +2166,10 @@ public class ActionHolder : ScriptableObject
         thisMinion.owner.minions.Add(selectedMinion);
         selectedMinion.owner = thisMinion.owner;
 
+        // The minion just changed hands: clear the attack eligibility/clickability it carried from its
+        // former owner, or that player could keep attacking with a minion that is now the enemy's.
+        selectedMinion.ClearAttackReadiness();
+
         selectedMinion.view.UpdateView(selectedMinion.modal);
 
         yield return null;
@@ -2222,6 +2226,27 @@ public class ActionHolder : ScriptableObject
 
         var hero = selectedAgent.hero;
         hero.modal.health = Mathf.Min(hero.modal.health + amount, hero.modal.defHealth);
+        hero.view.UpdateView(hero.modal);
+        yield return null;
+    }
+
+    public void ChangeHeroAttack(int amount)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_ChangeHeroAttack(amount));
+    }
+
+    public IEnumerator _ChangeHeroAttack(int amount)
+    {
+        if (selectedAgent == null || selectedAgent.hero == null)
+        {
+            Debug.LogWarning("ChangeHeroAttack: no selected agent or hero");
+            yield break;
+        }
+
+        var hero = selectedAgent.hero;
+        hero.modal.attack += amount;
         hero.view.UpdateView(hero.modal);
         yield return null;
     }
