@@ -28,9 +28,9 @@ MonoBehaviour:
   multiKill2Bonus: 5
   multiKill3Bonus: 15
   multiKill4Bonus: 40
-  flawlessBonus: 40
-  comebackBonus: 30
-  oneTurnKillBonus: 75
+  flawlessBonus: 25
+  comebackBonus: 25
+  oneTurnKillBonus: 50
   comebackHpThreshold: 5
   gradeS: 310
   gradeA: 250

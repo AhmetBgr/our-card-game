@@ -1588,10 +1588,31 @@ public class ActionHolder : ScriptableObject
         }
     }
 
+    // True if at least one currently-selected cell could actually receive a summon: empty, or holding a
+    // minion pushable in the summoner's forward direction — the same rule GameManager.SummonMinion enforces
+    // before it places anything. Used by the summon verbs' dry-run (isTesting) branch so a board-locked
+    // summon is reported unplayable (isTestingFailed) instead of a false-positive the AI wastes its turn on.
+    private bool AnySelectedCellCanReceiveSummon()
+    {
+        if (selectedCells.Count == 0) return false;
+
+        Vector3Int pushDir = SummonerPushDir();
+        foreach (var cellT in selectedCells)
+        {
+            // _SelectCell leaves a null placeholder in test mode when a valid cell exists but can't be
+            // picked interactively; it already passed its own occupancy gate, so treat it as viable.
+            if (cellT == null) return true;
+
+            Vector2Int idx = GridManager.Instance.PosToGridIndex(cellT.position);
+            GameObject occupant = GridManager.Instance.GetCell(idx).obj;
+            if (occupant == null) return true;
+            if (occupant.TryGetComponent(out MinionController m) && m.CanBePushedForward(pushDir)) return true;
+        }
+        return false;
+    }
+
     public void SummonRandomMinion(int cost)
     {
-        if (GameManager.Instance.isTesting) return;
-
         curActionsList.Enqueue(_SummonRandomMinion(cost));
     }
     public IEnumerator _SummonRandomMinion(int cost)
@@ -1612,6 +1633,12 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
+        if (GameManager.Instance.isTesting)
+        {
+            // Dry-run only: never instantiate. Fail the test unless a summon could actually land.
+            if (!AnySelectedCellCanReceiveSummon()) GameManager.Instance.isTestingFailed = true;
+            yield break;
+        }
 
         foreach (var cell in selectedCells)
         {
@@ -1627,8 +1654,6 @@ public class ActionHolder : ScriptableObject
     {
         //Debug.LogWarning("before summon ");
 
-        if (GameManager.Instance.isTesting) return;
-
         IEnumerator cor = _summonminion(card);
         //GameManager.Instance.Addtoactions( cor);
         curActionsList.Enqueue(cor);
@@ -1638,6 +1663,14 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _summonminion(CardSO card)
     {
         yield return null;
+
+        if (GameManager.Instance.isTesting)
+        {
+            // Dry-run only: never instantiate. Fail the test unless a summon could actually land, so the
+            // AI doesn't treat a board-locked summon (spawn area full and unpushable) as a playable move.
+            if (!AnySelectedCellCanReceiveSummon()) GameManager.Instance.isTestingFailed = true;
+            yield break;
+        }
 
         foreach (var cell in selectedCells)
         {
@@ -1662,8 +1695,6 @@ public class ActionHolder : ScriptableObject
     /// </summary>
     public void SummonMinionOnOwnSpawnRow(CardSO card)
     {
-        if (GameManager.Instance.isTesting) return;
-
         Agent owner = thisMinion != null ? thisMinion.owner : null;
         curActionsList.Enqueue(_SummonMinionForAgentOnSpawnRow(card, owner));
     }
@@ -1684,6 +1715,13 @@ public class ActionHolder : ScriptableObject
                 candidates.Add(cell.cellObj.transform);
             else if (cell.obj.TryGetComponent(out MinionController occupant) && occupant.CanBePushedForward(pushDir))
                 candidates.Add(cell.cellObj.transform);
+        }
+
+        if (GameManager.Instance.isTesting)
+        {
+            // Dry-run only: never instantiate. Fail the test if no spawn tile is free or pushable.
+            if (candidates.Count == 0) GameManager.Instance.isTestingFailed = true;
+            yield break;
         }
 
         if (candidates.Count == 0) yield break; // no empty tile and no pushable occupant — skip the summon

@@ -1067,6 +1067,14 @@ public class GameManager : Singleton<GameManager>
                     yield return StartCoroutine(ExecuteActions(onAnyMinionSummonedActions));
                 }
             }
+
+            // A minion entering play mid-turn is a fresh attack target for the acting player's minions,
+            // but the cached canAttack/clickable state was computed before it existed (e.g. the attacker's
+            // Attack() epilogue ran before this async summon resolved). Without this the player can't click
+            // a melee minion to strike a just-summoned enemy — notably one the enemy Summoner passive spawns
+            // in response to being attacked. Recompute readiness now that the board (and any summon-reaction
+            // deaths above) has settled. No-ops off the player's turn via the guard inside the callee.
+            SetPlayerMinionsReadyToAttack();
         }
         finally
         {
