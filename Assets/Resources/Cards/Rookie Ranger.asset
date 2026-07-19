@@ -18,7 +18,7 @@ MonoBehaviour:
   cardName: Rookie Ranger
   desc: 
   attack: 1
-  health: 2
+  health: 3
   cost: 2
   range: 2
   armor: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
   upgradedVersion: {fileID: 11400000, guid: 49458b2cd6d1c13449ee275ce033d12e, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0
-  defHealth: 2
+  defHealth: 3
   OnPlay:
     m_PersistentCalls:
       m_Calls:

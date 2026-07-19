@@ -15,8 +15,7 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 2510652883185604869, guid: d63582f3f629afa4a8e5bdfd0486e04a,
     type: 3}
-  cardArt: {fileID: -6060927012704595642, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
+  cardArt: {fileID: 21300000, guid: 0a586457fb4e1ec44a51df8442ee8ea7, type: 3}
   cardName: Rotten Banana
   desc: Deal 2 damage to your hero and draw a Card.
   attack: 0

@@ -15,7 +15,7 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 5681697889624799646, guid: d63582f3f629afa4a8e5bdfd0486e04a,
     type: 3}
-  cardArt: {fileID: 5681697889624799646, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
+  cardArt: {fileID: 21300000, guid: ac98964ff34943b4c9ca419fa47e944e, type: 3}
   cardName: Relic
   desc: Double the Attack of a minion.
   attack: 0
@@ -23,10 +23,12 @@ MonoBehaviour:
   cost: 4
   range: 0
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 1
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

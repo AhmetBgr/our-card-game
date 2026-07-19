@@ -116,7 +116,7 @@ public class CustomGameSetupController : MonoBehaviour
 
         if (animate)
         {
-            slidingContainer.DOAnchorPosX(targetX, slideDuration).SetEase(Ease.InOutCubic);
+            slidingContainer.DOAnchorPosX(targetX, slideDuration).SetEase(Ease.OutCubic);
         }
         else
         {
