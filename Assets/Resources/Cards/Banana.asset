@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 21300000, guid: d6ee6821503f02342ace3117103f0a39, type: 3}
   cardName: Banana
-  desc: Heal your hero 5. increase hero Attack by 1.
+  desc: Heal your hero 5. Increase hero Attack by 1.
   attack: 0
   health: 0
   cost: 5

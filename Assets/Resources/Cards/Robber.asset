@@ -17,16 +17,18 @@ MonoBehaviour:
     type: 3}
   cardArt: {fileID: 6031468480065390000, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
   cardName: Robber
-  desc: "On summon: Draw a card. \nAlso steal a random card from opponent deck."
+  desc: 'On Play: Draw a card and Steal a random Card from Opponent''s deck.'
   attack: 2
   health: 2
   cost: 4
   range: 2
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

@@ -18,8 +18,8 @@ MonoBehaviour:
   cardName: Repaired Crossbow
   desc: 'When an enemy minion is summoned within range, shoot it automatically.
 
-    Target
-    CANNOT counterattack.
+    _Target
+    CANNOT Counter-Attack._
 
 '
   attack: 2

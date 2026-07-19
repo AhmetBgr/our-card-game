@@ -18,8 +18,8 @@ MonoBehaviour:
   cardName: Broken Crossbow
   desc: 'When an enemy minion is summoned within range, shoot it automatically.
 
-    The
-    target can counterattack.
+    _The
+    target can Counter-Attack._
 
 '
   attack: 2
@@ -39,7 +39,7 @@ MonoBehaviour:
   upgradedVersion: {fileID: 11400000, guid: b3adf85573653694f897a7c46834db5e, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0
-  defHealth: 3
+  defHealth: 2
   OnPlay:
     m_PersistentCalls:
       m_Calls:

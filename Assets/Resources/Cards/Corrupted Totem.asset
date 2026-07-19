@@ -16,16 +16,18 @@ MonoBehaviour:
   minionArt: {fileID: -373477211, guid: df0645ae019cce54eb80f126c49e5cf0, type: 3}
   cardArt: {fileID: 1469167701, guid: df0645ae019cce54eb80f126c49e5cf0, type: 3}
   cardName: Corrupted Totem
-  desc: At the end of your turn, give all adjacent friendly minions +2 Attack
+  desc: 'At the end of your turn: give all adjacent friendly minions +2 Attack'
   attack: 0
   health: 6
   cost: 5
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 1
+  selectionIntent: 0
   aiIntent: 1
   aiEffectMagnitude: 2
   aiRemovesTarget: 0

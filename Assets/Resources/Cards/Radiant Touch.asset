@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -1074366209, guid: 18b4467d5b765e74fa3e121902d99212, type: 3}
   cardArt: {fileID: -1687654404, guid: 18b4467d5b765e74fa3e121902d99212, type: 3}
   cardName: Radiant Touch
-  desc: 'Give a minion +1 / +1. Draw a card
+  desc: 'Give a minion +1/+1. Draw a card
 
 '
   attack: 0
@@ -24,10 +24,12 @@ MonoBehaviour:
   cost: 2
   range: 0
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 1
+  selectionIntent: 0
   aiIntent: 1
   aiEffectMagnitude: 2
   aiRemovesTarget: 0

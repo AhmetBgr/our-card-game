@@ -18,16 +18,18 @@ MonoBehaviour:
   cardArt: {fileID: -1756977442222643285, guid: d63582f3f629afa4a8e5bdfd0486e04a,
     type: 3}
   cardName: Stove Golem
-  desc: At the End of your turn gain 1 Attack.
+  desc: At the End of your turn, gain +1 Attack.
   attack: 5
   health: 6
   cost: 7
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

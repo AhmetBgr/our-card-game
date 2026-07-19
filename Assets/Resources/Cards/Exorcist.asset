@@ -16,15 +16,23 @@ MonoBehaviour:
   minionArt: {fileID: -1921426611, guid: 004fcc27121a3de44af891e7b19b1649, type: 3}
   cardArt: {fileID: -1534365736, guid: 004fcc27121a3de44af891e7b19b1649, type: 3}
   cardName: Exorcist
-  desc: 'On Death: Gain control of a random enemy minion. Permanently'
+  desc: 'On Death: Gain control of a random enemy minion. _Permanently_'
   attack: 7
   health: 5
   cost: 6
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
+  canAttack: 1
+  canAttackManually: 1
   type: 0
+  selectionIntent: 0
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
+  normalVersion: {fileID: 0}
   isUpgraded: 1
   defHealth: 5
   OnPlay:
@@ -138,12 +146,15 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
-  OnOwnerDrawedCard:
+  OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []
   OnMinionCollided:
     m_PersistentCalls:
       m_Calls: []
   OnTookDamage:
+    m_PersistentCalls:
+      m_Calls: []
+  BonusEvents:
     m_PersistentCalls:
       m_Calls: []

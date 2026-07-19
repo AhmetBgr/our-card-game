@@ -16,16 +16,18 @@ MonoBehaviour:
   minionArt: {fileID: 454519182, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
   cardArt: {fileID: -1407081494, guid: 0c9b7ec3471589f47b34bd1b0aeb3f83, type: 3}
   cardName: Daisy
-  desc: Reduce the cost random minion in your hand by 1
+  desc: 'On Play: Reduce the cost random minion in your hand by 1'
   attack: 1
   health: 1
   cost: 1
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

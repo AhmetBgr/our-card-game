@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 1461745105, guid: ccb53726e24183644a16e58f28c11cc1, type: 3}
   cardArt: {fileID: -804686564, guid: ccb53726e24183644a16e58f28c11cc1, type: 3}
   cardName: Cursed Rock
-  desc: Deal 4 Damage to other minion when Collided.
+  desc: _Deals 4 Damage to other minion when Collided_
   attack: 0
   health: 6
   cost: 4

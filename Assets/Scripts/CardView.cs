@@ -34,6 +34,13 @@ public class CardView : MonoBehaviour
 
     private Tween gearRotateTween;
 
+    // Loaded once from Resources so no per-prefab inspector wiring is needed. Drives keyword
+    // highlighting in card descriptions (see CardTextFormatter). Null-safe: if the asset is
+    // missing, descriptions render as plain text.
+    private static CardTextHighlightConfig highlightConfig;
+    private static CardTextHighlightConfig HighlightConfig =>
+        highlightConfig != null ? highlightConfig : (highlightConfig = Resources.Load<CardTextHighlightConfig>("CardTextHighlightConfig"));
+
     private void Start()
     {
         gearRotateTween?.Kill();
@@ -111,7 +118,7 @@ public class CardView : MonoBehaviour
     private void UpdateTexts(CardModal card)
     {
         nametext.text = card.name;
-        desctext.text = card.desc;
+        desctext.text = CardTextFormatter.Format(card.desc, HighlightConfig);
 
         attacktext.text = card.attack.ToString();
         healthtext.text = card.health.ToString();

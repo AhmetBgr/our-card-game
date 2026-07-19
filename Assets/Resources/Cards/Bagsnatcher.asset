@@ -17,16 +17,18 @@ MonoBehaviour:
     type: 3}
   cardArt: {fileID: -563745689248678199, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
   cardName: Bagsnatcher
-  desc: 'On summon: Draw a card.'
+  desc: 'On Play: Draw a card.'
   attack: 1
   health: 1
   cost: 2
   range: 2
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
