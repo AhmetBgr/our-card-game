@@ -13,6 +13,19 @@ public abstract class HeroPassiveSO : ScriptableObject
     public string passiveName;
     [TextArea] public string description;
 
+    [Header("Indicator")]
+    [Tooltip("Shown on the hero's passive indicator row. Leave empty to render no indicator.")]
+    public Sprite icon;
+
+    [Tooltip("Uncheck for passives that should stay invisible to the player.")]
+    public bool showIndicator = true;
+
+    [Tooltip("Live runtime value shown over the icon. See PassiveBadgeSource.")]
+    public PassiveBadgeSource badgeSource = PassiveBadgeSource.None;
+
+    [Tooltip("Key read from HeroRuntime counters. Only used when badgeSource is Counter.")]
+    public string badgeCounterKey;
+
     public abstract HeroPassiveTrigger Trigger { get; }
 
     /// <summary>Extra gate beyond the trigger itself. Evaluated before any ActionHolder state is set up.</summary>
@@ -41,4 +54,41 @@ public abstract class HeroPassiveSO : ScriptableObject
     /// outside any triggered-action scope, so it must not enqueue verbs or touch ActionHolder selection.
     /// </summary>
     public virtual void ApplyAuraOnSummon(MinionController minion, Agent heroOwner) { }
+
+    /// <summary>
+    /// What the hero's indicator row should render for this passive right now. The base implementation
+    /// is the authored icon + passiveName/description, always active, with a badge resolved from
+    /// `badgeSource`. Passives whose live state the enum can't express override this — see
+    /// CollisionDamageAuraHeroPassiveSO.
+    ///
+    /// MUST be pure. It is called from the view layer at arbitrary times, OUTSIDE any ActionHolder
+    /// scope: never enqueue verbs, never touch ActionHolder selection, never mutate runtime state.
+    /// `runtime` is null for a hero that was never registered, so every override must handle that.
+    /// </summary>
+    public virtual HeroPassiveDisplay GetDisplay(HeroRuntime runtime)
+    {
+        if (!showIndicator || icon == null) return HeroPassiveDisplay.Hidden;
+
+        return new HeroPassiveDisplay(icon, passiveName, description, ResolveBadge(runtime));
+    }
+
+    /// <summary>Declarative badge resolution, so an authored asset needs no C# subclass to show state.</summary>
+    protected string ResolveBadge(HeroRuntime runtime)
+    {
+        if (runtime == null) return null;
+
+        switch (badgeSource)
+        {
+            case PassiveBadgeSource.AppliedAttackBonus:
+                return runtime.appliedAttackBonus > 0 ? "+" + runtime.appliedAttackBonus : null;
+
+            case PassiveBadgeSource.Counter:
+                if (string.IsNullOrEmpty(badgeCounterKey)) return null;
+                int value = runtime.GetCounter(badgeCounterKey);
+                return value != 0 ? value.ToString() : null;
+
+            default:
+                return null;
+        }
+    }
 }

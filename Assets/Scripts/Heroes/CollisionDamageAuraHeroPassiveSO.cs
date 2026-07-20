@@ -32,4 +32,19 @@ public class CollisionDamageAuraHeroPassiveSO : HeroPassiveSO
         if (minion.modal.collisionDamage < amount)
             minion.modal.collisionDamage = amount;
     }
+
+    /// <summary>
+    /// Badge is the granted amount; the icon dims while the aura has nobody to affect. Read-only —
+    /// it inspects owner.minions but mutates nothing, per the GetDisplay purity contract.
+    /// </summary>
+    public override HeroPassiveDisplay GetDisplay(HeroRuntime runtime)
+    {
+        HeroPassiveDisplay display = base.GetDisplay(runtime);
+        if (!display.visible) return display;
+
+        Agent owner = runtime != null && runtime.hero != null ? runtime.hero.owner : null;
+        bool hasFriendlyMinions = owner != null && owner.minions != null && owner.minions.Count > 0;
+
+        return display.WithBadge(amount.ToString()).WithActive(hasFriendlyMinions);
+    }
 }

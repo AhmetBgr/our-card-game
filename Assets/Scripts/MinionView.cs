@@ -31,6 +31,31 @@ public class MinionView : MonoBehaviour
     [SerializeField] private CanvasGroup damageIndicatorGroup;
     [SerializeField] private float damageIndicatorHoldDuration = 0.4f;
 
+    [Tooltip("Overlay flashed over the attack stat when the minion's attack is buffed or debuffed.")]
+    [SerializeField] private CanvasGroup attackStatChangeGroup;
+    [SerializeField] private Image attackStatChangeImage;
+    [SerializeField] private TextMeshProUGUI attackStatChangeText;
+    [SerializeField] private Color attackBuffColor = new Color(0.28f, 0.9f, 0.35f, 1f);
+    [SerializeField] private Color attackDebuffColor = new Color(0.9f, 0.25f, 0.25f, 1f);
+    [SerializeField] private float attackStatChangeFadeInDuration = 0.1f;
+    [SerializeField] private float attackStatChangeFadeOutDuration = 0.7f;
+
+    [Tooltip("Ranged variant, used instead of the fields above when the bow icon is showing (range >= 2). Assigned on the Hero prefab; left null on minion prefabs.")]
+    [SerializeField] private CanvasGroup attackStatChangeBowGroup;
+    [SerializeField] private Image attackStatChangeBowImage;
+    [SerializeField] private TextMeshProUGUI attackStatChangeBowText;
+
+    [Tooltip("Overlay flashed over the health stat when the minion is healed. Health loss shows the damage indicator instead.")]
+    [SerializeField] private CanvasGroup healthStatChangeGroup;
+    [SerializeField] private Image healthStatChangeImage;
+    [SerializeField] private TextMeshProUGUI healthStatChangeText;
+    [SerializeField] private Color healthBuffColor = new Color(0.28f, 0.9f, 0.35f, 1f);
+    [SerializeField] private float healthStatChangeFadeInDuration = 0.1f;
+    [SerializeField] private float healthStatChangeFadeOutDuration = 0.7f;
+
+    [Tooltip("Purely visual lag: the stat numbers and their flash/damage indicator land this long after the value actually changed.")]
+    [SerializeField] private float statChangeVisualDelay = 0.35f;
+
     private float heroDropHeight = 10f;
 
     // Which team's inline this minion should show, and whether the spawn animation has finished. The
@@ -38,9 +63,24 @@ public class MinionView : MonoBehaviour
     private bool _isPlayerMinion;
     private bool _hasAppeared;
 
+    // Last attack value pushed through UpdateView, used to detect buffs/debuffs.
+    private int _lastAttack;
+    private bool _hasAttackValue;
+
+    // Same for health: gains flash the overlay, losses fall through to the damage indicator.
+    private int _lastHealth;
+    private bool _hasHealthValue;
+
+    // Whether the bow icon is showing, which also selects the ranged attack-flash overlay.
+    private bool _isRanged;
+
     public void UpdateView(CardModal modal)
     {
         if (modal == null) return;
+
+        // Recorded before the stat updates, so an attack flash picks the overlay matching the icon
+        // that's about to be shown rather than the previous frame's.
+        _isRanged = modal.range >= 2;
 
         UpdateAttackText(modal.attack);
         UpdateHealthText(modal.health);
@@ -63,11 +103,118 @@ public class MinionView : MonoBehaviour
 
     private void UpdateAttackText(int value)
     {
-        attacktext.text = value.ToString();
+        // The first UpdateView only seeds the baseline (spawning at 3 attack isn't a buff), and shows
+        // the number straight away — a spawning minion shouldn't sit blank for the delay.
+        if (!_hasAttackValue)
+        {
+            attacktext.text = value.ToString();
+            _lastAttack = value;
+            _hasAttackValue = true;
+            return;
+        }
+
+        int delta = value - _lastAttack;
+
+        // Bookkeeping is immediate so back-to-back changes each get the right delta; only the number
+        // and its flash are deferred, since all attack mutations route back through here.
+        _lastAttack = value;
+
+        DeferVisual(() =>
+        {
+            attacktext.text = value.ToString();
+            if (delta != 0)
+                PlayAttackStatChange(delta);
+        });
+    }
+
+    // Runs a visual-only update after statChangeVisualDelay. The callback is dropped if this view was
+    // destroyed in the meantime (the minion died mid-delay), since DOTween outlives the GameObject.
+    private void DeferVisual(TweenCallback action)
+    {
+        if (statChangeVisualDelay <= 0f) { action(); return; }
+
+        DOVirtual.DelayedCall(statChangeVisualDelay, () =>
+        {
+            if (this == null) return;
+            action();
+        });
+    }
+
+    // Green for a buff, red for a debuff: a fast fade in to full alpha, then a slow fade back out.
+    // The label shows the signed delta ("+2" / "-1"), not the new total.
+    private void PlayAttackStatChange(int delta)
+    {
+        // Ranged heroes show the attack stat under the bow icon, which sits elsewhere on the card and
+        // so needs its own overlay. Minion prefabs leave the bow trio null and always use the sword one.
+        bool useBow = _isRanged && attackStatChangeBowGroup != null;
+
+        CanvasGroup group = useBow ? attackStatChangeBowGroup : attackStatChangeGroup;
+        Image image = useBow ? attackStatChangeBowImage : attackStatChangeImage;
+        TextMeshProUGUI label = useBow ? attackStatChangeBowText : attackStatChangeText;
+
+        if (group == null) return;
+
+        group.DOKill();
+
+        Color tint = delta > 0 ? attackBuffColor : attackDebuffColor;
+
+        if (image != null)
+            image.color = tint;
+
+        if (label != null)
+        {
+            label.text = (delta > 0 ? "+" : "") + delta;
+        }
+
+        group.alpha = 0f;
+        DOTween.Sequence().SetTarget(group)
+            .Append(group.DOFade(1f, attackStatChangeFadeInDuration).SetEase(Ease.OutQuad))
+            .AppendInterval(0.4f)
+            .Append(group.DOFade(0f, attackStatChangeFadeOutDuration).SetEase(Ease.InQuad));
     }
     private void UpdateHealthText(int value)
     {
-        healthtext.text = value.ToString();
+        if (!_hasHealthValue)
+        {
+            healthtext.text = value.ToString();
+            _lastHealth = value;
+            _hasHealthValue = true;
+            return;
+        }
+
+        int delta = value - _lastHealth;
+        _lastHealth = value;
+
+        // Health is asymmetric: a gain flashes the green overlay, a loss reuses the existing damage
+        // indicator. Both land with the number, after the same visual delay.
+        DeferVisual(() =>
+        {
+            healthtext.text = value.ToString();
+            if (delta > 0)
+                PlayHealthStatChange(delta);
+            else if (delta < 0)
+                PlayDamageIndicator(-delta);
+        });
+    }
+
+    // Heals only — there is no red variant, since losing health shows the damage indicator instead.
+    private void PlayHealthStatChange(int delta)
+    {
+        if (healthStatChangeGroup == null) return;
+
+        healthStatChangeGroup.DOKill();
+
+        if (healthStatChangeImage != null)
+            healthStatChangeImage.color = healthBuffColor;
+
+        if (healthStatChangeText != null)
+            healthStatChangeText.text = "+" + delta;
+
+        healthStatChangeGroup.alpha = 0f;
+        DOTween.Sequence().SetTarget(healthStatChangeGroup)
+            .Append(healthStatChangeGroup.DOFade(1f, healthStatChangeFadeInDuration).SetEase(Ease.OutQuad))
+            .AppendInterval(0.4f)
+            .Append(healthStatChangeGroup.DOFade(0f, healthStatChangeFadeOutDuration).SetEase(Ease.InQuad));
     }
 
     // Melee (range 1) shows the sword icon; ranged (range >= 2) shows the bow. Both refs are only
@@ -76,9 +223,8 @@ public class MinionView : MonoBehaviour
     {
         if (attackIconSword == null || attackIconBow == null) return;
 
-        bool isRanged = range >= 2;
-        attackIconBow.SetActive(isRanged);
-        attackIconSword.SetActive(!isRanged);
+        attackIconBow.SetActive(_isRanged);
+        attackIconSword.SetActive(!_isRanged);
     }
 
     private void UpdateFrame(CardModal modal)

@@ -737,14 +737,9 @@ public class MinionController : MonoBehaviour
         int effectiveDamage = Mathf.Max(damage - modal.armor, 0);
         modal.health -= effectiveDamage;
 
-        DOVirtual.DelayedCall(0.75f, () =>
-        {
-            view.UpdateView(modal);
-            if (effectiveDamage > 0)
-            {
-                view.PlayDamageIndicator(effectiveDamage);
-            }
-        });
+        // UpdateView drives the damage indicator itself now: it sees health drop and plays it, so every
+        // source of health loss (not just combat damage) shows a number without each one wiring it up.
+        DOVirtual.DelayedCall(0.75f, () => view.UpdateView(modal));
         Debug.Log("minion take damage: " + modal.name);
 
         if (modal.health <= 0)

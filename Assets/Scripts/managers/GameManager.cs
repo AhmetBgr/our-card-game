@@ -1022,6 +1022,10 @@ public class GameManager : Singleton<GameManager>
         // Pure side effect — safe here mid-summon; must not enqueue triggered actions.
         heroPassives.ApplyAurasOnSummon(minion);
 
+        // Aura indicators read the board (e.g. "dormant until a friendly minion exists"), so the row
+        // has to re-evaluate now that owner.minions has changed. Read-only, no triggered action.
+        heroPassives.RefreshIndicators();
+
         OnMinionSummoned?.Invoke(minion);
 
         // Broadcast the summon to every other minion's OnAnyMinionSummoned trigger (e.g. crossbows that
@@ -1142,9 +1146,6 @@ public class GameManager : Singleton<GameManager>
 
     private void OnMinionTookDamage(MinionController minion, int damage)
     {
-        bool isHero = minion != null && minion.owner != null && minion == minion.owner.hero;
-        Debug.Log($"[HUNTER] OnMinionTookDamage: minion='{minion?.card?.cardName}' dmg={damage} isHero={isHero} _executingTriggeredActions={_executingTriggeredActions} pending={_pendingTriggeredCallbacks.Count}");
-
         EnqueueTriggeredAction(() => StartCoroutine(InvokeOnMinionTookDamageActions(minion, damage)));
     }
 
@@ -1194,6 +1195,10 @@ public class GameManager : Singleton<GameManager>
                 DispatchHeroTookDamagePassives(minion, damage);
 
                 yield return StartCoroutine(ExecuteActions(onMinionTookDamageActions));
+
+                // AFTER the drain, not at dispatch: passive.Run only enqueues verbs, so state the
+                // badges read (e.g. appliedAttackBonus) is not written until ExecuteActions runs.
+                heroPassives.RefreshIndicators();
             }
         }
         finally
@@ -1215,24 +1220,26 @@ public class GameManager : Singleton<GameManager>
     private void DispatchHeroTookDamagePassives(MinionController hero, int damage)
     {
         HeroRuntime runtime = heroPassives.GetRuntime(hero);
-        if (runtime == null)
-        {
-            Debug.Log($"[HUNTER] DispatchHeroTookDamage: hero='{hero?.card?.cardName}' dmg={damage} -> NO RUNTIME (not a registered passive hero), passive will NOT fire");
-            return;
-        }
+        if (runtime == null) return;
 
         var ctx = new HeroPassiveContext(hero, subject: hero, amount: damage,
             ownerTurnNumber: runtime.ownerTurnNumber);
 
         _heroPassiveMatchBuffer.Clear();
         heroPassives.CollectMatching(runtime, HeroPassiveTrigger.HeroTookDamage, ctx, _heroPassiveMatchBuffer);
-        Debug.Log($"[HUNTER] DispatchHeroTookDamage: hero='{hero?.card?.cardName}' dmg={damage} matched {_heroPassiveMatchBuffer.Count} HeroTookDamage passive(s), curActionsList==onTookDamage:{ReferenceEquals(ActionHolder.curActionsList, onMinionTookDamageActions)}");
+
+        HeroPassiveIndicatorView indicators = HeroPassiveIndicatorView.For(hero);
 
         // Registers are already set by the caller (thisMinion = hero, selectedAgent = hero.owner), which
         // is exactly what a self-trigger needs; the owner-relative selectors then resolve the correct
         // board half even though the hero was damaged on the opponent's turn.
         foreach (var passive in _heroPassiveMatchBuffer)
+        {
+            // Flash here (the passive matched), but refresh the badge only after the caller's
+            // ExecuteActions drain — Run enqueues, it does not apply.
+            indicators?.PlayProcFlash(passive);
             passive.Run(ctx);
+        }
     }
 
     /// <summary>
@@ -1275,6 +1282,9 @@ public class GameManager : Singleton<GameManager>
                 DispatchHeroAttackedPassives(hero, attacker);
 
                 yield return StartCoroutine(ExecuteActions(onHeroAttackedActions));
+
+                // Same ordering rule as InvokeOnMinionTookDamageActions: refresh after the drain.
+                heroPassives.RefreshIndicators();
             }
         }
         finally
@@ -1295,8 +1305,13 @@ public class GameManager : Singleton<GameManager>
         _heroPassiveMatchBuffer.Clear();
         heroPassives.CollectMatching(runtime, HeroPassiveTrigger.HeroAttacked, ctx, _heroPassiveMatchBuffer);
 
+        HeroPassiveIndicatorView indicators = HeroPassiveIndicatorView.For(hero);
+
         foreach (var passive in _heroPassiveMatchBuffer)
+        {
+            indicators?.PlayProcFlash(passive);
             passive.Run(ctx);
+        }
     }
 
     /// <summary>

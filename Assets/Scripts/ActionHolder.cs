@@ -1308,11 +1308,6 @@ public class ActionHolder : ScriptableObject
         {
             selectedMinion = candidates[UnityEngine.Random.Range(0, candidates.Count)];
             selectedMinions.Add(selectedMinion);
-            Debug.Log($"[HUNTER] _SelectRandomEnemyMinion: {candidates.Count} candidate(s) -> CHOSE '{selectedMinion.card?.cardName}'");
-        }
-        else
-        {
-            Debug.Log($"[HUNTER] _SelectRandomEnemyMinion: 0 candidates from {selectedCells.Count} cells -> passive fizzles");
         }
 
         yield return null;

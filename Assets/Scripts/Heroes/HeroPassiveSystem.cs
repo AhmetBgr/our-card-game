@@ -47,9 +47,28 @@ public class HeroPassiveSystem
                 for (int i = 0; i < heroSO.passives.Count; i++)
                     if (heroSO.passives[i] != null) heroSO.passives[i].ApplyAuraOnSummon(m, hero.owner);
         }
+
+        // Build the indicator row now that runtime state exists. An inline call from the registration
+        // path, NOT an event subscription — same contract as the aura sweep above.
+        HeroPassiveIndicatorView.For(hero)?.Bind(runtime);
     }
 
     public void Clear() => _heroes.Clear();
+
+    /// <summary>
+    /// Re-pushes every registered hero's indicator row. Pure view refresh: it reads passive state via
+    /// HeroPassiveSO.GetDisplay and mutates nothing, so it is safe to call from anywhere — including
+    /// from inside an open ActionHolder scope.
+    ///
+    /// Call it AFTER the verbs have drained, not at dispatch time: passive.Run only enqueues, so state
+    /// like HeroRuntime.appliedAttackBonus is not written until GameManager's ExecuteActions pass runs.
+    /// </summary>
+    public void RefreshIndicators()
+    {
+        for (int i = 0; i < _heroes.Count; i++)
+            if (_heroes[i] != null)
+                HeroPassiveIndicatorView.For(_heroes[i].hero)?.Refresh();
+    }
 
     /// <summary>
     /// Lets every registered hero's aura passives stamp stats onto a just-summoned minion. Pure side

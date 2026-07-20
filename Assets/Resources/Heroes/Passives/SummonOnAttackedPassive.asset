@@ -12,8 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4270f2963f5e7a46ac06d374e4d4561, type: 3}
   m_Name: SummonOnAttackedPassive
   m_EditorClassIdentifier: Assembly-CSharp::TriggeredHeroPassiveSO
-  passiveName: 
-  description: 
+  passiveName: Rally
+  description: Whenever your hero is attacked, summon a minion on your spawn row.
+    Your hero deals no counter-attack.
+  icon: {fileID: 21300000, guid: 6a57c7dca517e6148a97d3e937dc17c8, type: 3}
+  showIndicator: 1
+  badgeSource: 0
+  badgeCounterKey: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   trigger: 1
   everyNTurns: 1
