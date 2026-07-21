@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: Golem
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 3892331329905356963, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardArt: {fileID: 3892331329905356963, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
+  minionArt: {fileID: 1585161878, guid: b8e851330111dee4baa49f6096533a09, type: 3}
+  cardArt: {fileID: 2921582248888115325, guid: b8e851330111dee4baa49f6096533a09, type: 3}
   cardName: Golem
   desc: 
   attack: 5
@@ -23,10 +22,12 @@ MonoBehaviour:
   cost: 5
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

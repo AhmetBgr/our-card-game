@@ -1946,7 +1946,8 @@ MonoBehaviour:
   healthBuffColor: {r: 0.4039216, g: 0.7254902, b: 0.078431375, a: 1}
   healthStatChangeFadeInDuration: 0.1
   healthStatChangeFadeOutDuration: 0.7
-  statChangeVisualDelay: 0.35
+  statChangeVisualDelay: 0.5
+  damageIndicatorVisualDelay: 0
 --- !u!114 &5071159792561095710
 MonoBehaviour:
   m_ObjectHideFlags: 0

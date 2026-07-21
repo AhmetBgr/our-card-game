@@ -53,8 +53,11 @@ public class MinionView : MonoBehaviour
     [SerializeField] private float healthStatChangeFadeInDuration = 0.1f;
     [SerializeField] private float healthStatChangeFadeOutDuration = 0.7f;
 
-    [Tooltip("Purely visual lag: the stat numbers and their flash/damage indicator land this long after the value actually changed.")]
+    [Tooltip("Purely visual lag: buff/debuff flashes and their stat numbers land this long after the value actually changed. Health loss uses damageIndicatorVisualDelay instead.")]
     [SerializeField] private float statChangeVisualDelay = 0.35f;
+
+    [Tooltip("Same idea, but for health loss only: the damage indicator and the health number land this long after the damage was dealt. Kept separate so damage can read faster (or slower) than buff/debuff flashes.")]
+    [SerializeField] private float damageIndicatorVisualDelay = 0.35f;
 
     private float heroDropHeight = 10f;
 
@@ -119,7 +122,7 @@ public class MinionView : MonoBehaviour
         // and its flash are deferred, since all attack mutations route back through here.
         _lastAttack = value;
 
-        DeferVisual(() =>
+        DeferVisual(statChangeVisualDelay, () =>
         {
             attacktext.text = value.ToString();
             if (delta != 0)
@@ -127,13 +130,13 @@ public class MinionView : MonoBehaviour
         });
     }
 
-    // Runs a visual-only update after statChangeVisualDelay. The callback is dropped if this view was
+    // Runs a visual-only update after the given delay. The callback is dropped if this view was
     // destroyed in the meantime (the minion died mid-delay), since DOTween outlives the GameObject.
-    private void DeferVisual(TweenCallback action)
+    private void DeferVisual(float delay, TweenCallback action)
     {
-        if (statChangeVisualDelay <= 0f) { action(); return; }
+        if (delay <= 0f) { action(); return; }
 
-        DOVirtual.DelayedCall(statChangeVisualDelay, () =>
+        DOVirtual.DelayedCall(delay, () =>
         {
             if (this == null) return;
             action();
@@ -186,8 +189,11 @@ public class MinionView : MonoBehaviour
         _lastHealth = value;
 
         // Health is asymmetric: a gain flashes the green overlay, a loss reuses the existing damage
-        // indicator. Both land with the number, after the same visual delay.
-        DeferVisual(() =>
+        // indicator. The number always lands with whichever visual it belongs to, so a loss follows
+        // the damage delay and a gain (or a no-op re-push) follows the stat-change one.
+        float delay = delta < 0 ? damageIndicatorVisualDelay : statChangeVisualDelay;
+
+        DeferVisual(delay, () =>
         {
             healthtext.text = value.ToString();
             if (delta > 0)
