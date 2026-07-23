@@ -35,7 +35,7 @@ public class Debugger : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.M))
         {
-            SceneManager.LoadScene("Menu");
+            SceneManager.LoadScene("CreateCustomGame");
         }
 
         if (Input.GetKeyDown(KeyCode.G))

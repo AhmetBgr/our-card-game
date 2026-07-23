@@ -21,24 +21,31 @@ MonoBehaviour:
     - Start
     - End
     - When Collided
-    color: {r: 0, g: 0, b: 0, a: 1}
+    useColor: 0
+    color: {r: 0.07450981, g: 0.03529412, b: 0, a: 1}
     bold: 1
   statKeywords:
   - keyword: Attack
-    color: {r: 0.6509434, g: 0.5895336, b: 0, a: 1}
+    useColor: 1
+    color: {r: 0.5471698, g: 0.4931728, b: 0, a: 1}
     bold: 1
   - keyword: Health
+    useColor: 1
     color: {r: 0.7169812, g: 0.12483154, b: 0.091313645, a: 1}
     bold: 1
   - keyword: Damage
-    color: {r: 0.4056604, g: 0.05744997, b: 0.04018334, a: 1}
+    useColor: 1
+    color: {r: 0.509434, g: 0.28432804, b: 0.27153793, a: 1}
     bold: 1
   - keyword: Heal
-    color: {r: 0, g: 0, b: 0, a: 1}
+    useColor: 0
+    color: {r: 0.07450981, g: 0.03529412, b: 0, a: 1}
     bold: 1
   - keyword: Draw
+    useColor: 1
     color: {r: 0.08235293, g: 0.4613769, b: 0.5568628, a: 1}
     bold: 1
   highlightNumbers: 1
-  numberColor: {r: 0, g: 0, b: 0, a: 1}
+  useNumberColor: 0
+  numberColor: {r: 0.07450981, g: 0.03529412, b: 0, a: 1}
   numberBold: 1

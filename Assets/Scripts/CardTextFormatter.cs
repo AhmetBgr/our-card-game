@@ -19,6 +19,11 @@ using UnityEngine;
 ///
 /// Text wrapped in underscores in the description (_like this_) is rendered italic. This is an
 /// authoring marker for any phrase, independent of keywords.
+///
+/// Every color in the config has its own useColor toggle. Turning one off drops the &lt;color&gt; tag
+/// for that entry entirely, so those words render in the label's own color (whatever the prefab's TMP
+/// component is set to) while still picking up bold — the way to emphasize a keyword without
+/// repainting it.
 /// </summary>
 public static class CardTextFormatter
 {
@@ -34,11 +39,16 @@ public static class CardTextFormatter
     // isStat marks stat keywords so an adjacent number can borrow their style.
     private struct Style
     {
+        // False emits no <color> tag at all, leaving the token in the label's own color — see
+        // AppendWrapped. Carried per-style rather than read off the config at write time because a
+        // number can adopt a stat's style, and it must inherit that stat's toggle along with its color.
+        public bool useColor;
         public Color color;
         public bool bold;
         public bool isStat;
-        public Style(Color color, bool bold, bool isStat)
+        public Style(bool useColor, Color color, bool bold, bool isStat)
         {
+            this.useColor = useColor;
             this.color = color;
             this.bold = bold;
             this.isStat = isStat;
@@ -57,7 +67,7 @@ public static class CardTextFormatter
     private static bool hasAttackStyle;
     private static bool hasHealthStyle;
 
-    private static Style NumberStyle => new Style(cachedConfig.numberColor, cachedConfig.numberBold, false);
+    private static Style NumberStyle => new Style(cachedConfig.useNumberColor, cachedConfig.numberColor, cachedConfig.numberBold, false);
 
     public static string Format(string desc, CardTextHighlightConfig config)
     {
@@ -84,7 +94,7 @@ public static class CardTextFormatter
         var tokens = new Match[count];
         var styles = new Style[count];
         var isNumber = new bool[count];
-        var numberStyle = new Style(config.numberColor, config.numberBold, false);
+        var numberStyle = new Style(config.useNumberColor, config.numberColor, config.numberBold, false);
         for (int i = 0; i < count; i++)
         {
             tokens[i] = matches[i];
@@ -175,12 +185,12 @@ public static class CardTextFormatter
         var trigger = config.triggerPhrases;
         if (trigger != null && trigger.keywords != null)
             foreach (var kw in trigger.keywords)
-                AddKeyword(kw, new Style(trigger.color, trigger.bold, false), keywords);
+                AddKeyword(kw, new Style(trigger.useColor, trigger.color, trigger.bold, false), keywords);
 
         if (config.statKeywords != null)
             foreach (var stat in config.statKeywords)
                 if (stat != null)
-                    AddKeyword(stat.keyword, new Style(stat.color, stat.bold, true), keywords);
+                    AddKeyword(stat.keyword, new Style(stat.useColor, stat.color, stat.bold, true), keywords);
 
         // Resolve the pair-half colors from the Attack/Health stat keywords (case-insensitive).
         hasAttackStyle = cachedLookup.TryGetValue("attack", out cachedAttackStyle);
@@ -217,11 +227,23 @@ public static class CardTextFormatter
         keywords.Add(keyword);
     }
 
+    // A style with useColor off emits no <color> tag, so the token inherits the label's own color —
+    // whatever the prefab's TMP component is set to — instead of being repainted. Bold is independent:
+    // a token can be emphasized without being recolored, and one with neither is copied through as-is.
     private static void AppendWrapped(StringBuilder sb, string content, Style style)
     {
-        string hex = ColorUtility.ToHtmlStringRGB(style.color);
         if (style.bold) sb.Append("<b>");
-        sb.Append("<color=#").Append(hex).Append('>').Append(content).Append("</color>");
+
+        if (style.useColor)
+        {
+            string hex = ColorUtility.ToHtmlStringRGB(style.color);
+            sb.Append("<color=#").Append(hex).Append('>').Append(content).Append("</color>");
+        }
+        else
+        {
+            sb.Append(content);
+        }
+
         if (style.bold) sb.Append("</b>");
     }
 }

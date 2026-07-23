@@ -1922,7 +1922,6 @@ MonoBehaviour:
   healthtext: {fileID: 3615696007133470227}
   enemyInline: {fileID: 8205954058860351602}
   friendlyInline: {fileID: 504640150130659407}
-  heroDropDelay: 0.2
   attackIconSword: {fileID: 0}
   attackIconBow: {fileID: 0}
   damageIndicator: {fileID: 2910642763446773863}
@@ -1947,7 +1946,7 @@ MonoBehaviour:
   healthStatChangeFadeInDuration: 0.1
   healthStatChangeFadeOutDuration: 0.7
   statChangeVisualDelay: 0.5
-  damageIndicatorVisualDelay: 0
+  damageIndicatorVisualDelay: 0.75
 --- !u!114 &5071159792561095710
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -14,6 +14,9 @@ public class CardTextHighlightConfig : ScriptableObject
     {
         [Tooltip("Words/phrases to highlight. Matched case-insensitively; multi-word phrases allowed.")]
         public string[] keywords;
+
+        [Tooltip("Off = leave these words in whatever color the label itself is set to (the prefab's text color). Bold still applies.")]
+        public bool useColor = true;
         public Color color = Color.white;
         public bool bold = true;
     }
@@ -24,6 +27,9 @@ public class CardTextHighlightConfig : ScriptableObject
     {
         [Tooltip("Word/phrase to highlight. Matched case-insensitively; multi-word phrases allowed.")]
         public string keyword;
+
+        [Tooltip("Off = leave this word in whatever color the label itself is set to (the prefab's text color). Bold still applies.")]
+        public bool useColor = true;
         public Color color = Color.white;
         public bool bold = true;
     }
@@ -36,6 +42,9 @@ public class CardTextHighlightConfig : ScriptableObject
 
     [Header("Numbers (3, +1/+1, +2, ...)")]
     public bool highlightNumbers = true;
+
+    [Tooltip("Off = leave numbers in whatever color the label itself is set to (the prefab's text color). Bold still applies. Note this only covers numbers that do NOT sit next to a stat keyword — those adopt the stat's own color and toggle.")]
+    public bool useNumberColor = true;
     public Color numberColor = Color.cyan;
     public bool numberBold = true;
 }

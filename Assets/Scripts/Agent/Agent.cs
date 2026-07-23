@@ -19,6 +19,13 @@ public class Agent : MonoBehaviour
     public CardController cardPrefab;
     public Transform cardPlayPos;
 
+    [Header("Passive UI")]
+    [Tooltip("Canvas holding this agent's hero-passive indicator (Assets/Prefabs/UI/PassiveUICanvas). Spawned under passiveUIPos at startup rather than authored on the hero, so the row sits at a fixed board position instead of riding the hero's transform.")]
+    public GameObject passiveUICanvasPrefab;
+
+    [Tooltip("Where this agent's passive UI is spawned. A child of the agent, placed where the indicator row should sit.")]
+    public Transform passiveUIPos;
+
     public virtual bool IsPlayer() { return false; }
 
     protected int _availibleMana;
@@ -40,6 +47,51 @@ public class Agent : MonoBehaviour
 
         ShuffleDeck();
         RefreshDeckView();
+        SpawnPassiveUI();
+    }
+
+    /// <summary>
+    /// Spawns this agent's passive UI under <see cref="passiveUIPos"/> and hands the indicator inside it
+    /// to the hero's view, which owns everything the indicator renders.
+    ///
+    /// Called from Awake, and that is what makes the ordering safe rather than lucky: the bind that
+    /// fills the indicator (HeroPassiveSystem.Register) runs from GameManager.SetupGame, a coroutine off
+    /// GameLoop, so every Awake in the scene has already finished by then. AttachIndicator rebinds
+    /// anyway if it arrives late, so a future reorder degrades to a rebuild instead of an empty row.
+    /// </summary>
+    protected void SpawnPassiveUI()
+    {
+        if (passiveUICanvasPrefab == null || passiveUIPos == null)
+        {
+            Debug.LogWarning(
+                $"[Agent] '{name}' is missing its passive UI wiring " +
+                $"({(passiveUICanvasPrefab == null ? "passiveUICanvasPrefab" : "passiveUIPos")} is unassigned), " +
+                $"so this agent's hero passives will not be shown.", this);
+            return;
+        }
+
+        // instantiateInWorldSpace: false — keep the prefab's authored local offset and scale (the canvas
+        // is world-space at 0.1 scale) and let the anchor place it, rather than dragging the prefab's
+        // authored world position along and landing wherever that happens to be.
+        GameObject canvas = Instantiate(passiveUICanvasPrefab, passiveUIPos, false);
+        canvas.name = passiveUICanvasPrefab.name; // drop Unity's "(Clone)", so the hierarchy stays readable
+
+        // Search inactive children too: the indicator ships hidden, and Hide() may already have run.
+        HeroPassiveIndicator indicator = canvas.GetComponentInChildren<HeroPassiveIndicator>(true);
+        if (indicator == null)
+        {
+            Debug.LogWarning($"[Agent] '{passiveUICanvasPrefab.name}' has no HeroPassiveIndicator in it.", this);
+            return;
+        }
+
+        HeroPassiveIndicatorView view = HeroPassiveIndicatorView.For(hero);
+        if (view == null)
+        {
+            Debug.LogWarning($"[Agent] '{name}' has no hero with a HeroPassiveIndicatorView to attach the passive UI to.", this);
+            return;
+        }
+
+        view.AttachIndicator(indicator);
     }
 
     /// <summary>

@@ -19,7 +19,7 @@ MonoBehaviour:
   desc: 'On Play: Absorb a random friendly adjacent minion to Gain Its stats.
 
     Whenever
-    this minion takes damage, gain +1 Attack.
+    it takes damage, Gains +1 Attack
 
 '
   attack: 2

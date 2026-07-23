@@ -25,11 +25,14 @@ public class Player : Agent
 
     public static event Action<int, int> OnPlayerManaChanged;
 
+    // Deliberately does not call base.Awake(): that one applies the OPPONENT's saved selection and
+    // seeds the deck from deckSO. Everything the player does share with it is mirrored here by hand.
     protected override void Awake()
     {
         ApplySavedSelection(SelectionSide.Player);
         ShuffleDeck();
         RefreshDeckView();
+        SpawnPassiveUI();
     }
 
     public override IEnumerator PlayTurn()

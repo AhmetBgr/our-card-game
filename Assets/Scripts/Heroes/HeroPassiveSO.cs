@@ -20,11 +20,21 @@ public abstract class HeroPassiveSO : ScriptableObject
     [Tooltip("Uncheck for passives that should stay invisible to the player.")]
     public bool showIndicator = true;
 
-    [Tooltip("Live runtime value shown over the icon. See PassiveBadgeSource.")]
-    public PassiveBadgeSource badgeSource = PassiveBadgeSource.None;
+    [Tooltip("Which indicator shape this passive draws: bare icon, aura outline, or countdown ring.")]
+    public PassiveIndicatorType indicatorType = PassiveIndicatorType.Other;
 
-    [Tooltip("Key read from HeroRuntime counters. Only used when badgeSource is Counter.")]
-    public string badgeCounterKey;
+    [Tooltip("Where the countdown value comes from. Only used when indicatorType is Counter.")]
+    public PassiveCounterSource counterSource = PassiveCounterSource.RuntimeCounter;
+
+    [Tooltip("Key read from HeroRuntime counters. Only used when counterSource is RuntimeCounter.")]
+    public string counterKey;
+
+    [Tooltip("Value the counter counts down FROM. Drives the ring's fill. Only used when indicatorType is Counter.")]
+    [Min(1)] public int counterMax = 1;
+
+    [Tooltip("On completing a block, carry the leftover into the next one instead of restarting at max. " +
+             "Keeps the ring in step with a passive that stacks off a running total (see Raging Blood).")]
+    public bool counterOverflows = false;
 
     public abstract HeroPassiveTrigger Trigger { get; }
 
@@ -57,9 +67,9 @@ public abstract class HeroPassiveSO : ScriptableObject
 
     /// <summary>
     /// What the hero's indicator row should render for this passive right now. The base implementation
-    /// is the authored icon + passiveName/description, always active, with a badge resolved from
-    /// `badgeSource`. Passives whose live state the enum can't express override this — see
-    /// CollisionDamageAuraHeroPassiveSO.
+    /// is the authored icon + passiveName/description, always active, drawn as `indicatorType` with a
+    /// countdown resolved from the HeroRuntime counter. Passives whose live state that can't express
+    /// override this — see CollisionDamageAuraHeroPassiveSO.
     ///
     /// MUST be pure. It is called from the view layer at arbitrary times, OUTSIDE any ActionHolder
     /// scope: never enqueue verbs, never touch ActionHolder selection, never mutate runtime state.
@@ -69,26 +79,54 @@ public abstract class HeroPassiveSO : ScriptableObject
     {
         if (!showIndicator || icon == null) return HeroPassiveDisplay.Hidden;
 
-        return new HeroPassiveDisplay(icon, passiveName, description, ResolveBadge(runtime));
+        ResolveCounter(runtime, out int value, out int max, out int progress, out bool fromProgress);
+        return new HeroPassiveDisplay(icon, passiveName, description, indicatorType,
+            value, max, progress, fromProgress);
     }
 
-    /// <summary>Declarative badge resolution, so an authored asset needs no C# subclass to show state.</summary>
-    protected string ResolveBadge(HeroRuntime runtime)
+    /// <summary>
+    /// Declarative countdown resolution, so an authored asset needs no C# subclass to show live state.
+    /// The counter counts DOWN from counterMax toward 0, and the ring drains with it: fill is
+    /// value/counterMax, so a nearly-empty ring means the passive is about to fire.
+    /// </summary>
+    protected void ResolveCounter(HeroRuntime runtime, out int value, out int max,
+        out int progress, out bool fromProgress)
     {
-        if (runtime == null) return null;
+        value = 0;
+        max = Mathf.Max(1, counterMax);
+        progress = 0;
+        fromProgress = false;
 
-        switch (badgeSource)
+        if (indicatorType != PassiveIndicatorType.Counter || runtime == null) return;
+
+        switch (counterSource)
         {
-            case PassiveBadgeSource.AppliedAttackBonus:
-                return runtime.appliedAttackBonus > 0 ? "+" + runtime.appliedAttackBonus : null;
+            case PassiveCounterSource.HealthLostToNextStack:
+            {
+                // Report the raw total only. The ring restarts at max on each completed block rather
+                // than tracking progress modulo max, so the remaining count depends on where the last
+                // reset happened — state this method is forbidden to hold. The view resolves it.
+                MinionController hero = runtime.hero;
+                if (hero == null || hero.modal == null) { value = max; return; }
 
-            case PassiveBadgeSource.Counter:
-                if (string.IsNullOrEmpty(badgeCounterKey)) return null;
-                int value = runtime.GetCounter(badgeCounterKey);
-                return value != 0 ? value.ToString() : null;
+                progress = Mathf.Max(0, hero.modal.defHealth - hero.modal.health);
+                fromProgress = true;
+                value = max; // Placeholder; the view overwrites this with the resolved remainder.
+                break;
+            }
 
             default:
-                return null;
+            {
+                if (string.IsNullOrEmpty(counterKey)) return;
+
+                // A runtime that never had the key set reads 0 from GetCounter, which would render an
+                // already-spent counter. Treat that as "full", so a passive that has not started
+                // counting shows its max rather than a false about-to-proc.
+                value = runtime.HasCounter(counterKey)
+                    ? Mathf.Clamp(runtime.GetCounter(counterKey), 0, max)
+                    : max;
+                break;
+            }
         }
     }
 }

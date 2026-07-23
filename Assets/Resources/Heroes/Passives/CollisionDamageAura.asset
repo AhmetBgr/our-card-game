@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: CollisionDamageAura
   m_EditorClassIdentifier: Assembly-CSharp::CollisionDamageAuraHeroPassiveSO
   passiveName: Reinforced Plating
-  description: Your minions deal 1 damage to any enemy minion they collide with.
-  icon: {fileID: 21300000, guid: 22d8410ae28bf6349941bdc85acdf0f5, type: 3}
+  description: ' Friendly minions deal 1 damage to enemy minion when they collide.'
+  icon: {fileID: 21300000, guid: 69cc76d297f21aa4d92cc731fa2eb9f4, type: 3}
   showIndicator: 1
-  badgeSource: 0
-  badgeCounterKey: 
+  indicatorType: 1
+  counterSource: 0
+  counterKey: 
+  counterMax: 1
+  counterOverflows: 0
   amount: 1

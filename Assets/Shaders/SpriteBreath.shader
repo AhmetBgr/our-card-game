@@ -92,9 +92,12 @@ Shader "Custom/2D/SpriteBreath"
                 pos.xy = (pos.xy - _Pivot.xy) * scale + _Pivot.xy;
                 o.vertex = UnityObjectToClipPos(float4(pos, v.vertex.w));
 
-                // Optional alpha pulse in sync with the swell, clamped to [min, max].
-                float alpha = lerp(1.0, 1.0 - _AlphaAmount, w);
-                alpha = clamp(alpha, _AlphaMin, _AlphaMax);
+                // Optional alpha pulse in sync with the swell: rests at _AlphaMax and dips toward
+                // _AlphaMin, scaled by _AlphaAmount. Remapped into the range rather than clamped against
+                // it — clamping flattened whichever end of the wave fell outside [min, max], so the sprite
+                // froze at the limit instead of easing through it (a blink, not a breath). The sine's own
+                // ease-out at the turnarounds gives the soft top and bottom.
+                float alpha = _AlphaMax - (_AlphaMax - _AlphaMin) * _AlphaAmount * w;
 
                 o.uv = v.uv;
                 o.color = v.color * _Color * _RendererColor;

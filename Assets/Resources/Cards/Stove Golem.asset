@@ -13,14 +13,12 @@ MonoBehaviour:
   m_Name: Stove Golem
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: -1756977442222643285, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardArt: {fileID: -1756977442222643285, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
+  minionArt: {fileID: 1612139943, guid: 78b3917eb977e934b9405612a4f72c64, type: 3}
+  cardArt: {fileID: 2921582248888115325, guid: 78b3917eb977e934b9405612a4f72c64, type: 3}
   cardName: Stove Golem
   desc: At the End of your turn, gain +1 Attack.
   attack: 5
-  health: 6
+  health: 8
   cost: 7
   range: 1
   armor: 0

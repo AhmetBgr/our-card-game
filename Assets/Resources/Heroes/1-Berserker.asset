@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 21300000, guid: 8f77bf553928200459668f488b93f495, type: 3}
   cardArt: {fileID: 21300000, guid: 8f77bf553928200459668f488b93f495, type: 3}
   cardName: Berserker
-  desc: Gain +1 Attack for every 5 Health lost.
+  desc: Gain +1 Attack for every 4 Health lost.
   attack: 2
   health: 17
   cost: 0

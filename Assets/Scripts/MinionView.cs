@@ -18,7 +18,6 @@ public class MinionView : MonoBehaviour
 
     [SerializeField] private SpriteRenderer enemyInline;
     [SerializeField] private SpriteRenderer friendlyInline;
-    [SerializeField] private float heroDropDelay = 0.2f;
 
     [Tooltip("Melee attack icon (range 1). Assigned on the Hero prefab; left null on minion prefabs.")]
     [SerializeField] private GameObject attackIconSword;
@@ -56,10 +55,8 @@ public class MinionView : MonoBehaviour
     [Tooltip("Purely visual lag: buff/debuff flashes and their stat numbers land this long after the value actually changed. Health loss uses damageIndicatorVisualDelay instead.")]
     [SerializeField] private float statChangeVisualDelay = 0.35f;
 
-    [Tooltip("Same idea, but for health loss only: the damage indicator and the health number land this long after the damage was dealt. Kept separate so damage can read faster (or slower) than buff/debuff flashes.")]
+    [Tooltip("Same idea, but for health loss only: the damage indicator and the health number land this long after the damage was dealt. This is the whole damage lag — MinionController.TakeDamage pushes the value immediately — so it's what syncs the number with the strike animation. Kept separate so damage can read faster (or slower) than buff/debuff flashes.")]
     [SerializeField] private float damageIndicatorVisualDelay = 0.35f;
-
-    private float heroDropHeight = 10f;
 
     // Which team's inline this minion should show, and whether the spawn animation has finished. The
     // inline stays hidden until the pop-in completes, so it doesn't flash at full size mid scale-up.
@@ -268,12 +265,11 @@ public class MinionView : MonoBehaviour
         transform.DOScale(Vector3.zero, duration).SetEase(Ease.InBack);
     }
 
-    public void PlayHeroAppearAnimation()
+    // Heroes have no entrance animation: they start the match already in place, so there is nothing to
+    // wait on and the inline is revealed straight away. (Minions still pop in via PlayAppearAnimation.)
+    public void ShowHeroImmediately()
     {
-        Vector3 target = transform.localPosition;
-        transform.localPosition = target + Vector3.up * heroDropHeight;
-        transform.DOLocalMove(target, 1f).SetDelay(heroDropDelay).SetEase(Ease.OutExpo)
-            .OnComplete(RevealInline);
+        RevealInline();
     }
 
     // Called when a spawn animation finishes: the inline becomes eligible to show and is applied now.

@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -687908176, guid: da72e2f90dbea6343b75ee75449b177e, type: 3}
   cardArt: {fileID: -27246829, guid: da72e2f90dbea6343b75ee75449b177e, type: 3}
   cardName: Soul
-  desc: Whenever this minion takes damage, gain +1 Attack.
+  desc: Whenever it takes damage, Gains +1 Attack.
   attack: 2
   health: 3
   cost: 2

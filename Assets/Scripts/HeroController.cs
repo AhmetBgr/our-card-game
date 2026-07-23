@@ -6,9 +6,11 @@ public class HeroController : MinionController
         Initialize(owner, owner == GameManager.Instance.player);
     }
 
+    // No entrance animation for heroes — they're just there from the start. Overridden so the base
+    // minion pop-in doesn't run on them.
     protected override void PlayAppearAnimation()
     {
-        view.PlayHeroAppearAnimation();
+        view.ShowHeroImmediately();
     }
     protected override void OnMouseEnter()
     {

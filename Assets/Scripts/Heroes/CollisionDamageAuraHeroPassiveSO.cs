@@ -34,8 +34,12 @@ public class CollisionDamageAuraHeroPassiveSO : HeroPassiveSO
     }
 
     /// <summary>
-    /// Badge is the granted amount; the icon dims while the aura has nobody to affect. Read-only —
-    /// it inspects owner.minions but mutates nothing, per the GetDisplay purity contract.
+    /// The icon dims while the aura has nobody to affect, so the outline reads as "doing something
+    /// right now" rather than merely "present". Read-only — it inspects owner.minions but mutates
+    /// nothing, per the GetDisplay purity contract.
+    ///
+    /// The granted amount is no longer surfaced as a number: this asset authors indicatorType = Aura,
+    /// and the aura shape is an outline, not a count.
     /// </summary>
     public override HeroPassiveDisplay GetDisplay(HeroRuntime runtime)
     {
@@ -45,6 +49,6 @@ public class CollisionDamageAuraHeroPassiveSO : HeroPassiveSO
         Agent owner = runtime != null && runtime.hero != null ? runtime.hero.owner : null;
         bool hasFriendlyMinions = owner != null && owner.minions != null && owner.minions.Count > 0;
 
-        return display.WithBadge(amount.ToString()).WithActive(hasFriendlyMinions);
+        return display.WithActive(hasFriendlyMinions);
     }
 }

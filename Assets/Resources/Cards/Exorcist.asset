@@ -17,8 +17,8 @@ MonoBehaviour:
   cardArt: {fileID: -1534365736, guid: 004fcc27121a3de44af891e7b19b1649, type: 3}
   cardName: Exorcist
   desc: 'On Death: Gain control of a random enemy minion. _Permanently_'
-  attack: 7
-  health: 5
+  attack: 5
+  health: 4
   cost: 6
   range: 1
   armor: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
   isUpgraded: 1
-  defHealth: 5
+  defHealth: 4
   OnPlay:
     m_PersistentCalls:
       m_Calls:

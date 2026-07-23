@@ -24,6 +24,12 @@ public class HeroRuntime : MonoBehaviour
 
     public int GetCounter(string key) => _counters.TryGetValue(key, out int v) ? v : 0;
 
+    /// <summary>
+    /// Whether the key has ever been written. Distinguishes "counted down to 0" from "never started",
+    /// which GetCounter alone cannot — the indicator renders those two states very differently.
+    /// </summary>
+    public bool HasCounter(string key) => _counters.ContainsKey(key);
+
     public void SetCounter(string key, int value) => _counters[key] = value;
 
     /// <summary>Finds the runtime state for a hero, or null if it was never registered.</summary>

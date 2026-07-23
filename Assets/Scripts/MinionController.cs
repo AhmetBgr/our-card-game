@@ -739,7 +739,11 @@ public class MinionController : MonoBehaviour
 
         // UpdateView drives the damage indicator itself now: it sees health drop and plays it, so every
         // source of health loss (not just combat damage) shows a number without each one wiring it up.
-        DOVirtual.DelayedCall(0.75f, () => view.UpdateView(modal));
+        // Pushed immediately, NOT on a delay: the view reads the delta between successive UpdateView
+        // calls to tell damage from a buff, so deferring the call itself would let a heal landing in the
+        // gap be misread as a loss (and would merge two quick hits into one number). The visual lag that
+        // syncs the number with the strike lives in MinionView.damageIndicatorVisualDelay instead.
+        view.UpdateView(modal);
         Debug.Log("minion take damage: " + modal.name);
 
         if (modal.health <= 0)
