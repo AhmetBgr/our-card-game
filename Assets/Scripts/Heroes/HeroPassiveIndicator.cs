@@ -49,6 +49,8 @@ public class HeroPassiveIndicator : MonoBehaviour
 
     [Header("Proc Flash")]
     [SerializeField] private float procScale = 1.35f;
+    [Tooltip("Wait before the pop, so the punch lands with the effect that triggered it instead of ahead of it.")]
+    [SerializeField] private float procPunchDelay = 0f;
     [SerializeField] private float procPunchDuration = 0.12f;
     [SerializeField] private float procSettleDuration = 0.18f;
 
@@ -293,6 +295,7 @@ public class HeroPassiveIndicator : MonoBehaviour
         transform.localScale = Vector3.one;
 
         _procTween = DOTween.Sequence()
+            .AppendInterval(procPunchDelay)
             .Append(transform.DOScale(Vector3.one * procScale, procPunchDuration).SetEase(Ease.OutBack))
             .Append(transform.DOScale(Vector3.one, procSettleDuration).SetEase(Ease.InOutSine));
     }

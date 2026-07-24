@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: SummonOnAttackedPassive
   m_EditorClassIdentifier: Assembly-CSharp::TriggeredHeroPassiveSO
   passiveName: Rally
-  description: When attacked, Summon a 2/2 melee minion on random Spawn tile. -Cannot
-    Counter Attack.-
+  description: When attacked, Summon a 2/2 melee minion on random Spawn tile. _Cannot
+    Counter Attack._
   icon: {fileID: 21300000, guid: 2e0672d03b00bf14e833cf27eb2123cd, type: 3}
   showIndicator: 1
   indicatorType: 1

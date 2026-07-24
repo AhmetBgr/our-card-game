@@ -17,8 +17,7 @@ public class HeroController : MinionController
         if (GameManager.Instance.currentState == GameState.EndGame)
             return;
 
-        GameManager.Instance.player.handManager.ShowInfoCard(card);
-        Debug.Log("shouldshow range");
+        //GameManager.Instance.player.handManager.ShowInfoCard(card);
 
         if (SelectionManager.Instance.HasActiveMinionRequest)
         {
