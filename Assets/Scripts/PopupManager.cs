@@ -63,10 +63,13 @@ public class PopupManager : Singleton<PopupManager>
 
         // Populate the end-game stats/score on this panel, if it has a view. Additive: does nothing on
         // panels without a MatchStatsView. Covers both real wins/losses and the editor debug triggers.
-        var statsView = popup.GetComponentInChildren<MatchStatsView>(true);
-        if (statsView != null) statsView.Show(won);
+        const float scaleInDuration = 0.5f;
 
-        curPopup.DOScale(1f, 0.5f).SetDelay(delay);
+        var statsView = popup.GetComponentInChildren<MatchStatsView>(true);
+        // The stats view reveals its rows one by one; hold them until the panel has finished scaling in.
+        if (statsView != null) statsView.Show(won, delay + scaleInDuration);
+
+        curPopup.DOScale(1f, scaleInDuration).SetDelay(delay);
     }
 
     public void CloseCurPopup()

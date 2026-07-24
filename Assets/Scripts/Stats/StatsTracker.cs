@@ -17,6 +17,7 @@ public class StatsTracker : Singleton<StatsTracker>
     private int enemyHeroMaxHp = -1;              // enemy hero HP observed on the first player turn (~full)
     private int enemyHeroHpAtTurnStart = int.MinValue;
     private bool heroMinHpInitialized;
+    private bool previousHighScoreCaptured;
 
     // Mana accumulators. Kept here (not on MatchStats) so BuildStats can recompute the efficiency
     // numbers each call and stay idempotent. The current (last) player turn's granted/spent are
@@ -234,6 +235,14 @@ public class StatsTracker : Singleton<StatsTracker>
         var save = SaveManager.Instance;
         if (save != null)
         {
+            // Read the stored best before committing this run, and only on the first call: by the second
+            // one the save already contains this match, which would make "previous" and "current" equal.
+            if (!previousHighScoreCaptured)
+            {
+                stats.previousHighScore = save.HighScore;
+                previousHighScoreCaptured = true;
+            }
+
             stats.isNewHighScore |= save.TrySetHighScore(stats.TotalScore);
             stats.highScore = save.HighScore;
         }
