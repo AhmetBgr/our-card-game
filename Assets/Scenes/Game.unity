@@ -7094,11 +7094,6 @@ PrefabInstance:
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
-    - target: {fileID: 8313812398703821560, guid: 29ef1783c50c9224085bb0da6684ebbc,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 8693130279457375350, guid: 29ef1783c50c9224085bb0da6684ebbc,
         type: 3}
       propertyPath: m_Sprite
@@ -13131,11 +13126,6 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
-      objectReference: {fileID: 0}
-    - target: {fileID: 8313812398703821560, guid: 29ef1783c50c9224085bb0da6684ebbc,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8719197892734373915, guid: 29ef1783c50c9224085bb0da6684ebbc,
         type: 3}

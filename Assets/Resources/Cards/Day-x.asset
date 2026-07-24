@@ -16,8 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -271645784, guid: 473b3c12f85412f458bfd9c74f6206e6, type: 3}
   cardArt: {fileID: -69051076, guid: 473b3c12f85412f458bfd9c74f6206e6, type: 3}
   cardName: Day-x
-  desc: 'On Play: Reduce the cost random minion in your hand by 2 and increase its
-    health and attack by 2'
+  desc: 'On Play: Reduce the cost of a random minion in your hand by 2 and give +2/+2'
   attack: 2
   health: 2
   cost: 3
