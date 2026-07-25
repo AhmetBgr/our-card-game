@@ -954,10 +954,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cards: []
-  radius: 789
+  radius: 1200
   maxAngle: 41
   animationSpeed: 10
-  minAngleStep: 10
+  minAngleStep: 7
   deckPosition: {fileID: 955709522}
   cardmovePosition: {fileID: 472574528}
   cardplaceholder: {fileID: 0}
@@ -3942,10 +3942,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cards: []
-  radius: -789
+  radius: -1200
   maxAngle: 41
   animationSpeed: 10
-  minAngleStep: 10
+  minAngleStep: 7
   deckPosition: {fileID: 2002663149}
   cardmovePosition: {fileID: 604489783}
   cardplaceholder: {fileID: 572533056}

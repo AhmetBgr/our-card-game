@@ -174,18 +174,16 @@ public class CardBrowserWindow : EditorWindow
         };
     }
 
-    // Project doesn't have an explicit "Minion" type field, so use a heuristic:
-    // - Has minion art, OR
-    // - Has combat stats.
+    // Project doesn't have an explicit "Minion" type field. Use the same rule the game itself uses:
+    // GameManager.PlayCard treats health <= 0 as a spell (and the AI brains do the same), so health is
+    // the discriminator. minionArt is NOT usable here — several spells (Relic, Ray of Ruin, ...) still
+    // carry a leftover minionArt sprite and would be misread as minions.
     private static bool IsMinionLike(CardSO card)
     {
         if (card == null)
             return false;
 
-        if (card.minionArt != null)
-            return true;
-
-        return card.attack > 0 || card.health > 0;
+        return card.health > 0;
     }
 
     private static bool IsSpellLike(CardSO card)
@@ -193,7 +191,7 @@ public class CardBrowserWindow : EditorWindow
         if (card == null)
             return false;
 
-        return card.attack <= 0 && card.health <= 0;
+        return card.health <= 0;
     }
 
     private static string DisplayName(CardSO card)
@@ -326,7 +324,7 @@ public class CardBrowserWindow : EditorWindow
                 }
             }
 
-            bool nextMinionsOnly = EditorGUILayout.ToggleLeft("Minions Only (heuristic)", _filters.minionsOnly);
+            bool nextMinionsOnly = EditorGUILayout.ToggleLeft("Minions Only (HP > 0)", _filters.minionsOnly);
             if (nextMinionsOnly != _filters.minionsOnly)
             {
                 _filters.minionsOnly = nextMinionsOnly;
@@ -336,7 +334,7 @@ public class CardBrowserWindow : EditorWindow
                 SavePrefs();
             }
 
-            bool nextSpellsOnly = EditorGUILayout.ToggleLeft("Spells Only (no ATK/HP)", _filters.spellsOnly);
+            bool nextSpellsOnly = EditorGUILayout.ToggleLeft("Spells Only (HP = 0)", _filters.spellsOnly);
             if (nextSpellsOnly != _filters.spellsOnly)
             {
                 _filters.spellsOnly = nextSpellsOnly;
