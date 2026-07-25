@@ -23,6 +23,14 @@ public class PopupManager : Singleton<PopupManager>
 
     private Transform curPopup = null;
 
+    /// <summary>
+    /// True while a popup is on screen, so <see cref="BoardInteractionGate"/> can suppress board
+    /// interaction underneath it. Note this stays true until <see cref="CloseCurPopup"/>'s scale-out
+    /// tween finishes and clears the field — the board should stay inert while the panel is still
+    /// visibly shrinking, so that lag is the wanted behaviour rather than an oversight.
+    /// </summary>
+    public bool HasOpenPopup => curPopup != null;
+
     void Start()
     {
         if (replayButton != null) replayButton.onClick.AddListener(Replay);

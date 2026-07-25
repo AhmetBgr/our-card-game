@@ -461,6 +461,11 @@ public class MinionController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Also the cleanup path when <see cref="BoardInteractionGate"/> gates the board while this minion
+    /// is hovered: masking the camera makes Unity's mouse raycast miss, and it delivers this exit as if
+    /// the pointer had left. Nothing extra is needed to stop a hover surviving underneath an overlay.
+    /// </summary>
     protected void OnMouseExit()
     {
         GameManager.Instance.player.handManager.HideInfoCard();
