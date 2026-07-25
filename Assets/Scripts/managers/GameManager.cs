@@ -830,8 +830,13 @@ public class GameManager : Singleton<GameManager>
             if (card != null) {
                 opponent.RemoveCardFromHand(card);
 
-                card.transform.SetParent(opponent.cardHandLayout.transform.parent);
-                card.transform.SetSiblingIndex(opponent.cardHandLayout.transform.parent.childCount - 1);
+                // Same container the player's played card goes to (Canvas/CardParent). Previously this
+                // parented to the Canvas itself and forced the card to be the LAST sibling, which drew it
+                // over CardSelectionPanel and GameOverPanel; CardParent sits below both.
+                card.transform.SetParent(PlayArea.Instance != null
+                    ? PlayArea.Instance.PlayedCardParent
+                    : opponent.cardHandLayout.transform.parent);
+                card.transform.SetAsLastSibling();
                 card.transform.localRotation = Quaternion.identity;
 
                 card.transform.DOScale(Vector3.one * 1.5f, 0.5f);

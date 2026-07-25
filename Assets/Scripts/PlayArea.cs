@@ -9,6 +9,17 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
     public Transform cardPos;
     public Transform opponentCardPos;
 
+    [Tooltip("Canvas/CardParent - where a card lives while it is being played. Kept off CardPlayArea " +
+             "deliberately: this container sits above the hand layouts but below CardSelectionPanel and " +
+             "GameOverPanel, so a played card draws over the board without ever covering a modal.")]
+    public Transform cardParent;
+
+    /// <summary>
+    /// Where a card being played should be parented. Falls back to this object so a scene that has not
+    /// wired <see cref="cardParent"/> keeps the old behaviour instead of dropping the card to the root.
+    /// </summary>
+    public Transform PlayedCardParent => cardParent != null ? cardParent : transform;
+
     // True from the moment a drop starts resolving (CanPlay test) until it finishes.
     // Set synchronously so a second card dropped during the async test window is
     // rejected instead of being played on top of the first.
@@ -64,7 +75,16 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
                 // doesn't fight DOMove and pull the card back to the fan.
                 droppedItem.handLayout.RemoveCard(droppedItem.transform);
 
-                droppedItem.draggableItem.ParentAfterDrag = transform;
+                // Reparent HERE, not through ParentAfterDrag. Unity sends OnDrop and then OnEndDrag in
+                // the same frame the button is released, but this callback only runs once the CanPlay
+                // coroutine finishes — a frame or more later. OnEndDrag has therefore already consumed
+                // ParentAfterDrag and put the card back under the hand layout, so assigning it now
+                // cannot move anything. ParentAfterDrag is still set so the two agree in the event the
+                // play test ever completes without yielding.
+                droppedItem.draggableItem.ParentAfterDrag = PlayedCardParent;
+                droppedItem.transform.SetParent(PlayedCardParent);
+                droppedItem.transform.SetAsLastSibling();
+
                 droppedItem.transform.DOMove(cardPos.position, 0.25f);
                 droppedItem.transform.DOScale(Vector3.one, 0.25f);
 

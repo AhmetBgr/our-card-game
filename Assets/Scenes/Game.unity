@@ -9375,6 +9375,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardPos: {fileID: 1278171871}
   opponentCardPos: {fileID: 1771407256}
+  cardParent: {fileID: 1263271874}
 --- !u!114 &1620690918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9869,7 +9870,7 @@ GameObject:
   - component: {fileID: 1724228467}
   - component: {fileID: 1724228471}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: UICanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
