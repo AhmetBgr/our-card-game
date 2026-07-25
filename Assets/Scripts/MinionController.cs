@@ -83,6 +83,10 @@ public class MinionController : MonoBehaviour
     private bool _statChangeBgResolved;
 
     public SelectionType SelectionType { get => SelectionType.Minion; }
+    // Set by GameManager the moment it queues this minion's OnDeath trigger, cleared once that trigger has
+    // finished resolving. While it is up, DestroySelf holds off — see the comment there.
+    public bool deathTriggerPending;
+    private bool _destroyDeferred;
     public static event Action<List<MinionController>> OnSelectingMinionForAttack;
     public static event Action<MinionController> OnDied;
     public static event Action<MinionController, MinionController> OnCollided;
@@ -833,9 +837,38 @@ public class MinionController : MonoBehaviour
             animator.Play("RangedGoldDeath");
         }
     }
+    // Animation event at the end of the death clip.
     public void DestroySelf()
     {
+        // The death animation runs on a wall clock (Invoke in Die() + clip length) that is completely
+        // independent of the triggered-action scheduler, which defers this minion's own OnDeath behind the
+        // play that killed it. A column-clearing spell that kills two minions spends a full second per
+        // death inside _ChangeMinionHealth, so the clip routinely ends first. Destroying here would leave
+        // ActionHolder.thisMinion pointing at a destroyed object, and Unity's overloaded == reports that as
+        // null: every `thisMinion != null` check in the deathrattle then takes its turn-relative fallback
+        // and the effect resolves for whoever's turn it is instead of the dead minion's owner (Blessed Seed
+        // buffing the caster's minions when Ray of Ruin killed it). Wait for the trigger to resolve; the
+        // object is already detached from the grid and off its owner's roster, so lingering is harmless.
+        if (deathTriggerPending)
+        {
+            _destroyDeferred = true;
+            return;
+        }
         Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Called by GameManager once this minion's OnDeath trigger has fully resolved. Releases the hold
+    /// DestroySelf takes above, and completes the destruction if the death clip already asked for it.
+    /// </summary>
+    public void OnDeathTriggerResolved()
+    {
+        deathTriggerPending = false;
+        if (_destroyDeferred)
+        {
+            _destroyDeferred = false;
+            Destroy(gameObject);
+        }
     }
     public virtual void Move(Vector3Int pos)
     {

@@ -1146,6 +1146,12 @@ public class GameManager : Singleton<GameManager>
         }
         finally
         {
+            // Release the destroy-hold taken in OnMinionDied now that the deathrattle has read everything
+            // it needs off this minion. In a finally so a fault mid-deathrattle can't strand the object
+            // alive forever. Before FinishTriggeredAction only because it is this trigger's own teardown —
+            // the minion is already off the grid and off its owner's roster, so nothing the next trigger
+            // does can see it either way.
+            if (minion != null) minion.OnDeathTriggerResolved();
             FinishTriggeredAction();
         }
     }
@@ -1153,6 +1159,11 @@ public class GameManager : Singleton<GameManager>
     private void OnMinionDied(MinionController minion)
     {
         ActionLogPanel.Instance?.AddEntry(ActionLogMessageFactory.MinionDied(minion));
+        // Claim the minion before the trigger is queued: EnqueueTriggeredAction usually defers it behind
+        // the play that did the killing, and the death animation would otherwise destroy the object in the
+        // gap — see MinionController.DestroySelf. Paired with OnDeathTriggerResolved below, which always
+        // runs because the coroutine clears it in a finally.
+        if (minion != null) minion.deathTriggerPending = true;
         EnqueueTriggeredAction(() => StartCoroutine(InvokeOnMinionDeathActions(minion)));
     }
 

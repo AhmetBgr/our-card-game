@@ -5608,7 +5608,7 @@ MonoBehaviour:
   - {fileID: 1184556070}
   selectables: []
   currentState: 0
-  maxMana: 3
+  maxMana: 0
   isPlayerTurn: 1
   isTesting: 0
   isTestingFailed: 0
