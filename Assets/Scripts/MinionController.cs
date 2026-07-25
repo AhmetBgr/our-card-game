@@ -148,6 +148,18 @@ public class MinionController : MonoBehaviour
         if (GameManager.Instance.currentState == GameState.EndGame)
             return;
 
+        // While a cell pick is open, a click on this minion means "pick the cell I'm standing on" —
+        // that is the only thing a click can mean then, and the minion's collider covers its cell
+        // exactly (same size, same z, never disabled), so the pick between the two is a coin flip we
+        // don't control. Forwarding makes the outcome identical either way; previously the half that
+        // landed on the minion fell through every branch below and was silently swallowed.
+        // Safe to test first: cell and minion selections mutually preempt (GridCellSelectionManager
+        // .BeginSelection cancels SelectionManager and vice versa), so this can never steal a click
+        // from an active attack request.
+        if (GridCellSelectionManager.Instance != null && gridEntity != null &&
+            GridCellSelectionManager.Instance.TryClickCellAt(gridEntity.GetGridIndex()))
+            return;
+
         // Clicking the attacker again backs out of its own in-progress attack selection.
         if (SelectionManager.Instance.ActiveAttacker == this)
         {
@@ -172,6 +184,14 @@ public class MinionController : MonoBehaviour
             return;
 
         GameManager.Instance.player.handManager.ShowInfoCard(card);
+
+        // Mirror of the forward in OnMouseDown: during a cell pick this hover belongs to the cell
+        // underneath, so the area preview and its death skulls light exactly as if the player had
+        // hovered the bare cell. Returning here also suppresses the range indicator below, which would
+        // otherwise compete with the area preview for the same tiles.
+        if (GridCellSelectionManager.Instance != null && gridEntity != null &&
+            GridCellSelectionManager.Instance.TryHoverCellAt(gridEntity.GetGridIndex()))
+            return;
 
         // A card being dragged owns the hover; don't react unless a selection request is active.
         if (DraggableItem.AnyCardDragging && !SelectionManager.Instance.HasActiveMinionRequest)
@@ -473,6 +493,12 @@ public class MinionController : MonoBehaviour
     protected void OnMouseExit()
     {
         GameManager.Instance.player.handManager.HideInfoCard();
+
+        // Tear the area preview back down for the same reason OnMouseEnter raised it — otherwise it
+        // stays lit after the cursor leaves a minion that was standing on a previewed cell.
+        if (GridCellSelectionManager.Instance != null && gridEntity != null)
+            GridCellSelectionManager.Instance.TryHoverExitCellAt(gridEntity.GetGridIndex());
+
         MinionRangeHandler.Instance.HideRange();
         HideMoveArrow();
         HideDeathPreview();

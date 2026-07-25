@@ -122,6 +122,58 @@ public class GridCellSelectionManager : MonoBehaviour
         ActionHolder.selectedcell = cellTransform;
     }
 
+    /// <summary>
+    /// Route a click that landed on whatever is STANDING on a cell to the cell itself. A minion's
+    /// BoxCollider2D is exactly one cell at exactly the cell's z and is never disabled, so during a cell
+    /// pick the two colliders are coincident and which one Unity's mouse dispatch returns is decided by
+    /// physics broadphase order, not by us. Without this, every click that happened to land on the minion
+    /// was silently dropped — and on a corner cell, where only three plus-shape centers exist and all of
+    /// them can be occupied, that made the occupant untargetable outright.
+    /// Returns true if an active cell session consumed the click.
+    /// </summary>
+    public bool TryClickCellAt(Vector2Int index)
+    {
+        Transform cell = ResolveSessionCell(index);
+        if (cell == null) return false;
+
+        OnCellClicked(cell);
+        return true;
+    }
+
+    /// <summary>Hover counterpart of <see cref="TryClickCellAt"/>, so the area preview lights the same
+    /// way whichever collider won the pick.</summary>
+    public bool TryHoverCellAt(Vector2Int index)
+    {
+        if (ResolveSessionCell(index) == null) return false;
+
+        OnCellHoverEnter(index);
+        return true;
+    }
+
+    /// <summary>Hover-exit counterpart of <see cref="TryHoverCellAt"/>.</summary>
+    public bool TryHoverExitCellAt(Vector2Int index)
+    {
+        if (ResolveSessionCell(index) == null) return false;
+
+        OnCellHoverExit(index);
+        return true;
+    }
+
+    /// <summary>
+    /// The cell transform at `index`, but only if it belongs to the active session. The selectable-set
+    /// lookup deliberately comes before the bounds check: heroes live off the grid, so their index misses
+    /// here and never reaches IsOutSideOfGrid, which logs a warning on every miss.
+    /// </summary>
+    private Transform ResolveSessionCell(Vector2Int index)
+    {
+        if (!HasActiveSession) return null;
+        if (!_selectableIndexes.Contains(index)) return null;
+        if (GridManager.Instance == null || GridManager.Instance.IsOutSideOfGrid(index)) return null;
+
+        var cell = GridManager.Instance.GetCell(index);
+        return cell.cellObj != null ? cell.cellObj.transform : null;
+    }
+
     private void ClearHoverPreview()
     {
         foreach (var index in _hoverPreviewIndexes)
