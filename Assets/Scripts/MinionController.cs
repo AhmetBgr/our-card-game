@@ -689,6 +689,15 @@ public class MinionController : MonoBehaviour
         Debug.Log("damaging minion");
 
         Vector3 dir = (chosen.transform.position - transform.position).normalized;
+        // Snapshot the defender's attack BEFORE the strike lands, because the counter-attack below must
+        // retaliate with the value the player committed the trade against. TakeDamage dispatches the
+        // defender's took-damage triggers synchronously — outside a card play _executingTriggeredActions
+        // is false, so EnqueueTriggeredAction invokes inline, and _ScaleAttackWithHealthLost mutates
+        // modal.attack before its first yield — so a passive like the Berserker's Raging Blood ("+1 Attack
+        // per 4 Health lost") has already raised the defender's attack by the time control returns here.
+        // Reading it live let a 2-attack Berserker counter for 3 on the very blow that pushed it over the
+        // threshold, killing a 3 HP attacker the player had every reason to expect would survive.
+        int counterAttack = chosen.modal.attack;
         // Lunge plays 20% faster (duration / 1.2).
         transform.DOPunchPosition(dir*0.2f, 0.5f / 1.2f, vibrato: 1).SetEase(Ease.InOutBack).SetDelay(0.5f);
         chosen.TakeDamage(modal.attack);
@@ -702,7 +711,7 @@ public class MinionController : MonoBehaviour
 
         if (RangeUtility.IsInRange(chosen, this) && !suppressCounter) // target retaliates if attacker is in ITS range
         {
-            TakeDamage(chosen.modal.attack);
+            TakeDamage(counterAttack);
             // Counter-attack is delayed an extra 0.25s so it reads as a response to the strike
             // rather than overlapping it.
             if (chosen.modal.range < 2)
