@@ -27,6 +27,9 @@ public class ActionHolder : ScriptableObject
     // The minion that just entered play, set by GameManager while broadcasting OnAnyMinionSummoned so
     // reaction verbs (e.g. the crossbow's auto-attack) can target the new arrival specifically.
     public static MinionController summonedMinion = null;
+    // The card the player (or AI) picked out of a "choose one of N" prompt — the sink CardChoice resolves
+    // into, and what the AI writes directly from OnWaitingCardChoice. Same shape as selectedMinion.
+    public static CardSO chosenCard = null;
     public static MinionController thisMinion = null;
     public static CardSO thisCardSO = null;
     public static CardController thisCard = null;
@@ -48,6 +51,7 @@ public class ActionHolder : ScriptableObject
         private readonly MinionController _thisMinion;
         private readonly CardSO _thisCardSO;
         private readonly CardController _thisCard;
+        private readonly CardSO _chosenCard;
         private readonly Queue<IEnumerator> _curActionsList;
         private readonly int _diedMinionAmount = 0;
 
@@ -63,8 +67,10 @@ public class ActionHolder : ScriptableObject
             MinionController thisMinion,
             CardSO thisCardSO,
             CardController thisCard,
+            CardSO chosenCard,
             Queue<IEnumerator> curActionsList, int diedMinionAmount)
         {
+            _chosenCard = chosenCard;
             _cancelRequested = cancelRequested;
             _selectedCell = selectedCell;
             _selectedCells = selectedCells;
@@ -93,6 +99,7 @@ public class ActionHolder : ScriptableObject
             ActionHolder.thisMinion = _thisMinion;
             ActionHolder.thisCardSO = _thisCardSO;
             ActionHolder.thisCard = _thisCard;
+            ActionHolder.chosenCard = _chosenCard;
             ActionHolder.curActionsList = new Queue<IEnumerator>(_curActionsList);
             ActionHolder.DiedMinionAmount = _diedMinionAmount;
         }
@@ -112,6 +119,7 @@ public class ActionHolder : ScriptableObject
             thisMinion,
             thisCardSO,
             thisCard,
+            chosenCard,
             new Queue<IEnumerator>(curActionsList),
             DiedMinionAmount);
     }
@@ -159,6 +167,7 @@ public class ActionHolder : ScriptableObject
         selectedMinion = null;
         selectedAgent = null;
         summonedMinion = null;
+        chosenCard = null;
         selectedMinions.Clear();
         selectedTargetMinions.Clear();
         selectedCells.Clear();
@@ -168,6 +177,10 @@ public class ActionHolder : ScriptableObject
     public static event Action<SelectableParameters> OnSelect;
     public static event Action<List<Transform>, CardSO> OnWaitingCellSelect;
     public static event Action<List<MinionController>, CardSO> OnWaitingMinionSelect;
+    // Raised when a "choose one of N cards" prompt opens. The player answers through CardChoice/the
+    // panel; the AI answers by writing chosenCard straight from its handler, exactly as it does for the
+    // cell and minion prompts. Args: the options offered, and the card that asked.
+    public static event Action<List<CardSO>, CardSO> OnWaitingCardChoice;
 
 
 
@@ -1468,12 +1481,8 @@ public class ActionHolder : ScriptableObject
 
     /// <summary>
     /// Turns the card being played INTO a random card from `pool`, then plays that card's effect for free.
-    ///
-    /// The rolled card resolves through its own OnPlay chain, so it picks targets exactly as it would from
-    /// hand: the player gets the normal prompt, and the AI answers it through its OnWaitingMinionSelect /
-    /// OnWaitingCellSelect handlers. Those handlers score targets from thisCardSO's aiIntent, which is why
-    /// the registers point at the ROLLED card rather than the card that cast it — otherwise the AI would
-    /// aim a damage spell using a draw spell's intent.
+    /// The player sees the result but never gets to choose it — for the "pick one of N" variant, see
+    /// <see cref="DiscoverFromPool"/>.
     /// </summary>
     public void PlayRandomCardFromPool(CardPoolSO pool)
     {
@@ -1483,31 +1492,9 @@ public class ActionHolder : ScriptableObject
     }
     public IEnumerator _PlayRandomCardFromPool(CardPoolSO pool)
     {
-        if (_castingRandomSpell)
-        {
-            Debug.LogWarning("PlayRandomCardFromPool: already casting a rolled card, skipping to avoid recursion");
-            yield break;
-        }
-
-        if (pool == null)
-        {
-            Debug.LogWarning("PlayRandomCardFromPool: no pool assigned");
-            yield break;
-        }
-
-        // The card being played is the one that transforms, so it has to exist: this verb is only
-        // meaningful on a card played from hand, not on a minion trigger (where thisCard is null).
-        CardController casting = thisCard;
-        if (casting == null || casting.modal == null)
-        {
-            Debug.LogWarning("PlayRandomCardFromPool: no card is being played");
-            yield break;
-        }
-
-        // Resolved lazily (when this coroutine runs) so it casts for the agent this play selected.
-        Agent caster = selectedAgent != null
-            ? selectedAgent
-            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+        CardController casting;
+        Agent caster;
+        if (!TryBeginTransform(pool, "PlayRandomCardFromPool", out casting, out caster)) yield break;
 
         CardSO rolled = pool.GetRandom();
         if (rolled == null)
@@ -1518,8 +1505,259 @@ public class ActionHolder : ScriptableObject
 
         Debug.Log("rolled card: " + rolled.cardName);
 
-        CardSO originalSO = casting.card;
+        yield return GameManager.Instance.StartCoroutine(_TransformIntoAndPlay(rolled, casting, caster));
+    }
 
+    /// <summary>
+    /// Discover: puts `pool.choiceCount` cards from `pool` in front of the player, turns the card being
+    /// played into the one they pick, and plays it for free.
+    ///
+    /// Two rules make this a real choice rather than a reroll button:
+    ///
+    /// 1. Only cards that can actually RESOLVE on the current board are offered. The player is committed
+    ///    the moment they see the options (rule 2), so offering a dead option — a summon with nowhere to
+    ///    land, a column spell with no legal column — would charge them for a choice they never had.
+    /// 2. Revealing the options commits the play. There is no back-out on the prompt itself
+    ///    (GameManager.CancelPlayingCard is inert while CardChoice has a request open), and cancelling the
+    ///    CHOSEN card's targeting fizzles it rather than refunding — see <see cref="_TransformIntoAndPlay"/>.
+    ///    Without both, cancel-and-replay hands back a fresh set of options for free, and the randomness
+    ///    costs nothing.
+    /// </summary>
+    public void DiscoverFromPool(CardPoolSO pool)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_DiscoverFromPool(pool));
+    }
+    public IEnumerator _DiscoverFromPool(CardPoolSO pool)
+    {
+        CardController casting;
+        Agent caster;
+        if (!TryBeginTransform(pool, "DiscoverFromPool", out casting, out caster)) yield break;
+
+        List<CardSO> candidates = pool.UsableCards();
+        if (candidates.Count == 0)
+        {
+            Debug.LogWarning("DiscoverFromPool: pool '" + pool.name + "' has no usable card");
+            yield break;
+        }
+
+        // Narrow to what can resolve right now (rule 1 above). Falling back to the unfiltered pool when
+        // NOTHING is playable keeps the card from silently doing nothing on a locked board: the player
+        // still gets a choice, it just may fizzle — strictly better than an empty prompt.
+        var playable = new List<CardSO>();
+        foreach (var candidate in candidates)
+        {
+            bool canResolve = false;
+            yield return GameManager.Instance.StartCoroutine(
+                CanResolveNow(candidate, casting, r => canResolve = r));
+            if (canResolve) playable.Add(candidate);
+        }
+
+        if (playable.Count == 0)
+        {
+            Debug.LogWarning("DiscoverFromPool: nothing in '" + pool.name + "' can resolve on this board; offering unfiltered");
+            playable = candidates;
+        }
+
+        CardSO chosen = null;
+        yield return GameManager.Instance.StartCoroutine(
+            _ChooseFromPool(playable, pool.choiceCount, c => chosen = c));
+
+        if (chosen == null) yield break;
+
+        Debug.Log("discovered card (cast): " + chosen.cardName);
+
+        yield return GameManager.Instance.StartCoroutine(_TransformIntoAndPlay(chosen, casting, caster));
+    }
+
+    /// <summary>
+    /// Discover into hand: offers `pool.choiceCount` cards and puts the one the player picks into their
+    /// hand with `pool.costReduction` knocked off its cost, to be played whenever they like. This is what
+    /// "Something Happens" does.
+    ///
+    /// Unlike <see cref="DiscoverFromPool"/> the options are NOT filtered to what can resolve on the
+    /// current board — the card is being banked, not cast, so a summon with nowhere to land right now is
+    /// a perfectly good pick for next turn.
+    ///
+    /// Needs no card in play (thisCard may be null), so a minion trigger can offer a Discover too.
+    /// </summary>
+    public void DiscoverToHand(CardPoolSO pool)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_DiscoverToHand(pool));
+    }
+    public IEnumerator _DiscoverToHand(CardPoolSO pool)
+    {
+        if (pool == null)
+        {
+            Debug.LogWarning("DiscoverToHand: no pool assigned");
+            yield break;
+        }
+
+        List<CardSO> candidates = pool.UsableCards();
+        if (candidates.Count == 0)
+        {
+            Debug.LogWarning("DiscoverToHand: pool '" + pool.name + "' has no usable card");
+            yield break;
+        }
+
+        Agent caster = selectedAgent != null
+            ? selectedAgent
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
+        CardSO chosen = null;
+        yield return GameManager.Instance.StartCoroutine(
+            _ChooseFromPool(candidates, pool.choiceCount, c => chosen = c));
+
+        if (chosen == null) yield break;
+
+        CardController created = caster.AddCard(chosen);
+        if (created == null)
+        {
+            // AddCard refuses at 7 cards. The pick is lost, as an overdrawn card would be.
+            Debug.LogWarning("DiscoverToHand: hand is full, '" + chosen.cardName + "' was discarded");
+            yield break;
+        }
+
+        // Discounted rather than free: the caster already paid for the card that offered this choice, so
+        // that cost comes off the pick. Floored at 0 — a cheap roll is free, never negative.
+        created.modal.cost = Mathf.Max(0, created.modal.cost - pool.costReduction);
+        // Clear the inherited upgrade for the same reason the transform path does: on resolve GameManager
+        // spawns modal.upgradedVerdion into the owner's deck, so a discovered freebie would quietly gift a
+        // permanent upgrade the player never earned and the offering card never promised.
+        created.modal.upgradedVerdion = null;
+        created.view.UpdateView(created.modal);
+
+        Debug.Log("discovered card (to hand): " + chosen.cardName + " at cost " + created.modal.cost
+            + " (base " + chosen.cost + " - " + pool.costReduction + ")");
+
+        yield return null;
+    }
+
+    /// <summary>
+    /// The shared ask: offer up to <paramref name="count"/> distinct cards from <paramref name="candidates"/>
+    /// and wait for the pick. CardChoice drives the player's panel and is inert for the AI / dry-run, which
+    /// answer by writing chosenCard straight from OnWaitingCardChoice — the same split the cell and minion
+    /// prompts use. Reports null through <paramref name="onChosen"/> if the play was cancelled.
+    /// </summary>
+    private IEnumerator _ChooseFromPool(List<CardSO> candidates, int count, Action<CardSO> onChosen)
+    {
+        List<CardSO> options = CardPoolSO.PickDistinct(candidates, Mathf.Max(1, count));
+
+        chosenCard = null;
+        CardChoice.Instance.Begin(options, "Choose a card", picked => chosenCard = picked);
+        OnWaitingCardChoice?.Invoke(options, thisCardSO);
+
+        while (chosenCard == null && !cancelRequested && !GameManager.Instance.isTesting)
+        {
+            yield return null;
+        }
+
+        // Tear down regardless of how the wait ended, so a cancelled/aborted play can't strand the panel.
+        CardChoice.Instance.Cancel();
+
+        onChosen?.Invoke(cancelRequested ? null : chosenCard);
+    }
+
+    /// <summary>
+    /// Shared entry guard for the verbs that turn the played card into another one. Resolves the casting
+    /// card and the agent, or reports why it can't and returns false.
+    /// </summary>
+    private bool TryBeginTransform(CardPoolSO pool, string verb, out CardController casting, out Agent caster)
+    {
+        casting = null;
+        caster = null;
+
+        if (_castingRandomSpell)
+        {
+            Debug.LogWarning(verb + ": already casting a rolled card, skipping to avoid recursion");
+            return false;
+        }
+
+        if (pool == null)
+        {
+            Debug.LogWarning(verb + ": no pool assigned");
+            return false;
+        }
+
+        // The card being played is the one that transforms, so it has to exist: these verbs are only
+        // meaningful on a card played from hand, not on a minion trigger (where thisCard is null).
+        casting = thisCard;
+        if (casting == null || casting.modal == null)
+        {
+            Debug.LogWarning(verb + ": no card is being played");
+            return false;
+        }
+
+        // Resolved lazily (when the coroutine runs) so it casts for the agent this play selected.
+        caster = selectedAgent != null
+            ? selectedAgent
+            : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Dry-runs <paramref name="candidate"/>'s OnPlay against the current board and reports whether it
+    /// could actually resolve. This is the same isTesting machinery the AI uses to test a card in hand
+    /// (GameManager.TestCard), run over a CardSO instead of a CardController: every verb already has an
+    /// isTesting branch that flags isTestingFailed instead of touching the board.
+    ///
+    /// The whole probe sits inside a PushScope, so the registers it overwrites — and isTesting itself —
+    /// are restored on the way out and the real play resumes untouched.
+    /// </summary>
+    private IEnumerator CanResolveNow(CardSO candidate, CardController host, Action<bool> result)
+    {
+        bool canResolve = false;
+
+        if (candidate == null || candidate.OnPlay == null)
+        {
+            result?.Invoke(false);
+            yield break;
+        }
+
+        using (PushScope())
+        {
+            var probeActions = new Queue<IEnumerator>();
+
+            // Set up EXACTLY as TestCard does — including leaving selectedAgent null, which the verbs'
+            // isTesting branches already expect. The owner-relative ones read it off thisCard instead.
+            // Deviating here would mean probing down a path the AI's own playability check never takes.
+            ResetSelections();
+            thisCardSO = candidate;
+            thisCard = host;
+            curActionsList = probeActions;
+
+            var gm = GameManager.Instance;
+            gm.isTestingFailed = false;
+            gm.isTesting = true;
+
+            candidate.OnPlay.Invoke();
+
+            while (probeActions.Count > 0)
+            {
+                yield return gm.StartCoroutine(probeActions.Dequeue());
+            }
+
+            canResolve = !gm.isTestingFailed;
+        }
+
+        result?.Invoke(canResolve);
+    }
+
+    /// <summary>
+    /// Turns the card being played into <paramref name="rolled"/> and plays its effect for free.
+    ///
+    /// The transformed card resolves through its own OnPlay chain, so it picks targets exactly as it would
+    /// from hand: the player gets the normal prompt, and the AI answers it through its
+    /// OnWaitingMinionSelect / OnWaitingCellSelect handlers. Those handlers score targets from thisCardSO's
+    /// aiIntent, which is why the registers point at the TRANSFORMED card rather than the card that cast
+    /// it — otherwise the AI would aim a damage spell using a draw spell's intent.
+    /// </summary>
+    private IEnumerator _TransformIntoAndPlay(CardSO rolled, CardController casting, Agent caster)
+    {
         // Spin the card a full turn and become the rolled card at the halfway point, where the flip hides
         // the swap. Waiting the same duration lets the flip finish (and read) before the effect fires.
         casting.view.PlayTurnIntoAnimation(() =>
@@ -1574,12 +1812,15 @@ public class ActionHolder : ScriptableObject
 
         if (cancelled)
         {
-            // Cancelling the rolled card's targeting cancels the whole play, and FinishCancelPlayingCard
-            // puts this card back in the player's hand and refunds the mana. Change it back first, or it
-            // returns as a free, cost-0 copy of whatever it rolled — replayable for the rest of the game.
-            Debug.Log("rolled card cancelled, restoring " + originalSO.cardName);
-            casting.modal.UpdateModal(originalSO, caster, caster.IsPlayer());
-            casting.view.UpdateView(casting.modal);
+            // Commit-at-reveal. The play was decided the moment the card showed what it became, so walking
+            // away from the transformed card's targeting FIZZLES it: the card and its mana stay spent and
+            // only the unresolved effect is dropped.
+            //
+            // Left alone, the cancel would reach GameManager.FinishCancelPlayingCard, which refunds the
+            // mana and puts the card back in hand — making cancel a free reroll the player can pull until
+            // they like the result, which costs the randomness all of its weight.
+            Debug.Log("transformed card's targeting cancelled; fizzling (card and mana stay spent)");
+            GameManager.Instance.ClearCancelledPlay();
         }
     }
 
@@ -1606,11 +1847,22 @@ public class ActionHolder : ScriptableObject
         return false;
     }
 
+    // Roll only among base minions (Hexpectations / Overgrowth). AllCards also holds the upgraded
+    // variants at the same cost, and these low-cost random summons are meant to hit the plain version.
     public void SummonRandomMinion(int cost)
     {
-        curActionsList.Enqueue(_SummonRandomMinion(cost));
+        curActionsList.Enqueue(_SummonRandomMinion(cost, allowUpgraded: false));
     }
-    public IEnumerator _SummonRandomMinion(int cost)
+
+    // Roll among base AND upgraded minions of that cost (Hexcuses). The high-cost brackets are populated
+    // almost entirely by upgraded variants — cost 5 has a single base minion (Golem) against four upgraded
+    // ones — so excluding them here would make a "random" summon deterministic.
+    public void SummonRandomMinionAllowUpgraded(int cost)
+    {
+        curActionsList.Enqueue(_SummonRandomMinion(cost, allowUpgraded: true));
+    }
+
+    public IEnumerator _SummonRandomMinion(int cost, bool allowUpgraded = false)
     {
         if (DeckDatabase.Instance == null || DeckDatabase.Instance.AllCards == null)
         {
@@ -1618,10 +1870,8 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
-        // Only base minions are eligible: AllCards also holds the upgraded variants (same cost, health > 0),
-        // and a random summon (Hexpectations / Overgrowth) is meant to roll the non-upgraded version.
         var candidates = DeckDatabase.Instance.AllCards
-            .Where(c => c != null && c.cost == cost && c.health > 0 && !c.isUpgraded)
+            .Where(c => c != null && c.cost == cost && c.health > 0 && (allowUpgraded || !c.isUpgraded))
             .ToList();
 
         if (candidates.Count == 0)
@@ -1742,8 +1992,19 @@ public class ActionHolder : ScriptableObject
         foreach (var target in selectedTargetMinions)
         {
             if (target == null) continue;
-            thisMinion.StartAttack(target.owner, target);
-            thisMinion.isAttackedThisTurn = false;
+            // Capture the attacker: thisMinion is static and this coroutine yields, so a trigger draining
+            // in between could re-point it at another reactor.
+            var attacker = thisMinion;
+            if (attacker == null) continue;
+            // A triggered shot doesn't cost the minion its turn attack, so restore the flag to what it was
+            // BEFORE the shot rather than clearing it. StartAttack runs synchronously up to its epilogue on
+            // the pre-decided-target path, so it has already set isAttackedThisTurn = true by the time we
+            // get here; writing an unconditional false would REFUND a manual attack the minion had already
+            // spent this turn (e.g. crossbow hits the enemy hero, the Summoner passive spawns a minion, the
+            // crossbow reacts to that summon and gets its click back).
+            bool spentBefore = attacker.isAttackedThisTurn;
+            attacker.StartAttack(target.owner, target);
+            attacker.isAttackedThisTurn = spentBefore;
             yield return new WaitForSeconds(1f);
         }
     }
@@ -1761,8 +2022,13 @@ public class ActionHolder : ScriptableObject
         foreach (var target in selectedTargetMinions)
         {
             if (target == null) continue;
-            thisMinion.StartAttack(target.owner, target, noCounter: true);
-            thisMinion.isAttackedThisTurn = false;
+            // Same save/restore as _Attack — see the comment there for why an unconditional clear refunds
+            // an already-spent manual attack.
+            var attacker = thisMinion;
+            if (attacker == null) continue;
+            bool spentBefore = attacker.isAttackedThisTurn;
+            attacker.StartAttack(target.owner, target, noCounter: true);
+            attacker.isAttackedThisTurn = spentBefore;
             yield return new WaitForSeconds(1f);
         }
     }

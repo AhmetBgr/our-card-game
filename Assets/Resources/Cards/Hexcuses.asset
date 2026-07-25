@@ -74,7 +74,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SummonRandomMinion
+        m_MethodName: SummonRandomMinionAllowUpgraded
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

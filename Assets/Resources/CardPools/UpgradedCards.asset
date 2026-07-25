@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4db95f505c71b4740be9771456b4bbdf, type: 3}
+  m_Name: UpgradedCards
+  m_EditorClassIdentifier: Assembly-CSharp::CardPoolSO
+  cards:
+  - {fileID: 11400000, guid: 6e48cc18537bd9447846b977baa7243f, type: 2}
+  - {fileID: 11400000, guid: 866bd5bc3e3b56349aefde718fdf3957, type: 2}
+  - {fileID: 11400000, guid: 5ad7785bfaf862c44b396596e00eeb2f, type: 2}
+  - {fileID: 11400000, guid: 0c8bb1248de43714589a64005c10e94b, type: 2}
+  - {fileID: 11400000, guid: 0e2d9d76b5a6edc47801766975ca2c23, type: 2}
+  - {fileID: 11400000, guid: 1f43b131741daf541b2bd7eed7f3b725, type: 2}
+  - {fileID: 11400000, guid: 49458b2cd6d1c13449ee275ce033d12e, type: 2}
+  - {fileID: 11400000, guid: a38e90ca7c5790240995c8c54b4f4d2d, type: 2}
+  - {fileID: 11400000, guid: b0cd6dd1cd4c94d4fae913759eab93aa, type: 2}
+  - {fileID: 11400000, guid: dc314b80d81f2ca408cc8ba4b056e0c4, type: 2}
+  - {fileID: 11400000, guid: b3adf85573653694f897a7c46834db5e, type: 2}
+  - {fileID: 11400000, guid: e5c664c388df34749ae39a34fd09a3f4, type: 2}
+  - {fileID: 11400000, guid: 44fe5871caffea1449963a62b2f09a2e, type: 2}
+  - {fileID: 11400000, guid: 95ff9c3faf7ff0b46a90c15450ef588c, type: 2}
+  - {fileID: 11400000, guid: e8510371441fb2e4a94dd766ef90a6e3, type: 2}
+  - {fileID: 11400000, guid: dd3b6b4521b2b7b46b85dbfcdf01a21f, type: 2}
+  - {fileID: 11400000, guid: 3365e8c6c6ac3db42a62fe4f1e630ed3, type: 2}
+  - {fileID: 11400000, guid: 7a8bc0d1e2f34567890abcde0f1a2b3c, type: 2}
+  - {fileID: 11400000, guid: 02616ea4041f7cc42b5a5033fdead468, type: 2}
+  - {fileID: 11400000, guid: 7313173bfaa1bb24daf57b5e4a8620f3, type: 2}
+  - {fileID: 11400000, guid: bc55b593c70fac244a702ca84c7abde6, type: 2}
+  - {fileID: 11400000, guid: 5c3808c66f3f45c43aea226e8da39f05, type: 2}
+  - {fileID: 11400000, guid: c17f69e52b8dd9d43b0a71d876fb8bd4, type: 2}
+  - {fileID: 11400000, guid: d6d5b051c2c38014bb1e58922921d6ed, type: 2}
+  choiceCount: 3
+  costReduction: 3

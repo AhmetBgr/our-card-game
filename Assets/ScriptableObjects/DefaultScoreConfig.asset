@@ -14,15 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScoreConfig
   baseWinScore: 100
   baseLossScore: -100
-  perEnemyKilled: 5
-  perFriendlyLost: -5
+  perEnemyKilled: 4
+  perFriendlyLost: -4
   perCardPlayed: 0
   perUpgradedCard: 0
   perHeroHpRemaining: 3
   turnStartValue: 60
   perTurnPenalty: -5
-  perMaxBoardMinion: 2
-  perLongestAgeTurn: 5
+  perMaxBoardMinion: 4
+  perLongestAgeTurn: 4
   manaEfficiencyWeight: 30
   overkillEfficiencyWeight: 20
   multiKill2Bonus: 5

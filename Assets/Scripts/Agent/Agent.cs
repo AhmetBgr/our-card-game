@@ -217,16 +217,21 @@ public class Agent : MonoBehaviour
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
     }
 
-    public void AddCard(CardSO cardSO, Transform startPos = null)
+    /// <summary>
+    /// Put a card straight into this agent's hand. Returns the created card, or null when it couldn't be
+    /// added (full hand, null SO) — callers that need to keep tweaking it, e.g. the Discover verb zeroing
+    /// the cost of what the player picked, read it off the return value.
+    /// </summary>
+    public CardController AddCard(CardSO cardSO, Transform startPos = null)
     {
         UpdateHand();
 
-        if (hand.Count >= 7) return;
+        if (hand.Count >= 7) return null;
 
         if (cardSO == null)
         {
             Debug.LogWarning("Agent.AddCard called with null CardSO");
-            return;
+            return null;
         }
 
         CardController cardObj = InstantiateCard(cardSO);
@@ -235,6 +240,8 @@ public class Agent : MonoBehaviour
 
         GameManager.Instance.TriggerCardDrawActions(this);
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
+
+        return cardObj;
     }
 
     public void RemoveCardFromHand(CardController card)

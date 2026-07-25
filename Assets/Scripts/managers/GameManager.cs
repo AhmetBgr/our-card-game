@@ -891,6 +891,10 @@ public class GameManager : Singleton<GameManager>
         if (currentState != GameState.PlayerTurn) return;
         if (playingAgent != player) return;
 
+        // A card choice on screen has already shown the player what they rolled. Backing out now would
+        // refund the card and hand them a fresh set of options — a free reroll. Once revealed, committed.
+        if (CardChoice.Instance.HasActiveRequest) return;
+
         cancelPlayingCardRequested = true;
         ActionHolder.cancelRequested = true;
 
@@ -903,6 +907,17 @@ public class GameManager : Singleton<GameManager>
         SelectionManager.Instance.Cancel();
         player.curState = Player.State.Waiting;
         ClearSelectables();
+    }
+
+    /// <summary>
+    /// Drops a cancel that arrived after the play was already committed (see ActionHolder's Discover /
+    /// transform verbs). The card and its mana stay spent and only the unresolved effect is lost, so the
+    /// outer ExecuteActions finishes the play normally instead of refunding it back into the hand.
+    /// </summary>
+    public void ClearCancelledPlay()
+    {
+        cancelPlayingCardRequested = false;
+        ActionHolder.cancelRequested = false;
     }
 
     private void FinishCancelPlayingCard()

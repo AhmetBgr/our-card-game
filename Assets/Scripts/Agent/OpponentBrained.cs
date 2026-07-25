@@ -68,6 +68,7 @@ public class OpponentBrained : Agent
 
             ActionHolder.OnWaitingCellSelect += SelectCell;
             ActionHolder.OnWaitingMinionSelect += SelectMinion;
+            ActionHolder.OnWaitingCardChoice += ChooseCard;
 
             // The unsubscribe MUST run no matter how the action ends — a leaked handler would auto-resolve
             // the PLAYER's cell/minion picks on their turn (summoning with no prompt). A finally guarantees
@@ -95,6 +96,7 @@ public class OpponentBrained : Agent
             {
                 ActionHolder.OnWaitingCellSelect -= SelectCell;
                 ActionHolder.OnWaitingMinionSelect -= SelectMinion;
+                ActionHolder.OnWaitingCardChoice -= ChooseCard;
             }
 
             if (GameManager.Instance.currentState == GameState.EndGame)
@@ -118,6 +120,26 @@ public class OpponentBrained : Agent
             }
         }
         return availableActions[bestIndex];
+    }
+
+    // Answers a Discover prompt. The options are whole cards rather than board entities, so the brain's
+    // target scorers don't apply; cost is the one comparable the pool guarantees, and every option has
+    // already been filtered to "can resolve on this board" by the verb. Ties break at random so repeated
+    // Discovers off the same pool don't always land on the same card.
+    public void ChooseCard(List<CardSO> options, CardSO card)
+    {
+        if (options == null || options.Count == 0)
+        {
+            // Nothing to choose: cancel THIS card's resolution gracefully, as SelectCell/SelectMinion do.
+            ActionHolder.cancelRequested = true;
+            return;
+        }
+
+        int bestCost = options.Max(o => o != null ? o.cost : int.MinValue);
+        var tied = options.Where(o => o != null && o.cost == bestCost).ToList();
+        if (tied.Count == 0) tied = options;
+
+        ActionHolder.chosenCard = tied[UnityEngine.Random.Range(0, tied.Count)];
     }
 
     public void SelectMinion(List<MinionController> minions, CardSO card)

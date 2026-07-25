@@ -25,3 +25,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5c3808c66f3f45c43aea226e8da39f05, type: 2}
   - {fileID: 11400000, guid: a8700cf5f777635498591cbf94bc0385, type: 2}
   - {fileID: 11400000, guid: d6d5b051c2c38014bb1e58922921d6ed, type: 2}
+  choiceCount: 3
+  costReduction: 3

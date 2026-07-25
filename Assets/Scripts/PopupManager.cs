@@ -15,18 +15,18 @@ public class PopupManager : Singleton<PopupManager>
 
     [Header("Buttons")]
     public Button replayButton;
+    [Tooltip("The panel's 'Proceed' button: leaves the match and returns to the main menu.")]
     public Button exitButton;
 
     [Header("Scenes")]
-    [Tooltip("Scene the Exit button returns to: the match-setup scene, which reopens on the player's step.")]
-    [SerializeField] private string setupSceneName = "CreateCustomGame";
+    [SerializeField] private string menuSceneName = "MainMenu";
 
     private Transform curPopup = null;
 
     void Start()
     {
         if (replayButton != null) replayButton.onClick.AddListener(Replay);
-        if (exitButton != null) exitButton.onClick.AddListener(ExitToSetup);
+        if (exitButton != null) exitButton.onClick.AddListener(ExitToMenu);
     }
 
     // Replay reruns the match with the decks and heroes already chosen for both sides.
@@ -35,10 +35,11 @@ public class PopupManager : Singleton<PopupManager>
         SceneTransitionManager.Instance.TransitionToScene("Game");
     }
 
-    // Exit goes back to match setup so both sides can be reconfigured, rather than to the legacy Menu.
-    public void ExitToSetup()
+    // Proceed leaves the match for the main menu, from which the next match can either be started
+    // straight away (Quick Play) or reconfigured (Custom Game).
+    public void ExitToMenu()
     {
-        SceneTransitionManager.Instance.TransitionToScene(setupSceneName);
+        SceneTransitionManager.Instance.TransitionToScene(menuSceneName);
     }
 
     // Win and loss show the identical panel (background, stats, buttons); the only difference is

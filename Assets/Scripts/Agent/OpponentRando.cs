@@ -101,6 +101,7 @@ public class OpponentRando : Agent
 
             ActionHolder.OnWaitingCellSelect += SelectCell;
             ActionHolder.OnWaitingMinionSelect += SelectMinion;
+            ActionHolder.OnWaitingCardChoice += ChooseCard;
 
             // The unsubscribe MUST run no matter how the action ends — a leaked handler would auto-resolve
             // the PLAYER's cell/minion picks on their turn (summoning with no prompt). A finally guarantees
@@ -122,6 +123,7 @@ public class OpponentRando : Agent
             {
                 ActionHolder.OnWaitingCellSelect -= SelectCell;
                 ActionHolder.OnWaitingMinionSelect -= SelectMinion;
+                ActionHolder.OnWaitingCardChoice -= ChooseCard;
             }
 
             if (GameManager.Instance.currentState == GameState.EndGame)
@@ -160,6 +162,19 @@ public class OpponentRando : Agent
         }
 
         ActionHolder.selectedMinion = filteredList.Count == 0 ? null : filteredList[UnityEngine.Random.Range(0, filteredList.Count)];
+    }
+    // Answers a Discover prompt. This brain plays at random by design, so it takes a random option —
+    // the CardChoice panel never opens on the AI's turn, so this write IS the pick.
+    public void ChooseCard(List<CardSO> options, CardSO card)
+    {
+        if (options == null || options.Count == 0)
+        {
+            // Nothing to choose: cancel THIS card's resolution gracefully, as SelectCell/SelectMinion do.
+            ActionHolder.cancelRequested = true;
+            return;
+        }
+
+        ActionHolder.chosenCard = options[UnityEngine.Random.Range(0, options.Count)];
     }
     public void SelectCell(List<Transform> cells, CardSO card)
     {
