@@ -25,6 +25,11 @@ public class CardView : MonoBehaviour
     [SerializeField] private Sprite upgradedCardBackImage;
 
 
+    [Tooltip("Lit while the card is affordable right now.")]
+    [SerializeField] private GameObject highlightOutline;
+    [Tooltip("Lit while the pointer is over the card. Independent of the playable outline — both can show.")]
+    [SerializeField] private GameObject hoveredOutline;
+
     [SerializeField] private TextMeshProUGUI nametext;
     [SerializeField] private TextMeshProUGUI desctext;
     [SerializeField] private TextMeshProUGUI attacktext;
@@ -107,11 +112,37 @@ public class CardView : MonoBehaviour
             .SetEase(Ease.OutSine));
     }
 
+    /// <summary>
+    /// Can the player pay for this card right now? Single definition so the cost gear, the playable
+    /// outline and the selection panel can't drift apart on what "playable" means.
+    /// </summary>
+    public static bool IsPlayableNow(CardModal card)
+    {
+        if (card == null) return false;
+
+        var gm = GameManager.Instance;
+        if (gm == null || gm.player == null) return false;
+
+        return gm.player.availibleMana >= card.cost && gm.currentState != GameState.EndGame;
+    }
+
+    /// <summary>Light or clear the "you can afford this" outline.</summary>
+    public void SetPlayableOutline(bool on)
+    {
+        if (highlightOutline != null) highlightOutline.SetActive(on);
+    }
+
+    /// <summary>Light or clear the pointer-over outline.</summary>
+    public void SetHoveredOutline(bool on)
+    {
+        if (hoveredOutline != null) hoveredOutline.SetActive(on);
+    }
+
     public void UpdateGearSpeed(CardModal card)
     {
         if (gearRotateTween == null) return;
 
-        bool playable = GameManager.Instance.player.availibleMana >= card.cost && GameManager.Instance.currentState != GameState.EndGame;
+        bool playable = IsPlayableNow(card);
         // Spin rate scales with cost, but a playable card must always visibly spin — otherwise a
         // zero-cost card freezes (timeScale 0) and looks unaffordable. Floor the speed at 1 so a
         // cost-0 card spins like a cost-1 card.

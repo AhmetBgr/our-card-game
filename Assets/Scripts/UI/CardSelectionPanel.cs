@@ -32,6 +32,9 @@ public class CardSelectionPanel : MonoBehaviour
     [SerializeField] private float optionRevealDuration = 0.25f;
     [SerializeField] private float optionRevealStagger = 0.08f;
 
+    [Tooltip("How much a hovered option swells. The layout group doesn't control child size, so growing a card shifts nothing around it.")]
+    [SerializeField] private float hoverScale = 1.2f;
+
     private readonly List<GameObject> _spawned = new List<GameObject>();
 
     private static CardSelectionPanel _instance;
@@ -111,7 +114,23 @@ public class CardSelectionPanel : MonoBehaviour
                 // Shown as the player's own card so the view renders the full face (cost, stats, art)
                 // rather than the opponent's card back.
                 modal.UpdateModal(option, owner, true);
-                if (view != null) view.UpdateView(modal);
+                if (view != null)
+                {
+                    view.UpdateView(modal);
+
+                    // Same outlines as a card in hand. Playable is set once rather than per-frame: the
+                    // panel blocks play while it is open, so available mana can't move underneath it.
+                    view.SetPlayableOutline(CardView.IsPlayableNow(modal));
+                    view.SetHoveredOutline(false);
+
+                    // CardPreview Variant has no EventTrigger/CardController, so hover needs its own
+                    // source here (see CardHoverOutline).
+                    var hover = go.GetComponent<CardHoverOutline>();
+                    if (hover == null) hover = go.AddComponent<CardHoverOutline>();
+                    // Rest scale passed explicitly: the reveal tween below starts the card at zero, so the
+                    // component must not infer its resting size from the transform.
+                    hover.ConfigureHoverScale(hoverScale, Vector3.one);
+                }
             }
 
             var button = go.GetComponent<Button>();

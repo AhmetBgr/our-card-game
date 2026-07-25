@@ -40,6 +40,9 @@ public class CardController : MonoBehaviour
     {
         if (!modal.isPlayerMinion) return;
         view.UpdateGearSpeed(modal);
+        // Driven per-frame rather than on a mana-changed event: available mana moves from plays, refunds
+        // and turn start, and the gear speed above already rides this same tick.
+        view.SetPlayableOutline(CardView.IsPlayableNow(modal));
     }
     public void Initialize(Agent owner, bool isPlayerCard)
     {
@@ -70,7 +73,13 @@ public class CardController : MonoBehaviour
 
     public void OnPointerEnter()
     {
-        if (!modal.isPlayerMinion || !canPeek) return;
+        if (!modal.isPlayerMinion) return;
+
+        // Set before the peek guards below: the hover outline should follow the pointer even when the
+        // card can't peek (mid-drag, already peeking, no room in the fan).
+        view.SetHoveredOutline(true);
+
+        if (!canPeek) return;
         if (handLayout == null || !handLayout.BeginPeek(this)) return;
 
         canPeek = false;
@@ -94,7 +103,13 @@ public class CardController : MonoBehaviour
 
     public void OnPointerExit()
     {
-        if (!modal.isPlayerMinion || !isPeeking) return;
+        if (!modal.isPlayerMinion) return;
+
+        // Cleared unconditionally, mirroring OnPointerEnter — a card that was hovered without peeking
+        // would otherwise keep its outline lit after the pointer left.
+        view.SetHoveredOutline(false);
+
+        if (!isPeeking) return;
 
         transform.localScale = Vector3.one;
         handLayout.EndPeek();
