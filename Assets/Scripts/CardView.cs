@@ -27,7 +27,7 @@ public class CardView : MonoBehaviour
 
     [Tooltip("Lit while the card is affordable right now.")]
     [SerializeField] private GameObject highlightOutline;
-    [Tooltip("Lit while the pointer is over the card. Independent of the playable outline — both can show.")]
+    [Tooltip("Lit while the pointer is over the card, but only while the playable outline is also lit.")]
     [SerializeField] private GameObject hoveredOutline;
 
     [SerializeField] private TextMeshProUGUI nametext;
@@ -38,6 +38,12 @@ public class CardView : MonoBehaviour
     [SerializeField] private Transform costTransform;
 
     private Tween gearRotateTween;
+
+    // Latest requests from the two independent drivers of the hover outline: the pointer
+    // (OnPointerEnter/Exit) and affordability (pushed every frame from CardController.Update).
+    // Kept separately so either can change without the other having to be re-sent.
+    private bool _hovered;
+    private bool _playable;
 
     // Loaded once from Resources so no per-prefab inspector wiring is needed. Drives keyword
     // highlighting in card descriptions (see CardTextFormatter). Null-safe: if the asset is
@@ -129,13 +135,25 @@ public class CardView : MonoBehaviour
     /// <summary>Light or clear the "you can afford this" outline.</summary>
     public void SetPlayableOutline(bool on)
     {
+        _playable = on;
         if (highlightOutline != null) highlightOutline.SetActive(on);
+        ApplyHoveredOutline();
     }
 
-    /// <summary>Light or clear the pointer-over outline.</summary>
+    /// <summary>
+    /// Light or clear the pointer-over outline. The request is remembered either way, but the outline
+    /// only actually shows while the card is highlighted as playable — hovering a card you can't afford
+    /// gives no outline, and it lights the moment the card becomes affordable under the pointer.
+    /// </summary>
     public void SetHoveredOutline(bool on)
     {
-        if (hoveredOutline != null) hoveredOutline.SetActive(on);
+        _hovered = on;
+        ApplyHoveredOutline();
+    }
+
+    private void ApplyHoveredOutline()
+    {
+        if (hoveredOutline != null) hoveredOutline.SetActive(_hovered && _playable);
     }
 
     public void UpdateGearSpeed(CardModal card)

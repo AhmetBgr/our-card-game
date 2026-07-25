@@ -32,8 +32,13 @@ public class CardSelectionPanel : MonoBehaviour
     [SerializeField] private float optionRevealDuration = 0.25f;
     [SerializeField] private float optionRevealStagger = 0.08f;
 
-    [Tooltip("How much a hovered option swells. The layout group doesn't control child size, so growing a card shifts nothing around it.")]
+    [Tooltip("Resting size of every option card. The reveal tween lands here and hover swells out from here.")]
+    [SerializeField] private float baseCardScale = 1f;
+
+    [Tooltip("How much a hovered option swells, on top of the base scale. The layout group doesn't control child size, so growing a card shifts nothing around it.")]
     [SerializeField] private float hoverScale = 1.2f;
+
+    private Vector3 BaseScale => Vector3.one * baseCardScale;
 
     private readonly List<GameObject> _spawned = new List<GameObject>();
 
@@ -129,7 +134,7 @@ public class CardSelectionPanel : MonoBehaviour
                     if (hover == null) hover = go.AddComponent<CardHoverOutline>();
                     // Rest scale passed explicitly: the reveal tween below starts the card at zero, so the
                     // component must not infer its resting size from the transform.
-                    hover.ConfigureHoverScale(hoverScale, Vector3.one);
+                    hover.ConfigureHoverScale(hoverScale, BaseScale);
                 }
             }
 
@@ -142,7 +147,7 @@ public class CardSelectionPanel : MonoBehaviour
 
             // Stagger the reveal so the options read as being dealt out rather than appearing at once.
             go.transform.localScale = Vector3.zero;
-            go.transform.DOScale(1f, optionRevealDuration).SetDelay(i * optionRevealStagger);
+            go.transform.DOScale(baseCardScale, optionRevealDuration).SetDelay(i * optionRevealStagger);
         }
     }
 

@@ -18,6 +18,11 @@ PrefabInstance:
       propertyPath: isPlayerMinion
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2542702564450126742, guid: fee8230318367e0469503ddb35cbd494,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3303856136721092169, guid: fee8230318367e0469503ddb35cbd494,
         type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -132,6 +137,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7090732886662561365, guid: fee8230318367e0469503ddb35cbd494,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7594970361955268141, guid: fee8230318367e0469503ddb35cbd494,
         type: 3}
