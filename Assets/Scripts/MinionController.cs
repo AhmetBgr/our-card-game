@@ -887,9 +887,34 @@ public class MinionController : MonoBehaviour
         if (deathTriggerPending)
         {
             _destroyDeferred = true;
+            HideCorpse();
             return;
         }
         Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Retire the visuals at the exact moment a non-deferred death would have destroyed the object.
+    /// The death clips loop and their states have no exit transition, so the DestroySelf event above is
+    /// the ONLY thing that ever ends one: holding the destroy without this would send the animator back
+    /// to frame one and replay the whole death — art fade included — on repeat for as long as the hold
+    /// lasts. Spell kills always take that path (a card play owns the triggered-action lock for its whole
+    /// resolution, so the OnDeath trigger can't run until the card is done, long after the ~0.3s clip
+    /// ends), which is why looping corpses only ever showed up on spells. Disabling the animator also
+    /// stops further DestroySelf/FadeOutArtImage events, so this runs once. The GameObject itself stays
+    /// alive and active — it is still ActionHolder.thisMinion for the pending deathrattle.
+    /// </summary>
+    private void HideCorpse()
+    {
+        if (animator != null) animator.enabled = false;
+
+        // Renderers cover the sprites and world-space TMP; Canvases cover the UI-space stat labels,
+        // which draw through a CanvasRenderer instead. Includes inactive children so nothing that gets
+        // re-enabled later (e.g. a skull left mid-preview) can pop back into view.
+        foreach (var r in GetComponentsInChildren<Renderer>(true))
+            r.enabled = false;
+        foreach (var c in GetComponentsInChildren<Canvas>(true))
+            c.enabled = false;
     }
 
     /// <summary>

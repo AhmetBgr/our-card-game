@@ -66,6 +66,17 @@ public class CardView : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Debug-only override that renders this card face up even when it belongs to the opponent
+    /// (see Debugger's hold-Alt peek). Deliberately a view flag rather than a flip of
+    /// CardModal.isPlayerMinion: that field is gameplay state — it drives target-side filtering in
+    /// OpponentBrained.SelectMinion and gates hover/peek in CardController — so writing to it to
+    /// change what's drawn would quietly change how the card behaves.
+    ///
+    /// NonSerialized so it can never be left on in a prefab or scene and ship a face-up opponent hand.
+    /// </summary>
+    [NonSerialized] public bool debugRevealFaceUp;
+
     public void UpdateView(CardModal card)
     {
         if (card == null) return;
@@ -73,14 +84,17 @@ public class CardView : MonoBehaviour
 
         art.sprite = card.cardArt;
 
-        costTransform.gameObject.SetActive(card.isPlayerMinion);
-        costText.gameObject.SetActive(card.isPlayerMinion);
-        cardBack.gameObject.SetActive(!card.isPlayerMinion);
+        // The card's own side decides this everywhere except under the debug peek above.
+        bool faceUp = card.isPlayerMinion || debugRevealFaceUp;
+
+        costTransform.gameObject.SetActive(faceUp);
+        costText.gameObject.SetActive(faceUp);
+        cardBack.gameObject.SetActive(!faceUp);
         // enabled is driven alongside SetActive, not left to the prefab: CardPreview Variant ships with
         // this Image component disabled, so activating the GameObject alone drew nothing and the card
         // FACE showed through underneath — which leaked the opponent's cards in the selection panel.
         // Setting both here means no prefab can disagree about whether a hidden card is actually hidden.
-        cardBack.enabled = !card.isPlayerMinion;
+        cardBack.enabled = !faceUp;
         cardBack.sprite = card.isUpgraded ? upgradedCardBackImage : cardBackImage;
 
         if (card.isUpgraded)
@@ -93,12 +107,12 @@ public class CardView : MonoBehaviour
 
         }
 
-        minionTypeIconObjects[0].transform.parent.gameObject.SetActive(card.isPlayerMinion);
+        minionTypeIconObjects[0].transform.parent.gameObject.SetActive(faceUp);
 
         // Keyed off health, not attack: a 0-attack minion is still a minion and must show its attack
         // stat. Only spells (attack == 0 && health == 0) hide it, and health == 0 already covers those.
-        attacktext.transform.parent.gameObject.SetActive(card.health > 0 && card.isPlayerMinion);
-        healthtext.transform.parent.gameObject.SetActive(card.health > 0 && card.isPlayerMinion);
+        attacktext.transform.parent.gameObject.SetActive(card.health > 0 && faceUp);
+        healthtext.transform.parent.gameObject.SetActive(card.health > 0 && faceUp);
 
 
     }

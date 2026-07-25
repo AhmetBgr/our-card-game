@@ -42,6 +42,64 @@ public class Debugger : MonoBehaviour
         {
             SceneManager.LoadScene("Game");
         }
+
+        UpdateOpponentHandPeek();
+    }
+
+    // Cards currently flipped face up by the peek. Tracked rather than re-derived from the opponent's
+    // hand when the peek is switched off, because a card can leave the hand while the peek is on — the
+    // AI plays one, or a discard takes it — and reading the hand again would miss it and leave it
+    // revealed for good.
+    private readonly List<CardController> peekedCards = new List<CardController>();
+
+    // Latched by Alt, and deliberately not reset on scene load: DontDestroyOnLoad keeps this Debugger
+    // alive across the R/G reloads above, so leaving it on means the next match opens already revealed.
+    private bool peekingOpponentHand;
+
+    /// <summary>
+    /// Alt toggles a look at the opponent's hand. Debug aid only: nothing about the cards changes, just
+    /// whether their faces are drawn, so the AI plays exactly the same either way.
+    /// </summary>
+    private void UpdateOpponentHandPeek()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftAlt) || Input.GetKeyDown(KeyCode.RightAlt))
+        {
+            peekingOpponentHand = !peekingOpponentHand;
+            Debug.Log($"[Debug] Opponent hand peek {(peekingOpponentHand ? "ON" : "OFF")}");
+        }
+
+        // Re-checked every frame rather than only on the toggle press, so cards drawn while the peek is
+        // already on get revealed too.
+        if (peekingOpponentHand)
+        {
+            Agent opponent = GameManager.Instance != null ? GameManager.Instance.opponent : null;
+            if (opponent != null)
+            {
+                foreach (var card in opponent.hand)
+                {
+                    if (card == null || card.view == null || card.modal == null) continue;
+                    if (card.view.debugRevealFaceUp) continue;
+
+                    card.view.debugRevealFaceUp = true;
+                    card.view.UpdateView(card.modal);
+                    peekedCards.Add(card);
+                }
+            }
+            return;
+        }
+
+        if (peekedCards.Count == 0) return;
+
+        foreach (var card in peekedCards)
+        {
+            // Destroyed while revealed (played, discarded, scene reloaded): nothing left to restore.
+            if (card == null || card.view == null || card.modal == null) continue;
+
+            card.view.debugRevealFaceUp = false;
+            card.view.UpdateView(card.modal);
+        }
+
+        peekedCards.Clear();
     }
     IEnumerator LoadAsyncScene(int index)
     {
