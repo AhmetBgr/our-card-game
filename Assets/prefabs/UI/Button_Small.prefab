@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 8350749975818220580}
   - component: {fileID: 4102443813777445035}
   m_Layer: 5
-  m_Name: SmallButton
+  m_Name: Button_Small
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

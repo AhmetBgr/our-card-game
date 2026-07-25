@@ -2054,10 +2054,16 @@ public class ActionHolder : ScriptableObject
         }
         else
         {
+            // Captured up front: this loop yields, and selectedAgent is shared static state that a
+            // sibling triggered pass could move underneath us mid-draw.
+            Agent drawer = selectedAgent;
+
             for (int i = 0; i < DiedMinionAmount; i++)
             {
                 yield return new WaitForSeconds(1f);
-                selectedAgent.DrawCard();
+                // Yielded on: an empty deck turns this into a card choice that has to resolve before the
+                // next draw starts, or the second draw would preempt the first one's panel.
+                yield return GameManager.Instance.StartCoroutine(drawer.DrawCardRoutine());
             }
         }
     }
@@ -2085,7 +2091,9 @@ public class ActionHolder : ScriptableObject
 
         }
         else {
-            selectedAgent.DrawCard();
+            // Yielded on so an empty-deck draw's card choice resolves inside this action rather than
+            // racing whatever the card does next.
+            yield return GameManager.Instance.StartCoroutine(selectedAgent.DrawCardRoutine());
         }
 
     }

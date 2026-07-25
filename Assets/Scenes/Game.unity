@@ -1930,7 +1930,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 255}
+  m_AnchoredPosition: {x: 0, y: 360.81}
   m_SizeDelta: {x: 900, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &234174222
@@ -2094,6 +2094,12 @@ MonoBehaviour:
   passiveUICanvasPrefab: {fileID: 4031731361580317604, guid: 09d8661af82b1ef449009e8f75d2e636,
     type: 3}
   passiveUIPos: {fileID: 2055617999}
+  emptyDeckChoiceCount: 3
+  emptyDeckAiThinkSeconds: 0.5
+  emptyDeckSpectatorSeconds: 0.75
+  emptyDeckPlayerPrompt: "Your deck is empty \u2014 take a card and {0} damage"
+  emptyDeckOpponentPrompt: "Opponent's deck is empty \u2014 they take a card and
+    {0} damage"
   pendingExtraDraws: 0
   brain: {fileID: 11400000, guid: 5dd268227e698534aa14a3f5a5badfab, type: 2}
 --- !u!1 &251172274
@@ -2301,6 +2307,7 @@ RectTransform:
   m_Children:
   - {fileID: 234174221}
   - {fileID: 2099932438}
+  - {fileID: 410604892}
   m_Father: {fileID: 1724228470}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2328,6 +2335,9 @@ MonoBehaviour:
   optionRevealStagger: 0.08
   baseCardScale: 1.2
   hoverScale: 1.2
+  seeBoardButton: {fileID: 410604893}
+  seeBoardLabel: See\nBoard
+  showCardsLabel: Show\nCards
 --- !u!114 &285472892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2753,6 +2763,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 371951942}
   m_CullTransparentMesh: 1
+--- !u!224 &410604892 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+    type: 3}
+  m_PrefabInstance: {fileID: 1896374409}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &410604893 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3968256481059858509, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+    type: 3}
+  m_PrefabInstance: {fileID: 1896374409}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &465499006
 GameObject:
   m_ObjectHideFlags: 0
@@ -5436,6 +5464,12 @@ MonoBehaviour:
   cardPlayPos: {fileID: 1771407256}
   passiveUICanvasPrefab: {fileID: 0}
   passiveUIPos: {fileID: 0}
+  emptyDeckChoiceCount: 3
+  emptyDeckAiThinkSeconds: 1
+  emptyDeckSpectatorSeconds: 1.25
+  emptyDeckPlayerPrompt: "Your deck is empty \u2014 take a card and {0} damage"
+  emptyDeckOpponentPrompt: "Opponent's deck is empty \u2014 they take a card and
+    {0} damage"
   pendingExtraDraws: 0
 --- !u!4 &984600826
 Transform:
@@ -10600,6 +10634,156 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1001 &1896374409
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 285472890}
+    m_Modifications:
+    - target: {fileID: 418603166181302332, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_text
+      value: 'Show
+
+        Board'
+      objectReference: {fileID: 0}
+    - target: {fileID: 418603166181302332, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_fontSize
+      value: 30.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 418603166181302332, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_fontSizeBase
+      value: 30.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 138.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -196.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 270.70996
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 895277812554377094, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1867686330399474902, guid: acf96c8fa887aeb4997d1d3ed592d2e8,
+        type: 3}
+      propertyPath: m_Name
+      value: Button_Wide
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: acf96c8fa887aeb4997d1d3ed592d2e8, type: 3}
 --- !u!1 &1905196963
 GameObject:
   m_ObjectHideFlags: 0
@@ -11299,6 +11483,11 @@ MonoBehaviour:
   passiveUICanvasPrefab: {fileID: 4031731361580317604, guid: 09d8661af82b1ef449009e8f75d2e636,
     type: 3}
   passiveUIPos: {fileID: 1617560988}
+  emptyDeckChoiceCount: 3
+  emptyDeckAiThinkSeconds: 1
+  emptyDeckSpectatorSeconds: 1.25
+  emptyDeckPlayerPrompt: Your deck is empty\nTake a card and {0} damage
+  emptyDeckOpponentPrompt: Opponent's deck is empty\nThey take a card and {0} damage
   pendingExtraDraws: 0
   curState: 4
 --- !u!4 &2039252584

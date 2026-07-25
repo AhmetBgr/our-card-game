@@ -242,13 +242,15 @@ public class GameManager : Singleton<GameManager>
     /// </summary>
     private IEnumerator DrawTurnStartCards(Agent agent)
     {
-        agent.DrawCard();
+        // Yielded on, not fired off: on an empty deck the draw opens a card-selection panel and waits for
+        // a pick, so the turn must not proceed underneath it.
+        yield return StartCoroutine(agent.DrawCardRoutine());
 
         int extra = agent.ConsumePendingExtraDraws();
         for (int i = 0; i < extra; i++)
         {
             yield return new WaitForSeconds(0.35f);
-            agent.DrawCard();
+            yield return StartCoroutine(agent.DrawCardRoutine());
         }
     }
 

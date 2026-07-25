@@ -14,6 +14,13 @@ public class DeckDatabase : Singleton<DeckDatabase>
 
     public List<CardSO> AllCards = new List<CardSO>();
 
+    /// <summary>
+    /// Every upgraded card in the database, in load order. Kept as a list alongside
+    /// <see cref="upgradedCardsByName"/> so callers that roll a random handful (the empty-deck draw) can
+    /// index into it without rebuilding a list from the dictionary's values each time.
+    /// </summary>
+    public List<CardSO> AllUpgradedCards = new List<CardSO>();
+
     protected override void Awake()
     {
         base.Awake();
@@ -23,6 +30,9 @@ public class DeckDatabase : Singleton<DeckDatabase>
     void LoadCards()
     {
         cardsByName.Clear();
+        upgradedCardsByName.Clear();
+        AllCards.Clear();
+        AllUpgradedCards.Clear();
 
         CardSO[] cards;
 #if UNITY_EDITOR
@@ -48,6 +58,7 @@ public class DeckDatabase : Singleton<DeckDatabase>
 
                 upgradedCardsByName.Add(card.cardName, card);
                 AllCards.Add(card);
+                AllUpgradedCards.Add(card);
                 continue;
             }
             if (cardsByName.ContainsKey(card.cardName))

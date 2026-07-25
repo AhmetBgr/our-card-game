@@ -26,6 +26,40 @@ public class Agent : MonoBehaviour
     [Tooltip("Where this agent's passive UI is spawned. A child of the agent, placed where the indicator row should sit.")]
     public Transform passiveUIPos;
 
+    [Header("Empty Deck Draw")]
+    [Tooltip("How many upgraded cards are offered when this agent draws from an empty deck.")]
+    [SerializeField] private int emptyDeckChoiceCount = 3;
+
+    [Tooltip("How long the AI 'thinks' with its face-down options on screen before committing to a pick. " +
+             "Without this the choice resolves the instant the panel opens, which reads as no choice at all.")]
+    [SerializeField] private float emptyDeckAiThinkSeconds = 1f;
+
+    [Tooltip("How long the face-down panel lingers AFTER the AI has picked, before it closes itself.")]
+    [SerializeField] private float emptyDeckSpectatorSeconds = 1.25f;
+
+    [Tooltip("Panel message shown to the player for their own empty-deck draw. {0} is the damage it costs.")]
+    [SerializeField] private string emptyDeckPlayerPrompt = "Your deck is empty — take a card and {0} damage";
+
+    [Tooltip("Panel message shown to the player while the opponent takes an empty-deck draw. {0} is the damage it costs them.")]
+    [SerializeField] private string emptyDeckOpponentPrompt = "Opponent's deck is empty — they take a card and {0} damage";
+
+    /// <summary>
+    /// How many times this agent has drawn from an empty deck. The next such draw costs this + 1 hero
+    /// health, so the cost escalates 1, 2, 3... and never resets. Tracked per agent: each side pays for
+    /// its own deck running out, not for the other's.
+    /// </summary>
+    public int emptyDeckDrawCount { get; private set; }
+
+    // True while ANY agent's empty-deck draw is waiting on its card choice. Static because CardChoice and
+    // its panel are a single shared resource — two concurrent draws would fight over one panel.
+    private static bool _emptyDeckDrawInProgress;
+
+    // Cleared at the start of every play session. Without this, stopping play while a draw is mid-pick
+    // would leave the flag set, and with Enter Play Mode Options skipping the domain reload the statics
+    // survive — every empty-deck draw next session would then wait forever on a gate nobody holds.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetEmptyDeckDrawGate() => _emptyDeckDrawInProgress = false;
+
     public virtual bool IsPlayer() { return false; }
 
     protected int _availibleMana;
@@ -200,12 +234,50 @@ public class Agent : MonoBehaviour
         return owed;
     }
 
+    /// <summary>
+    /// Fire-and-forget draw, kept for the opening hand in GameManager.SetupGame, where the deck is
+    /// guaranteed to still have cards in it.
+    ///
+    /// Every other draw must use <see cref="DrawCardRoutine"/> and yield on it: an empty deck now opens a
+    /// selection panel and waits for a pick, which a void method cannot express. If the deck IS empty
+    /// here the routine is started unsequenced rather than the draw being silently dropped, so the
+    /// empty-deck rule still fires — it just isn't ordered against whatever the caller does next.
+    /// </summary>
     public void DrawCard()
     {
         UpdateHand();
 
-        if (deck.Count == 0 || hand.Count >= 7) return;
+        if (deck.Count == 0)
+        {
+            GameManager.Instance.StartCoroutine(DrawCardRoutine());
+            return;
+        }
 
+        if (hand.Count >= 7) return;
+
+        DrawTopCard();
+    }
+
+    /// <summary>
+    /// The real draw. Takes the top card when there is one, and otherwise runs the empty-deck draw, which
+    /// blocks on a card choice — so callers must <c>yield return</c> on this rather than fire it off.
+    /// </summary>
+    public IEnumerator DrawCardRoutine()
+    {
+        UpdateHand();
+
+        if (deck.Count > 0)
+        {
+            // Overdrawing at the hand cap burns the card, as it always has.
+            if (hand.Count < 7) DrawTopCard();
+            yield break;
+        }
+
+        yield return StartCoroutine(DrawFromEmptyDeck());
+    }
+
+    private void DrawTopCard()
+    {
         CardSO cardSO = deck[deck.Count - 1];
         deck.RemoveAt(deck.Count - 1);
 
@@ -215,6 +287,139 @@ public class Agent : MonoBehaviour
 
         GameManager.Instance.TriggerCardDrawActions(this);
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
+    }
+
+    /// <summary>
+    /// The empty-deck draw: with nothing left to draw, the agent is offered a handful of upgraded cards
+    /// instead, and pays for the privilege in hero health — 1 the first time, 2 the second, and so on,
+    /// separately for each side and never reset. That escalation is what stops a match stalling once both
+    /// decks are dry: the two heroes are now on a clock that only gets faster.
+    ///
+    /// The player picks from a face-up panel. When the OPPONENT draws this way the same panel opens for
+    /// the player showing card backs, so they can see the opponent is burning down but not what was on
+    /// offer; it closes itself after <see cref="emptyDeckSpectatorSeconds"/> without revealing the pick.
+    /// </summary>
+    private IEnumerator DrawFromEmptyDeck()
+    {
+        var gm = GameManager.Instance;
+        if (gm == null || gm.isTesting) yield break;
+
+        // Queue behind any empty-deck draw already resolving — including one on the OTHER agent, since
+        // there is a single selection panel between them. A "draw 2" on a dry deck, an on-draw trigger
+        // that draws again, or the fire-and-forget DrawCard() fallback can all land a second draw while
+        // the first is still waiting on a pick; without this gate the second call's Begin() preempts the
+        // first panel, which makes the first draw resolve with no card while its damage still lands.
+        while (_emptyDeckDrawInProgress)
+            yield return null;
+
+        _emptyDeckDrawInProgress = true;
+        try
+        {
+            yield return StartCoroutine(ResolveEmptyDeckDraw(gm));
+        }
+        finally
+        {
+            _emptyDeckDrawInProgress = false;
+        }
+    }
+
+    private IEnumerator ResolveEmptyDeckDraw(GameManager gm)
+    {
+        // Every check below is re-evaluated here rather than before the gate: a draw that queued behind
+        // another one may find the hand now full, or the game already over, because of what resolved
+        // while it waited.
+        UpdateHand();
+
+        if (gm.currentState == GameState.EndGame) yield break;
+
+        int damage = ++emptyDeckDrawCount;
+
+        // Hand full: no panel, because there is no card the agent could accept and a choice that resolves
+        // to nothing is worse than no choice at all. The clock still ticks — the damage is the cost of
+        // having run out of deck, not of taking the card.
+        if (hand.Count >= 7)
+        {
+            Debug.Log($"[EmptyDeck] {name} drew from an empty deck with a full hand: {damage} damage, no card offered");
+            ApplyEmptyDeckDamage(damage);
+            yield break;
+        }
+
+        var pool = DeckDatabase.Instance != null ? DeckDatabase.Instance.AllUpgradedCards : null;
+        List<CardSO> options = CardPoolSO.PickDistinct(pool, emptyDeckChoiceCount);
+
+        if (options.Count == 0)
+        {
+            Debug.LogWarning("[EmptyDeck] no upgraded cards in the database to offer; taking the damage only");
+            ApplyEmptyDeckDamage(damage);
+            yield break;
+        }
+
+        CardSO chosen = null;
+
+        if (IsPlayer())
+        {
+            // requirePlayerTurn: false — a triggered draw can empty the player's deck during the
+            // OPPONENT's turn, and the choice still belongs to the player.
+            CardChoice.Instance.Begin(
+                options,
+                string.Format(emptyDeckPlayerPrompt, damage),
+                picked => chosen = picked,
+                requirePlayerTurn: false);
+
+            // Waiting on HasActiveRequest rather than on `chosen` alone: if the request is torn down
+            // without a pick (game over, or another effect preempting it with its own choice) this exits
+            // instead of hanging the turn forever. No pick simply means no card — the damage still lands.
+            while (chosen == null && CardChoice.Instance.HasActiveRequest && gm.currentState != GameState.EndGame)
+                yield return null;
+
+            CardChoice.Instance.Cancel();
+        }
+        else
+        {
+            CardChoice.Instance.BeginFaceDown(options, string.Format(emptyDeckOpponentPrompt, damage));
+
+            // Let the options sit on screen before the AI commits, so the player reads it as a decision
+            // being made rather than a panel that blinks past.
+            yield return new WaitForSeconds(emptyDeckAiThinkSeconds);
+
+            // Picked at random rather than by the brain: the panel is face down, so a "smart" pick is
+            // invisible to the player and would only make free upgraded cards swingier. Change here if
+            // you want the AI to value the roll (OpponentBrained.ChooseCard takes the highest cost).
+            chosen = options[Random.Range(0, options.Count)];
+
+            yield return new WaitForSeconds(emptyDeckSpectatorSeconds);
+            CardChoice.Instance.Cancel();
+        }
+
+        if (chosen != null)
+        {
+            Debug.Log($"[EmptyDeck] {name} took '{chosen.cardName}' and paid {damage} damage");
+            // Goes through AddCard, so this counts as a draw for "whenever you draw a card" triggers, and
+            // the card arrives at its normal printed cost.
+            AddCard(chosen);
+        }
+
+        ApplyEmptyDeckDamage(damage);
+    }
+
+    /// <summary>
+    /// Charges the empty-deck draw to this agent's hero. Routed through TakeDamage so the damage number,
+    /// OnTookDamage triggers and hero-damage passives all fire exactly as they would for a hit from the
+    /// board — heroes carry no armor today, so nothing absorbs it.
+    /// </summary>
+    private void ApplyEmptyDeckDamage(int damage)
+    {
+        if (hero == null)
+        {
+            Debug.LogWarning($"[EmptyDeck] {name} has no hero to charge {damage} damage to");
+            return;
+        }
+
+        hero.TakeDamage(damage);
+
+        // Checked immediately as well as from GameManager.Update, so a hero that dies to the clock ends
+        // the match before the rest of the turn plays out on top of it.
+        GameManager.Instance.CheckWinCondition();
     }
 
     /// <summary>

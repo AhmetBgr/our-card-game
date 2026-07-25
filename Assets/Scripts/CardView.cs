@@ -76,6 +76,11 @@ public class CardView : MonoBehaviour
         costTransform.gameObject.SetActive(card.isPlayerMinion);
         costText.gameObject.SetActive(card.isPlayerMinion);
         cardBack.gameObject.SetActive(!card.isPlayerMinion);
+        // enabled is driven alongside SetActive, not left to the prefab: CardPreview Variant ships with
+        // this Image component disabled, so activating the GameObject alone drew nothing and the card
+        // FACE showed through underneath — which leaked the opponent's cards in the selection panel.
+        // Setting both here means no prefab can disagree about whether a hidden card is actually hidden.
+        cardBack.enabled = !card.isPlayerMinion;
         cardBack.sprite = card.isUpgraded ? upgradedCardBackImage : cardBackImage;
 
         if (card.isUpgraded)
