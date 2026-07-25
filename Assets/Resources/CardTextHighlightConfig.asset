@@ -25,13 +25,17 @@ MonoBehaviour:
     color: {r: 0.07450981, g: 0.03529412, b: 0, a: 1}
     bold: 1
   statKeywords:
+  - keyword: Counter-Attack
+    useColor: 0
+    color: {r: 0, g: 0, b: 0, a: 1}
+    bold: 1
   - keyword: Attack
     useColor: 1
-    color: {r: 0.5471698, g: 0.4931728, b: 0, a: 1}
+    color: {r: 0.990566, g: 0.9492647, b: 0.35978103, a: 1}
     bold: 1
   - keyword: Health
     useColor: 1
-    color: {r: 0.7169812, g: 0.12483154, b: 0.091313645, a: 1}
+    color: {r: 0.5471698, g: 0.012904947, b: 0.039918397, a: 1}
     bold: 1
   - keyword: Damage
     useColor: 1
@@ -44,6 +48,10 @@ MonoBehaviour:
   - keyword: Draw
     useColor: 1
     color: {r: 0.08235293, g: 0.4613769, b: 0.5568628, a: 1}
+    bold: 1
+  - keyword: Cost
+    useColor: 1
+    color: {r: 0.3773585, g: 0.2789503, b: 0.105019584, a: 1}
     bold: 1
   highlightNumbers: 1
   useNumberColor: 0

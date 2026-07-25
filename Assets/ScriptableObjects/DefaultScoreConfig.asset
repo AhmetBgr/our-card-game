@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DefaultScoreConfig
   m_EditorClassIdentifier: Assembly-CSharp::ScoreConfig
   baseWinScore: 100
-  baseLossScore: 0
+  baseLossScore: -100
   perEnemyKilled: 5
   perFriendlyLost: -5
   perCardPlayed: 0
@@ -32,7 +32,39 @@ MonoBehaviour:
   comebackBonus: 25
   oneTurnKillBonus: 50
   comebackHpThreshold: 5
-  gradeS: 310
-  gradeA: 250
-  gradeB: 160
-  gradeC: 80
+  gradeS: 300
+  gradeA: 260
+  gradeB: 210
+  gradeC: 140
+  gradeD: 50
+  gradeE: 0
+  gradeSLabel: S
+  gradeALabel: A
+  gradeBLabel: B
+  gradeCLabel: C
+  gradeDLabel: D
+  gradeELabel: E
+  gradeFLabel: F
+  resultLabel: Result
+  enemyKilledLabel: Enemy minions killed
+  friendlyLostLabel: Friendly minions lost
+  cardsPlayedLabel: Cards played
+  upgradedCardsLabel: Upgraded cards played
+  heroHpLabel: Hero HP remaining
+  turnsLabel: Turns
+  boardControlLabel: Board control (max minions)
+  longestMinionLabel: Longest-surviving minion
+  manaEfficiencyLabel: Mana efficiency
+  overkillEfficiencyLabel: Overkill efficiency
+  multiKillLabel: Multi-kill
+  flawlessLabel: Flawless win
+  comebackLabel: Comeback
+  oneTurnKillLabel: One turn kill
+  victoryValue: Victory
+  defeatValue: Defeat
+  turnsSurvivedFormat: '{0} turns'
+  percentFormat: '{0}%'
+  multiKillFormat: '{0} in a turn'
+  flawlessValue: No Damage!
+  comebackValue: Clutch!
+  oneTurnKillValue: OTK!

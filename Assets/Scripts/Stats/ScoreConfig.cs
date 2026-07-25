@@ -40,15 +40,19 @@ public class ScoreConfig : ScriptableObject
     public int gradeA = 2200;
     public int gradeB = 1500;
     public int gradeC = 800;
-    // below gradeC => the lowest grade
+    public int gradeD = 400;
+    public int gradeE = 0;
+    // below gradeE => the lowest grade
 
     [Header("Grade labels")]
     public string gradeSLabel = "S";
     public string gradeALabel = "A";
     public string gradeBLabel = "B";
     public string gradeCLabel = "C";
-    [Tooltip("Shown below the C threshold, and where the rank starts as the panel counts up.")]
     public string gradeDLabel = "D";
+    public string gradeELabel = "E";
+    [Tooltip("The floor: shown below the E threshold, including for negative totals.")]
+    public string gradeFLabel = "F";
 
     [Header("Breakdown row labels")]
     public string resultLabel = "Result";
@@ -83,6 +87,8 @@ public class ScoreConfig : ScriptableObject
         if (score >= gradeA) return gradeALabel;
         if (score >= gradeB) return gradeBLabel;
         if (score >= gradeC) return gradeCLabel;
-        return gradeDLabel;
+        if (score >= gradeD) return gradeDLabel;
+        if (score >= gradeE) return gradeELabel;
+        return gradeFLabel;
     }
 }

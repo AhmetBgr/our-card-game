@@ -1690,7 +1690,7 @@ MonoBehaviour:
   playerEditingTransform: {fileID: 1577234814}
   opponentEditingTransform: {fileID: 508699442}
   gameSceneName: Game
-  menuSceneName: Menu
+  menuSceneName: MainMenu
 --- !u!1 &1124219704
 GameObject:
   m_ObjectHideFlags: 0

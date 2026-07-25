@@ -208,7 +208,7 @@ public class MatchStatsView : MonoBehaviour
         revealedRowCount = 0;
         revealedScore = 0;
         displayedScore = 0;
-        displayedGrade = stats.GradeForScore(0); // lowest rank: rank and score are on screen from the start
+        displayedGrade = stats.GradeForScore(0); // rank for a zero score: rank and score are on screen from the start
 
         rowStartTimes = new float[revealRows.Count];
         for (int i = 0; i < rowStartTimes.Length; i++) rowStartTimes[i] = float.PositiveInfinity;

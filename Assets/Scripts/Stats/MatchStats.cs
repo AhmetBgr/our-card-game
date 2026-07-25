@@ -61,8 +61,9 @@ public class MatchStats
     // Grade thresholds and labels copied out of the config at score time. Kept by value (not as a
     // ScoreConfig reference) so the running-grade lookup stays valid even if the config instance was a
     // temporary one that has since been destroyed - see MatchStatsView's editor preview.
-    private int gradeS, gradeA, gradeB, gradeC;
-    private string gradeSLabel = "S", gradeALabel = "A", gradeBLabel = "B", gradeCLabel = "C", gradeDLabel = "D";
+    private int gradeS, gradeA, gradeB, gradeC, gradeD, gradeE;
+    private string gradeSLabel = "S", gradeALabel = "A", gradeBLabel = "B", gradeCLabel = "C",
+                   gradeDLabel = "D", gradeELabel = "E", gradeFLabel = "F";
 
     // Grade for an arbitrary (partial) score, used while the breakdown counts up row by row.
     public string GradeForScore(int score)
@@ -71,7 +72,9 @@ public class MatchStats
         if (score >= gradeA) return gradeALabel;
         if (score >= gradeB) return gradeBLabel;
         if (score >= gradeC) return gradeCLabel;
-        return gradeDLabel;
+        if (score >= gradeD) return gradeDLabel;
+        if (score >= gradeE) return gradeELabel;
+        return gradeFLabel;
     }
 
     // Inspector-authored formats go through here so a stray brace in the asset falls back to the bare
@@ -93,11 +96,15 @@ public class MatchStats
         gradeA = cfg.gradeA;
         gradeB = cfg.gradeB;
         gradeC = cfg.gradeC;
+        gradeD = cfg.gradeD;
+        gradeE = cfg.gradeE;
         gradeSLabel = cfg.gradeSLabel;
         gradeALabel = cfg.gradeALabel;
         gradeBLabel = cfg.gradeBLabel;
         gradeCLabel = cfg.gradeCLabel;
         gradeDLabel = cfg.gradeDLabel;
+        gradeELabel = cfg.gradeELabel;
+        gradeFLabel = cfg.gradeFLabel;
 
         void Add(string label, string value, int points)
         {

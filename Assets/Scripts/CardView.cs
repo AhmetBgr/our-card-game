@@ -79,7 +79,9 @@ public class CardView : MonoBehaviour
 
         minionTypeIconObjects[0].transform.parent.gameObject.SetActive(card.isPlayerMinion);
 
-        attacktext.transform.parent.gameObject.SetActive(card.health > 0 && card.attack > 0 && card.isPlayerMinion);
+        // Keyed off health, not attack: a 0-attack minion is still a minion and must show its attack
+        // stat. Only spells (attack == 0 && health == 0) hide it, and health == 0 already covers those.
+        attacktext.transform.parent.gameObject.SetActive(card.health > 0 && card.isPlayerMinion);
         healthtext.transform.parent.gameObject.SetActive(card.health > 0 && card.isPlayerMinion);
 
 
