@@ -172,7 +172,22 @@ public class ActionHolder : ScriptableObject
         selectedTargetMinions.Clear();
         selectedCells.Clear();
         selectedCards.Clear();
+        currentCellFootprint = null;
     }
+
+    /// <summary>
+    /// The footprint of the cell selection currently being awaited: hand it a candidate cell index and
+    /// it returns every index that choosing that cell would affect. Set immediately before
+    /// OnWaitingCellSelect fires and cleared once the selection closes.
+    ///
+    /// Exists for the AI. The event carries the selectable cells and the source card, neither of which
+    /// says what shape the card covers — so MinMaxBrain used to score a guessed 3x3 block and pick area
+    /// spells almost at random. It is a static alongside thisCardSO and selectedcell rather than an
+    /// extra event arg because every OnWaitingCellSelect handler would otherwise have to change.
+    ///
+    /// Null means "shape unknown"; scorers should fall back to the chosen cell alone rather than guess.
+    /// </summary>
+    public static Func<Vector2Int, IEnumerable<Vector2Int>> currentCellFootprint;
 
     public static event Action<SelectableParameters> OnSelect;
     public static event Action<List<Transform>, CardSO> OnWaitingCellSelect;
@@ -297,7 +312,7 @@ public class ActionHolder : ScriptableObject
         {
             GridCellSelectionManager.Instance.BeginSelection(
                 selectableIndexes,
-                hovered => new[] { hovered },
+                CellFootprints.Single,
                 previewOccupantPush: true,
                 sourceCard: thisCardSO);
         }
@@ -311,6 +326,7 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
+        currentCellFootprint = CellFootprints.Single;
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
         while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
@@ -319,6 +335,7 @@ public class ActionHolder : ScriptableObject
 
             yield return null;
         }
+        currentCellFootprint = null;
         if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
         if (cancelRequested) yield break;
         selectedCells.Clear();
@@ -353,12 +370,7 @@ public class ActionHolder : ScriptableObject
         {
             GridCellSelectionManager.Instance.BeginSelection(
                 selectableIndexes,
-                hovered => new[]
-                {
-                    hovered,
-                    new Vector2Int(hovered.x, hovered.y - 1),
-                    new Vector2Int(hovered.x, hovered.y - 2),
-                },
+                CellFootprints.ThreeDown,
                 sourceCard: thisCardSO);
         }
         if (GameManager.Instance.isPlayerTurn)
@@ -372,6 +384,7 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
+        currentCellFootprint = CellFootprints.ThreeDown;
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
         while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
@@ -381,17 +394,15 @@ public class ActionHolder : ScriptableObject
             yield return null;
         }
 
+        currentCellFootprint = null;
         if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
         if (cancelRequested) yield break;
 
         selectedCells.Clear();
         Vector2Int centerIndex = GridManager.Instance.PosToGridIndex(selectedcell.position);
-        HashSet<Vector2Int> areaIndexes = new HashSet<Vector2Int>
-        {
-            centerIndex,
-            new Vector2Int(centerIndex.x, centerIndex.y - 1),
-            new Vector2Int(centerIndex.x, centerIndex.y - 2),
-        };
+
+        // Same shape the highlight drew and the AI scored — one definition, so they cannot disagree.
+        HashSet<Vector2Int> areaIndexes = new HashSet<Vector2Int>(CellFootprints.ThreeDown(centerIndex));
 
         foreach (var areaIndex in areaIndexes)
         {
@@ -429,14 +440,7 @@ public class ActionHolder : ScriptableObject
         {
             GridCellSelectionManager.Instance.BeginSelection(
                 selectableIndexes,
-                hovered => new[]
-                {
-                    hovered,
-                    new Vector2Int(hovered.x + 1, hovered.y),
-                    new Vector2Int(hovered.x - 1, hovered.y),
-                    new Vector2Int(hovered.x, hovered.y + 1),
-                    new Vector2Int(hovered.x, hovered.y - 1),
-                },
+                CellFootprints.Plus,
                 sourceCard: thisCardSO);
         }
 
@@ -451,6 +455,7 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
+        currentCellFootprint = CellFootprints.Plus;
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
         while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
@@ -458,19 +463,15 @@ public class ActionHolder : ScriptableObject
             yield return null;
         }
 
+        currentCellFootprint = null;
         if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
         if (cancelRequested) yield break;
 
         selectedCells.Clear();
         Vector2Int centerIndex = GridManager.Instance.PosToGridIndex(selectedcell.position);
-        HashSet<Vector2Int> areaIndexes = new HashSet<Vector2Int>
-        {
-            centerIndex,
-            new Vector2Int(centerIndex.x + 1, centerIndex.y),
-            new Vector2Int(centerIndex.x - 1, centerIndex.y),
-            new Vector2Int(centerIndex.x, centerIndex.y + 1),
-            new Vector2Int(centerIndex.x, centerIndex.y - 1),
-        };
+
+        // Same shape the highlight drew and the AI scored — one definition, so they cannot disagree.
+        HashSet<Vector2Int> areaIndexes = new HashSet<Vector2Int>(CellFootprints.Plus(centerIndex));
 
         foreach (var areaIndex in areaIndexes)
         {
@@ -632,6 +633,12 @@ public class ActionHolder : ScriptableObject
             yield break;
         }
 
+        // FullColumn is what the effect below actually hits, and that is what the AI must score. Note it
+        // does NOT match the hover highlight above: selectableIndexes only holds row y == 2, so
+        // `Where(i => i.x == hovered.x)` lights exactly one cell while the effect sweeps the whole
+        // column. That mismatch predates this and is left alone here rather than quietly changing what
+        // the player sees — worth fixing separately.
+        currentCellFootprint = CellFootprints.FullColumn;
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
         while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
@@ -640,6 +647,7 @@ public class ActionHolder : ScriptableObject
 
             yield return null;
         }
+        currentCellFootprint = null;
         if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
         if (cancelRequested) yield break;
 

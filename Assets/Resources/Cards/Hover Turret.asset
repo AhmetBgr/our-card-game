@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: Hover Turret
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 4356364885295759180, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardArt: {fileID: 4356364885295759180, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
+  minionArt: {fileID: 1661066898, guid: 3dc63c6f5660b4f42bdbfdba03c024a8, type: 3}
+  cardArt: {fileID: 2921582248888115325, guid: 3dc63c6f5660b4f42bdbfdba03c024a8, type: 3}
   cardName: Hover Turret
   desc: 'Whenever you draw a card: Attack every enemy minion in range.'
   attack: 2
@@ -23,10 +22,12 @@ MonoBehaviour:
   cost: 5
   range: 2
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
@@ -109,7 +110,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -121,7 +122,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -133,7 +134,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
   OnMinionCollided:

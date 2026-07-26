@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "MinionMaximizerBrain", menuName = "AI/Brains/Minion Maximizer")]
@@ -50,42 +52,67 @@ public class MinionMaximizerBrain : AgentBrain
         return score;
     }
 
-    public override float ScoreCellSelection(Transform cell, CardSO contextCard, Agent self)
+    public override float ScoreCellSelection(Transform cell, CardSO contextCard, Agent self,
+                                             Func<Vector2Int, IEnumerable<Vector2Int>> footprint)
     {
         if (GridManager.Instance == null) return 0f;
 
         var centerCell = GridManager.Instance.GetCell(cell.position);
         Vector2Int center = centerCell.index;
 
-        int neighborMinions = 0;
-        int enemyNeighbors = 0;
-        int friendlyNeighbors = 0;
+        CardSO.CardIntent intent = contextCard != null ? contextCard.aiIntent : CardSO.CardIntent.Neutral;
+
+        // Neutral placements have no area worth judging (the cell being filled is empty by definition),
+        // so those still go by the company the cell keeps.
+        if (intent == CardSO.CardIntent.Neutral)
+            return CountNeighbourMinions(center) * adjacentMinionBonus;
+
+        // Targeted intents count what the card actually covers, taken from the shape that drives the
+        // player's highlight, rather than the 3x3 ring this used to assume.
+        IEnumerable<Vector2Int> covered = footprint != null ? footprint(center) : new[] { center };
+
+        int enemiesHit = 0;
+        int friendliesHit = 0;
+
+        foreach (var index in covered)
+        {
+            if (!GridManager.Instance.IsInsideGrid(index)) continue;
+
+            var c = GridManager.Instance.GetCell(index);
+            if (c.obj == null) continue;
+
+            var m = c.obj.GetComponent<MinionController>();
+            if (m == null) continue;
+
+            if (m.owner == self) friendliesHit++;
+            else enemiesHit++;
+        }
+
+        if (intent == CardSO.CardIntent.Harmful)
+            return enemiesHit * harmfulAreaEnemyBonus + friendliesHit * harmfulAreaFriendlyPenalty;
+
+        return friendliesHit * beneficialAreaFriendlyBonus + enemiesHit * beneficialAreaEnemyPenalty;
+    }
+
+    private static int CountNeighbourMinions(Vector2Int center)
+    {
+        int count = 0;
 
         for (int dx = -1; dx <= 1; dx++)
         {
             for (int dy = -1; dy <= 1; dy++)
             {
                 if (dx == 0 && dy == 0) continue;
-                var ni = new Vector2Int(center.x + dx, center.y + dy);
-                if (GridManager.Instance.IsOutSideOfGrid(ni)) continue;
-                var c = GridManager.Instance.GetCell(ni);
-                if (c.obj == null) continue;
 
-                neighborMinions++;
-                var m = c.obj.GetComponent<MinionController>();
-                if (m == null) continue;
-                if (m.owner == self) friendlyNeighbors++;
-                else enemyNeighbors++;
+                var ni = new Vector2Int(center.x + dx, center.y + dy);
+                if (!GridManager.Instance.IsInsideGrid(ni)) continue;
+
+                var c = GridManager.Instance.GetCell(ni);
+                if (c.obj != null && c.obj.GetComponent<MinionController>() != null) count++;
             }
         }
 
-        CardSO.CardIntent intent = contextCard != null ? contextCard.aiIntent : CardSO.CardIntent.Neutral;
-        if (intent == CardSO.CardIntent.Harmful)
-            return enemyNeighbors * harmfulAreaEnemyBonus + friendlyNeighbors * harmfulAreaFriendlyPenalty;
-        if (intent == CardSO.CardIntent.Beneficial)
-            return friendlyNeighbors * beneficialAreaFriendlyBonus + enemyNeighbors * beneficialAreaEnemyPenalty;
-
-        return neighborMinions * adjacentMinionBonus;
+        return count;
     }
 
     public override float ScoreMinionSelection(MinionController candidate, CardSO contextCard, Agent self)

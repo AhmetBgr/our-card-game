@@ -97,6 +97,10 @@ public class GameManager : Singleton<GameManager>
     {
         if (currentState == GameState.EndGame) return;
 
+        // Paused. Time.timeScale stops the coroutines but not this poll, so a right-click behind the pause
+        // menu would otherwise still back out of the card being played.
+        if (EscMenuController.IsOpen) return;
+
         if (isPlayerTurn && Input.GetMouseButtonDown(1))
         {
             // Right-click backs out: cancel the card being played, otherwise cancel an active

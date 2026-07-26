@@ -142,6 +142,10 @@ public class BoardInteractionGate : MonoBehaviour
     {
         if (_gm == null) return false; // no match in progress (menu scenes): nothing to gate
 
+        // The pause menu freezes the game with Time.timeScale, which does nothing to legacy OnMouse*
+        // delivery — hover feedback would keep lighting up behind the menu without this.
+        if (EscMenuController.IsOpen) return true;
+
         if (_gm.currentState == GameState.EndGame) return true;
         if (CardChoice.Instance.HasActiveRequest) return true;
         if (_popup != null && _popup.HasOpenPopup) return true;

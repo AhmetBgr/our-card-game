@@ -255,6 +255,17 @@ public class GridManager : MonoBehaviour
         if (grid[x, y].spacelessObj != null)
             grid[x, y].spacelessObj = null;  // Remove a specific object from the cell
     }
+    /// <summary>
+    /// Silent bounds check. <see cref="IsOutSideOfGrid"/> logs a warning on every miss, which is right
+    /// for a lookup that should never have gone out of bounds and wrong for callers that legitimately
+    /// probe off-grid indexes — the AI scoring a spell footprint that overhangs the board edge does it
+    /// dozens of times per decision, and would drown the console.
+    /// </summary>
+    public bool IsInsideGrid(Vector2Int index)
+    {
+        return index.x >= 0 && index.x < GridWidth && index.y >= 0 && index.y < GridHeight;
+    }
+
     public bool IsOutSideOfGrid(Vector2Int index)
     {
         // Check if the index is outside the bounds of the grid

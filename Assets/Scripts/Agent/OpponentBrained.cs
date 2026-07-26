@@ -66,6 +66,14 @@ public class OpponentBrained : Agent
             if (availableActions.Count == 0)
                 yield break;
 
+            // Decided before subscribing, and deliberately so: PickBestAction has no side effects and
+            // needs no selection handlers, and when it declines we can leave without ever having attached
+            // them. Passing ends the turn — there is nothing left to reconsider, since the board only
+            // changes from here if WE change it.
+            IEnumerator action = PickBestAction();
+            if (action == null)
+                yield break;
+
             ActionHolder.OnWaitingCellSelect += SelectCell;
             ActionHolder.OnWaitingMinionSelect += SelectMinion;
             ActionHolder.OnWaitingCardChoice += ChooseCard;
@@ -76,8 +84,6 @@ public class OpponentBrained : Agent
             // (see SelectCell/SelectMinion) instead of stopping this coroutine, which would skip the finally.
             try
             {
-                IEnumerator action = PickBestAction();
-
                 yield return new WaitForSeconds(1f);
 
                 Debug.LogWarning("Start action");
@@ -106,8 +112,21 @@ public class OpponentBrained : Agent
         }
     }
 
+    /// <summary>
+    /// The best available action, or null when none of them is worth taking.
+    ///
+    /// Returning null is the point. This used to seed the argmax with index 0 and only ever swap for a
+    /// strictly better score, so *something* was always executed however badly it scored: the AI emptied
+    /// its hand every turn, cast buffs into an empty board, and threw minions into lethal counter-attacks
+    /// purely because those were the only entries in the list. Doing nothing was never on the menu.
+    ///
+    /// Now the winner still has to clear the brain's <see cref="AgentBrain.MinimumActionScore"/>. Brains
+    /// that don't set one keep the old always-act behaviour, since the default bar is negative infinity.
+    /// </summary>
     private IEnumerator PickBestAction()
     {
+        if (availableActions.Count == 0) return null;
+
         int bestIndex = 0;
         float bestScore = actionScores.Count > 0 ? actionScores[0] : 0f;
         for (int i = 1; i < availableActions.Count; i++)
@@ -119,6 +138,15 @@ public class OpponentBrained : Agent
                 bestIndex = i;
             }
         }
+
+        float bar = brain != null ? brain.MinimumActionScore : float.NegativeInfinity;
+        if (bestScore < bar)
+        {
+            Debug.Log($"[AI] Passing: best of {availableActions.Count} available actions scores " +
+                      $"{bestScore:0.#}, under the {bar:0.#} bar — nothing here is worth doing.");
+            return null;
+        }
+
         return availableActions[bestIndex];
     }
 
@@ -166,8 +194,12 @@ public class OpponentBrained : Agent
 
         if (filtered.Count == 0)
         {
-            ActionHolder.selectedMinion = minions[0];
-            return;
+            // No target on the right side exists — e.g. a damage spell whose only reachable minions are
+            // ours. We are already committed to the play, so fall through to the scored pick and take the
+            // least-bad victim rather than whichever minion happened to be first in the list. (The brain
+            // is expected to refuse these plays outright via ScorePlayCard; this is the leftover case
+            // where enemy minions exist but none of them is selectable.)
+            filtered = minions;
         }
 
         // Exclude minions already committed as targets (e.g. first pick in a two-pick swap spell).
@@ -199,20 +231,33 @@ public class OpponentBrained : Agent
             return;
         }
 
-        float bestScore = brain != null ? brain.ScoreCellSelection(cells[0], card, this) : 0f;
-        for (int i = 1; i < cells.Count; i++)
-        {
-            float s = brain != null ? brain.ScoreCellSelection(cells[i], card, this) : 0f;
-            if (s > bestScore) bestScore = s;
-        }
+        // What this card actually covers if aimed at a given cell — an area spell is only as good as the
+        // minions inside its shape, and the shape is not derivable from the card alone. Null if the verb
+        // driving this selection didn't publish one; the brain then falls back to the cell itself.
+        var footprint = ActionHolder.currentCellFootprint;
 
+        // Single pass: score once per cell, keeping every cell tied at the best score so far. Scoring
+        // used to run three times over the list, which an area footprint makes meaningfully expensive.
         List<Transform> tied = new List<Transform>();
+        float bestScore = float.NegativeInfinity;
+
         foreach (var c in cells)
         {
-            float s = brain != null ? brain.ScoreCellSelection(c, card, this) : 0f;
-            if (s >= bestScore) tied.Add(c);
+            float s = brain != null ? brain.ScoreCellSelection(c, card, this, footprint) : 0f;
+
+            if (s > bestScore)
+            {
+                bestScore = s;
+                tied.Clear();
+                tied.Add(c);
+            }
+            else if (s == bestScore)
+            {
+                tied.Add(c);
+            }
         }
 
+        // Ties break at random so repeated casts don't always land on the same cell.
         ActionHolder.selectedcell = tied[UnityEngine.Random.Range(0, tied.Count)];
     }
 
