@@ -33,6 +33,9 @@ public class HeroController : MinionController
         {
             var index = modal.isPlayerMinion ? new Vector2Int(-1, -1) : new Vector2Int(-2, -2);
             MinionRangeHandler.Instance.ShowRange(index, modal.range);
+            // Same as a minion's SeeRange hover: mark the enemy units standing inside this hero's range.
+            // Hiding is inherited from MinionController.OnMouseExit.
+            MinionRangeHandler.Instance.ShowTargetsInRange(this);
         }
     }
 

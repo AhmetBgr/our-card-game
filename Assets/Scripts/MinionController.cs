@@ -41,6 +41,13 @@ public class MinionController : MonoBehaviour
     // the overlay goes away.
     private bool _attackReady;
 
+    [Header("In-Range Indicator")]
+    // Lit on this unit while an ENEMY unit is hovered and this unit sits inside that unit's attack range,
+    // so hovering anything reads out what it threatens. Purely range-based — it says nothing about whether
+    // the hovered unit still has its attack this turn (that's the sword indicator above). Driven entirely
+    // by MinionRangeHandler.ShowTargetsInRange / HideTargetsInRange; nothing here turns it on by itself.
+    public SpriteRenderer inRangeIndicator;
+
     [Header("Move Preview")]
     public SpriteRenderer moveArrow;
     public Color moveArrowColor = Color.white;
@@ -220,6 +227,8 @@ public class MinionController : MonoBehaviour
         {
             case HoverIntent.SeeRange:
                 MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range);
+                // Alongside the range tiles, mark the enemy units actually standing in that range.
+                MinionRangeHandler.Instance.ShowTargetsInRange(this);
                 break;
             case HoverIntent.ToPush:
                 ShowPushArrow();
@@ -500,6 +509,7 @@ public class MinionController : MonoBehaviour
             GridCellSelectionManager.Instance.TryHoverExitCellAt(gridEntity.GetGridIndex());
 
         MinionRangeHandler.Instance.HideRange();
+        MinionRangeHandler.Instance.HideTargetsInRange();
         HideMoveArrow();
         HideDeathPreview();
     }
@@ -615,6 +625,14 @@ public class MinionController : MonoBehaviour
             selectable.SetSelectable(false);
 
     }
+    // Show/hide the "in range of the hovered unit" marker. Called on the TARGET, not on the hovered unit,
+    // so MinionRangeHandler owns the bookkeeping of which units are currently marked.
+    public void SetInRangeIndicator(bool inRange)
+    {
+        if (inRangeIndicator != null)
+            inRangeIndicator.enabled = inRange;
+    }
+
     // Force the attack indicator off for a transient overlay (attack-target selection, move-preview
     // arrow) without clearing _attackReady, so RefreshAttackHighlight() / SetReadyToAttack can restore it.
     public void HideAttackHighlight()

@@ -247,7 +247,7 @@ MonoBehaviour:
   m_SpriteState:
     m_HighlightedSprite: {fileID: 6931070, guid: 0a487944dd7a74848a7db802b22c7953,
       type: 3}
-    m_PressedSprite: {fileID: 148050016, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
+    m_PressedSprite: {fileID: 6931070, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
     m_SelectedSprite: {fileID: 6931070, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
     m_DisabledSprite: {fileID: -67600548, guid: 0a487944dd7a74848a7db802b22c7953,
       type: 3}
@@ -278,12 +278,12 @@ MonoBehaviour:
   off:
     normal: {fileID: 148050016, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
     highlighted: {fileID: 6931070, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
-    pressed: {fileID: 148050016, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
+    pressed: {fileID: 6931070, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
     disabled: {fileID: -67600548, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
   on:
     normal: {fileID: -1673801497, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
     highlighted: {fileID: -1451240570, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
-    pressed: {fileID: -1673801497, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
+    pressed: {fileID: -1451240570, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
     disabled: {fileID: -67600548, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
   isOn: 0
   onValueChanged:
