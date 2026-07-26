@@ -57,6 +57,13 @@ public class CardSelectionPanel : MonoBehaviour
     private TextMeshProUGUI _seeBoardButtonLabel;
 
     /// <summary>
+    /// Present when the assigned See Board button is the authored toggle (Button_Toggle) rather than a
+    /// plain Button. When it is, the toggle owns the click and reports the new state through
+    /// onValueChanged; the runtime fallback button has none and falls back to Button.onClick.
+    /// </summary>
+    private ToggleButton _seeBoardToggle;
+
+    /// <summary>
     /// The panel's own full-screen Image: the dimming backdrop, and — because it is a raycast target
     /// covering the whole canvas — the thing that stops uGUI clicks (dragging a card out of hand, the
     /// end-turn button) reaching anything underneath. Peeking drops its alpha to 0 but deliberately
@@ -221,7 +228,13 @@ public class CardSelectionPanel : MonoBehaviour
     /// </summary>
     public void ToggleSeeBoard()
     {
-        _peeking = !_peeking;
+        SetPeeking(!_peeking);
+    }
+
+    /// <summary>Peek state as an explicit value, so the toggle can report what it just switched to.</summary>
+    public void SetPeeking(bool peeking)
+    {
+        _peeking = peeking;
         ApplyPeekState();
     }
 
@@ -240,6 +253,11 @@ public class CardSelectionPanel : MonoBehaviour
 
         if (_seeBoardButtonLabel != null)
             _seeBoardButtonLabel.text = _peeking ? showCardsLabel : seeBoardLabel;
+
+        // notify: false — the toggle is usually the thing that told us to get here, and Open()/Close()
+        // reset the peek without a click at all. Either way it must not echo the change back.
+        if (_seeBoardToggle != null)
+            _seeBoardToggle.SetIsOn(_peeking, notify: false);
     }
 
     private void CaptureBackdrop()
@@ -267,13 +285,25 @@ public class CardSelectionPanel : MonoBehaviour
         if (seeBoardButton == null) return;
 
         _seeBoardButtonLabel = seeBoardButton.GetComponentInChildren<TextMeshProUGUI>(true);
+        _seeBoardToggle = seeBoardButton.GetComponent<ToggleButton>();
 
         seeBoardButton.gameObject.SetActive(true);
         // Last sibling so it draws above the backdrop and stays clickable while everything else is hidden.
         seeBoardButton.transform.SetAsLastSibling();
 
         seeBoardButton.onClick.RemoveAllListeners();
-        seeBoardButton.onClick.AddListener(ToggleSeeBoard);
+
+        if (_seeBoardToggle != null)
+        {
+            // The toggle already flipped itself on the click, so take its state rather than inverting
+            // ours — going through ToggleSeeBoard here would flip a second time and cancel it out.
+            _seeBoardToggle.onValueChanged.RemoveAllListeners();
+            _seeBoardToggle.onValueChanged.AddListener(SetPeeking);
+        }
+        else
+        {
+            seeBoardButton.onClick.AddListener(ToggleSeeBoard);
+        }
     }
 
     /// <summary>

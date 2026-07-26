@@ -605,7 +605,7 @@ TextureImporter:
         width: 64
         height: 67
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 5, y: 5, z: 5, w: 5}
       customData: 
       outline: []
@@ -614,6 +614,160 @@ TextureImporter:
       bones: []
       spriteID: 05caf409493f1084897122c69e26388d
       internalID: -209321259
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_23
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 755
+        width: 34
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f9e65d7782fc244f8ffc93a229505ec
+      internalID: 1232570003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_24
+      rect:
+        serializedVersion: 2
+        x: 222
+        y: 755
+        width: 36
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ab259f65af6a774b9dd3a0b6f5e4e31
+      internalID: -1018016866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_25
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 756
+        width: 34
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8681ddd89d0f7f746a5acfee33998f89
+      internalID: 2099304332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_26
+      rect:
+        serializedVersion: 2
+        x: 336
+        y: 757
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5e789ac3d7ff894cba04cc89a772b5d
+      internalID: 148050016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_27
+      rect:
+        serializedVersion: 2
+        x: 368
+        y: 757
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4425c60312ec71488aecd431fb63b30
+      internalID: 6931070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_28
+      rect:
+        serializedVersion: 2
+        x: 336
+        y: 723
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d46050134514969419e9fd98f88f3148
+      internalID: -1673801497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_29
+      rect:
+        serializedVersion: 2
+        x: 368
+        y: 723
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 823c9c241896fef4290b528edb53ce2f
+      internalID: -1451240570
       vertices: []
       indices: 
       edges: []
@@ -648,6 +802,13 @@ TextureImporter:
       panel_01_20: -1630672300
       panel_01_21: -1325262955
       panel_01_22: -209321259
+      panel_01_23: 1232570003
+      panel_01_24: -1018016866
+      panel_01_25: 2099304332
+      panel_01_26: 148050016
+      panel_01_27: 6931070
+      panel_01_28: -1673801497
+      panel_01_29: -1451240570
       panel_01_3: 2059521453
       panel_01_4: 1152573127
       panel_01_5: -67600548

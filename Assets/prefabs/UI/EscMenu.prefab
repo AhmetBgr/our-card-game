@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2674740450488126017
 RectTransform:
   m_ObjectHideFlags: 0
@@ -175,7 +175,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -24, y: -24}
-  m_SizeDelta: {x: 64, y: 38}
+  m_SizeDelta: {x: 32, y: 32}
   m_Pivot: {x: 1, y: 1}
 --- !u!222 &3699031903351112955
 CanvasRenderer:
@@ -205,7 +205,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1149294311, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
+  m_Sprite: {fileID: 1232570003, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -228,7 +228,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -244,9 +244,10 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 1152573127, guid: 0a487944dd7a74848a7db802b22c7953,
+    m_HighlightedSprite: {fileID: -1018016866, guid: 0a487944dd7a74848a7db802b22c7953,
       type: 3}
-    m_PressedSprite: {fileID: -67600548, guid: 0a487944dd7a74848a7db802b22c7953, type: 3}
+    m_PressedSprite: {fileID: 2099304332, guid: 0a487944dd7a74848a7db802b22c7953,
+      type: 3}
     m_SelectedSprite: {fileID: 0}
     m_DisabledSprite: {fileID: 0}
   m_AnimationTriggers:
