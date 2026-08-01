@@ -11,14 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d4d3b8151e06041930c2ab2871c74e, type: 3}
   m_Name: Copycat Upgraded
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   cardName: Copycat Upgraded
-  desc: 'Create a copy of an upgraded card from your deck and add it to your hand.
+  desc: 'Ignition: Create a copy of an upgraded card from your deck and add it to
+    your hand.
 
-If no upgraded cards in deck, draw a card.'
+    If no upgraded cards in deck, draw a card.'
   attack: 3
   health: 3
   cost: 6
@@ -28,6 +29,7 @@ If no upgraded cards in deck, draw a card.'
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   type: 0
   selectionIntent: 0
   aiIntent: 1
@@ -49,7 +51,7 @@ If no upgraded cards in deck, draw a card.'
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 2
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -61,7 +63,7 @@ If no upgraded cards in deck, draw a card.'
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -73,7 +75,7 @@ If no upgraded cards in deck, draw a card.'
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -85,7 +87,7 @@ If no upgraded cards in deck, draw a card.'
           m_ObjectArgumentAssemblyTypeName: CardSO, Assembly-CSharp
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
@@ -97,7 +99,7 @@ If no upgraded cards in deck, draw a card.'
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
   OnDeath:

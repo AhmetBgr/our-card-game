@@ -40,12 +40,17 @@ public class CardHoverOutline : MonoBehaviour, IPointerEnterHandler, IPointerExi
     {
         View.SetHoveredOutline(true);
         ScaleTo(_restScale * hoverScale);
+
+        var modal = GetComponent<CardModal>();
+        if (modal != null)
+            KeywordTooltip.Show(modal.desc, (RectTransform)transform, this);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         View.SetHoveredOutline(false);
         ScaleTo(_restScale);
+        KeywordTooltip.Hide(this);
     }
 
     private void ScaleTo(Vector3 target)
@@ -63,6 +68,7 @@ public class CardHoverOutline : MonoBehaviour, IPointerEnterHandler, IPointerExi
         // The pointer never "exits" a card that is destroyed or hidden underneath it, so reset on the way
         // out — otherwise a pooled/reused view would come back lit and still swollen.
         View.SetHoveredOutline(false);
+        KeywordTooltip.Hide(this);
 
         if (Mathf.Approximately(hoverScale, 1f)) return;
         transform.DOKill();

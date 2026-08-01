@@ -27,6 +27,9 @@ public class DeckPanelController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI cardAmount;
 
     [SerializeField] private GameObject mouseHoverCard;
+
+    [Tooltip("Optional fixed spot for the keyword tooltip stack (its top-left corner lands here) while a card preview is shown. Empty = stack sits beside the preview card.")]
+    [SerializeField] private Transform keywordTooltipPoint;
     [SerializeField] private GameObject upgradedMouseHoverCard;
 
     [Tooltip("Shown when the selected deck is locked (the default/mystery decks aren't editable).")]
@@ -113,6 +116,12 @@ public class DeckPanelController : MonoBehaviour
         mouseHoverCard.GetComponent<CardView>().UpdateView(modal);
         mouseHoverCard.gameObject.SetActive(true);
 
+        // The preview shows base and upgraded side by side, so the tooltip covers both descs.
+        string tooltipDesc = card.upgradedVersion == null
+            ? card.desc
+            : card.desc + "\n" + card.upgradedVersion.desc;
+        KeywordTooltip.Show(tooltipDesc, (RectTransform)mouseHoverCard.transform, this, keywordTooltipPoint);
+
         if (card.upgradedVersion == null) return;
 
         var modal2 = upgradedMouseHoverCard.GetComponent<CardModal>();
@@ -143,6 +152,7 @@ public class DeckPanelController : MonoBehaviour
 
         mouseHoverCard.gameObject.SetActive(false);
         upgradedMouseHoverCard.gameObject.SetActive(false);
+        KeywordTooltip.Hide(this);
     }
     public void RemoveFromCurrentCustomDeck(string card)
     {

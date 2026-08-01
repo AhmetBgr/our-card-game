@@ -2160,7 +2160,12 @@ PrefabInstance:
     - target: {fileID: 3295751233718878414, guid: c0873a3381dc78041aa1ffeeecbd1aa4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -132
+      value: -56.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3572124613235760461, guid: c0873a3381dc78041aa1ffeeecbd1aa4,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -435.4
       objectReference: {fileID: 0}
     - target: {fileID: 4553938275275367755, guid: c0873a3381dc78041aa1ffeeecbd1aa4,
         type: 3}
@@ -2175,7 +2180,7 @@ PrefabInstance:
     - target: {fileID: 5244752147015028448, guid: c0873a3381dc78041aa1ffeeecbd1aa4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -133.4
+      value: -56.4
       objectReference: {fileID: 0}
     - target: {fileID: 5819875126423097091, guid: c0873a3381dc78041aa1ffeeecbd1aa4,
         type: 3}
@@ -2846,6 +2851,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SceneTransitionCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 8420482644876656114, guid: 1209b6ee615b37547ac4851d929f6093,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -53,6 +53,37 @@ MonoBehaviour:
     useColor: 1
     color: {r: 0.3773585, g: 0.2789503, b: 0.105019584, a: 1}
     bold: 1
+  tooltipKeywords:
+  - displayName: Ignition
+    matchPhrases:
+    - Ignition
+    explanation: Triggers when you play minion card from your hand.
+  - displayName: On Summon
+    matchPhrases:
+    - On Summon
+    explanation: Triggers when this minion enters the board.
+  - displayName: Breakdown
+    matchPhrases:
+    - Breakdown
+    explanation: Triggers when this minion dies.
+  - displayName: Clash
+    matchPhrases:
+    - Clashes
+    - Clash
+    explanation: Triggers when this minion runs into another minion.
+  - displayName: Cripple
+    matchPhrases:
+    - Cripple
+    - Crippled
+    explanation: A crippled minion cannot move but can be Pushed.
+  - displayName: Forged
+    matchPhrases:
+    - Forged
+    explanation: A stronger version of a card, obtained after playing normal card.
+  - displayName: Overdrive
+    matchPhrases:
+    - Overdrive
+    explanation: Can Attack and Move after summoned.
   highlightNumbers: 1
   useNumberColor: 0
   numberColor: {r: 0.07450981, g: 0.03529412, b: 0, a: 1}

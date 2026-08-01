@@ -12,6 +12,13 @@ public class CardView : MonoBehaviour
     [SerializeField] private Image art;
     [SerializeField] private Image frame;
 
+    /// <summary>
+    /// The visible card's rect, for anything that needs to sit flush against what the player sees
+    /// (keyword tooltips). The root RectTransform is a larger layout slot whose edges extend past
+    /// the drawn card, so aligning to it looks off; the frame image is the card as drawn.
+    /// </summary>
+    public RectTransform VisualRect => frame != null ? frame.rectTransform : (RectTransform)transform;
+
     [SerializeField] private Sprite minionFrame;
     [SerializeField] private Sprite spellFrame;
     [SerializeField] private Sprite upgradedMinionFrame;

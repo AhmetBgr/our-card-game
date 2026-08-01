@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   cardName: Pirate Upgraded
-  desc: Can Attack and Move after summoned. Can Attack Twice per turn.
+  desc: Overdrive, Can Attack Twice per turn.
   attack: 4
   health: 4
   cost: 4

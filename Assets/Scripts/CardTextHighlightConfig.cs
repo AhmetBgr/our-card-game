@@ -34,11 +34,30 @@ public class CardTextHighlightConfig : ScriptableObject
         public bool bold = true;
     }
 
+    // A gameplay mechanic worth explaining on hover. Separate from the styling lists above: stat
+    // words like "Attack" or "Cost" are styled but must not spawn tooltips, and one mechanic can be
+    // referenced by several phrasings ("Freeze"/"Frozen"/"Crippled") that all map to one entry.
+    [System.Serializable]
+    public class KeywordDefinition
+    {
+        [Tooltip("Name shown as the tooltip title, e.g. \"Freeze\".")]
+        public string displayName;
+
+        [Tooltip("Phrases in a card description that mean this mechanic. Matched case-insensitively; multi-word phrases allowed.")]
+        public string[] matchPhrases;
+
+        [Tooltip("Explanation shown under the title.")]
+        [TextArea] public string explanation;
+    }
+
     [Header("Trigger phrases (share one color)")]
     public HighlightGroup triggerPhrases = new HighlightGroup();
 
     [Header("Stat keywords (each has its own color)")]
     public KeywordStyle[] statKeywords;
+
+    [Header("Tooltip keywords (hover explanations)")]
+    public KeywordDefinition[] tooltipKeywords;
 
     [Header("Numbers (3, +1/+1, +2, ...)")]
     public bool highlightNumbers = true;

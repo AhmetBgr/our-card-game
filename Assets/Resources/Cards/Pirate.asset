@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   cardName: Pirate
-  desc: Can Attack and Move after summoned.
+  desc: Overdrive
   attack: 2
   health: 3
   cost: 2

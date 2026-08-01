@@ -11,6 +11,9 @@ public class HandManager : MonoBehaviour
 
     public CardController infoCard;
 
+    [Tooltip("Optional fixed spot for the keyword tooltip stack (its top-left corner lands here) while the info card is shown. Empty = stack sits beside the info card.")]
+    [SerializeField] private Transform keywordTooltipPoint;
+
     public void UpdateSlots()
     {
         foreach (Transform item in transform)
@@ -26,11 +29,16 @@ public class HandManager : MonoBehaviour
         infoCard.card = card;
         infoCard.modal.UpdateModal(card, null, true);
         infoCard.view.UpdateView(infoCard.modal);
+
+        // One hookup covers every surface that funnels through the info card: board minions
+        // (MinionController.OnMouseEnter) and action-log entries (LogEntryHandler).
+        KeywordTooltip.Show(card.desc, (RectTransform)infoCard.transform, this, keywordTooltipPoint);
     }
 
     public void HideInfoCard()
     {
         infoCard.gameObject.SetActive(false);
+        KeywordTooltip.Hide(this);
     }
 
     public void AddToTopView(Transform card)

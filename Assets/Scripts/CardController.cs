@@ -99,6 +99,9 @@ public class CardController : MonoBehaviour
             : -533f;
         transform.localPosition = new Vector3(transform.localPosition.x, peekY, transform.localPosition.z);
         transform.localScale = Vector3.one * 1.5f;
+
+        // After the peek transform, so the tooltip stacks beside the lifted, enlarged card.
+        KeywordTooltip.Show(modal.desc, (RectTransform)transform, this);
     }
 
     public void OnPointerExit()
@@ -108,6 +111,7 @@ public class CardController : MonoBehaviour
         // Cleared unconditionally, mirroring OnPointerEnter — a card that was hovered without peeking
         // would otherwise keep its outline lit after the pointer left.
         view.SetHoveredOutline(false);
+        KeywordTooltip.Hide(this);
 
         if (!isPeeking) return;
 

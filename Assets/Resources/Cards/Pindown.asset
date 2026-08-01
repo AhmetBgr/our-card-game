@@ -16,9 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   cardName: Pindown
-  desc: 'Freeze a minion. _Crippled minion can still be pushed_
-
-'
+  desc: Cripple a minion
   attack: 0
   health: 0
   cost: 0

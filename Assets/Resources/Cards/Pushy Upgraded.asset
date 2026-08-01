@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   cardName: Pushy Upgraded
-  desc: 'On Play: Push the minion on this tile 2 tiles forward. That minion takes
+  desc: 'Ignition: Push the minion on this tile 2 tiles forward. That minion takes
     1 damage and gains +2 Attack.'
   attack: 2
   health: 3
