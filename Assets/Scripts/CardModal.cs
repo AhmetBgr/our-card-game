@@ -26,6 +26,7 @@ public class CardModal : MonoBehaviour
     public bool canMove = true;
     public bool canAttack = true;
     public bool canAttackManually = true;
+    public int attacksPerTurn = 1;
 
     public UnityEvent OnPlay;
     public UnityEvent OnDeath;
@@ -55,6 +56,7 @@ public class CardModal : MonoBehaviour
         canMove = card.canMove;
         canAttack = card.canAttack;
         canAttackManually = card.canAttackManually;
+        attacksPerTurn = card.attacksPerTurn;
         upgradedVerdion = card.upgradedVersion;
         isUpgraded = card.isUpgraded;
 
@@ -111,5 +113,6 @@ public class CardModal : MonoBehaviour
         canMove = source.canMove;
         canAttack = source.canAttack;
         canAttackManually = source.canAttackManually;
+        attacksPerTurn = source.attacksPerTurn;
     }
 }

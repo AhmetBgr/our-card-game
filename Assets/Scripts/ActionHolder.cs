@@ -1388,7 +1388,7 @@ public class ActionHolder : ScriptableObject
     {
         var dir = GameManager.Instance.isPlayerTurn ? Vector3Int.up : Vector3Int.down;
 
-        Vector3Int pos = Vector3Int.RoundToInt(selectedMinion.transform.position) + dir;
+        Vector3Int pos = Vector3Int.RoundToInt(selectedMinion.gridEntity.WorldPos) + dir;
         var canMove = selectedMinion.modal.canMove;
         var age = selectedMinion.age;
 
@@ -2010,9 +2010,9 @@ public class ActionHolder : ScriptableObject
             // get here; writing an unconditional false would REFUND a manual attack the minion had already
             // spent this turn (e.g. crossbow hits the enemy hero, the Summoner passive spawns a minion, the
             // crossbow reacts to that summon and gets its click back).
-            bool spentBefore = attacker.isAttackedThisTurn;
+            int spentBefore = attacker.attacksMadeThisTurn;
             attacker.StartAttack(target.owner, target);
-            attacker.isAttackedThisTurn = spentBefore;
+            attacker.attacksMadeThisTurn = spentBefore;
             yield return new WaitForSeconds(1f);
         }
     }
@@ -2034,9 +2034,9 @@ public class ActionHolder : ScriptableObject
             // an already-spent manual attack.
             var attacker = thisMinion;
             if (attacker == null) continue;
-            bool spentBefore = attacker.isAttackedThisTurn;
+            int spentBefore = attacker.attacksMadeThisTurn;
             attacker.StartAttack(target.owner, target, noCounter: true);
-            attacker.isAttackedThisTurn = spentBefore;
+            attacker.attacksMadeThisTurn = spentBefore;
             yield return new WaitForSeconds(1f);
         }
     }
@@ -2105,6 +2105,80 @@ public class ActionHolder : ScriptableObject
         }
 
     }
+
+    public void DrawUpgradedCardFromDeck()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_DrawUpgradedCardFromDeck());
+    }
+
+    public IEnumerator _DrawUpgradedCardFromDeck()
+    {
+        yield return new WaitForSeconds(0.5f);
+        Agent agent = selectedAgent;
+        if (agent == null) yield break;
+        if (agent.hand.Count >= 7) yield break;
+
+        if (agent.deck.Count == 0)
+        {
+            yield return GameManager.Instance.StartCoroutine(agent.DrawCardRoutine());
+            yield break;
+        }
+
+        int upgradedIndex = -1;
+        List<int> upgradedIndices = new List<int>();
+        for (int i = 0; i < agent.deck.Count; i++)
+        {
+            if (agent.deck[i].isUpgraded)
+                upgradedIndices.Add(i);
+        }
+
+        if (upgradedIndices.Count > 0)
+        {
+            upgradedIndex = upgradedIndices[UnityEngine.Random.Range(0, upgradedIndices.Count)];
+            CardSO cardSO = agent.deck[upgradedIndex];
+            agent.deck.RemoveAt(upgradedIndex);
+            agent.AddCard(cardSO);
+        }
+        else
+        {
+            yield return GameManager.Instance.StartCoroutine(agent.DrawCardRoutine());
+        }
+    }
+
+    public void CreateUpgradedCardFromDeck()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_CreateUpgradedCardFromDeck());
+    }
+
+    public IEnumerator _CreateUpgradedCardFromDeck()
+    {
+        yield return new WaitForSeconds(0.5f);
+        Agent agent = selectedAgent;
+        if (agent == null) yield break;
+        if (agent.hand.Count >= 7) yield break;
+
+        List<CardSO> upgraded = new List<CardSO>();
+        for (int i = 0; i < agent.deck.Count; i++)
+        {
+            if (agent.deck[i].isUpgraded)
+                upgraded.Add(agent.deck[i]);
+        }
+
+        if (upgraded.Count > 0)
+        {
+            CardSO chosen = upgraded[UnityEngine.Random.Range(0, upgraded.Count)];
+            CardController cardObj = agent.AddCard(chosen);
+            if (cardObj != null)
+                cardObj.modal.upgradedVerdion = null;
+        }
+        else
+        {
+            yield return GameManager.Instance.StartCoroutine(agent.DrawCardRoutine());
+        }
+    }
+
     /// <summary>
     /// Owes selectedAgent `amount` extra cards at the start of its NEXT turn (Do Nothing). Deliberately
     /// draws nothing now — the debt is banked on the agent and paid by GameManager.DrawTurnStartCards,
@@ -2458,6 +2532,41 @@ public class ActionHolder : ScriptableObject
         selectedMinion.modal.canMove = value;
         //Debug.Log("selected minion");
     }
+
+    public void ChangeMinionStatsByOwnership(int value)
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_ChangeMinionStatsByOwnership(value));
+    }
+
+    public IEnumerator _ChangeMinionStatsByOwnership(int value)
+    {
+        Agent caster = thisCard != null ? thisCard.modal.owner : null;
+        foreach (var minion in selectedMinions)
+        {
+            bool isFriendly = caster != null && minion.owner == caster;
+            int sign = isFriendly ? 1 : -1;
+            int attackChange = sign * value;
+            int healthChange = sign * value;
+
+            minion.modal.attack += attackChange;
+            if (minion.modal.attack < 0) minion.modal.attack = 0;
+
+            if (healthChange < 0)
+            {
+                minion.TakeDamage(Mathf.Abs(healthChange));
+            }
+            else
+            {
+                minion.modal.health += healthChange;
+                minion.modal.defHealth += healthChange;
+            }
+
+            minion.view.UpdateView(minion.modal);
+        }
+        yield return null;
+    }
+
     public void Wait()
     {
         if (GameManager.Instance.isTesting) return;
@@ -2669,5 +2778,117 @@ public class ActionHolder : ScriptableObject
         }
 
         yield return null;
+    }
+
+    public void RemoveSummoningSickness()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_RemoveSummoningSickness());
+    }
+
+    public IEnumerator _RemoveSummoningSickness()
+    {
+        if (thisMinion != null)
+            thisMinion.age = 1;
+        yield return null;
+    }
+
+    public void KillStrongestEnemyMinion()
+    {
+        if (GameManager.Instance.isTesting) return;
+        curActionsList.Enqueue(_KillStrongestEnemyMinion());
+    }
+
+    public IEnumerator _KillStrongestEnemyMinion()
+    {
+        Agent enemy;
+        if (thisCard != null)
+            enemy = thisCard.modal.owner == GameManager.Instance.player ? GameManager.Instance.opponent : GameManager.Instance.player;
+        else
+            enemy = GameManager.Instance.isPlayerTurn ? GameManager.Instance.opponent : GameManager.Instance.player;
+
+        MinionController strongest = null;
+        int bestScore = int.MinValue;
+        foreach (var m in enemy.minions)
+        {
+            if (m == null) continue;
+            int score = m.modal.attack + m.modal.health;
+            if (score > bestScore) { bestScore = score; strongest = m; }
+        }
+
+        if (strongest != null)
+        {
+            strongest.TakeDamage(strongest.modal.health + strongest.modal.armor);
+            yield return new WaitForSeconds(1f);
+        }
+        else
+        {
+            yield return null;
+        }
+    }
+
+    public void SummonMinionDoublePush(CardSO card)
+    {
+        curActionsList.Enqueue(_SummonMinionDoublePush(card, 0));
+    }
+
+    public void SummonMinionDoublePushBuff(CardSO card)
+    {
+        curActionsList.Enqueue(_SummonMinionDoublePush(card, 2));
+    }
+
+    private IEnumerator _SummonMinionDoublePush(CardSO card, int attackBuff)
+    {
+        yield return null;
+
+        if (GameManager.Instance.isTesting)
+        {
+            if (!AnySelectedCellCanReceiveSummon()) GameManager.Instance.isTestingFailed = true;
+            yield break;
+        }
+
+        foreach (var cell in selectedCells)
+        {
+            Vector2Int idx = GridManager.Instance.PosToGridIndex(cell.position);
+            GameObject occupantObj = GridManager.Instance.GetCell(idx).obj;
+
+            if (occupantObj != null && occupantObj.TryGetComponent(out MinionController occupant))
+            {
+                Vector3Int pushDir = SummonerPushDir();
+
+                // First push (selectability guarantees tile 1 is empty)
+                occupant.PushForward(pushDir);
+
+                yield return _Wait();
+
+                // Second push attempt
+                Vector3Int secondTarget = Vector3Int.RoundToInt(occupant.gridEntity.WorldPos) + pushDir;
+                Vector2Int secondIdx = GridManager.Instance.PosToGridIndex(secondTarget);
+                if (!GridManager.Instance.IsOutSideOfGrid(secondIdx) && GridManager.Instance.GetCell(secondIdx).obj == null)
+                {
+                    occupant.PushForward(pushDir);
+                }
+                else
+                {
+                    MinionController blocker = null;
+                    if (!GridManager.Instance.IsOutSideOfGrid(secondIdx))
+                    {
+                        var blockerObj = GridManager.Instance.GetCell(secondIdx).obj;
+                        if (blockerObj != null) blocker = blockerObj.GetComponent<MinionController>();
+                    }
+                    occupant.FailedMove((Vector3)pushDir, blocker);
+                }
+
+                occupant.TakeDamage(1);
+
+                if (attackBuff > 0 && occupant != null && occupant.modal.health > 0)
+                {
+                    occupant.modal.attack += attackBuff;
+                    occupant.view.UpdateView(occupant.modal);
+                }
+            }
+
+            GameManager.Instance.SummonMinion(card, cell.position);
+        }
     }
 }

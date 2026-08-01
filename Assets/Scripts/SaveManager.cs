@@ -92,6 +92,18 @@ public class SaveManager : PermanentSingleton<SaveManager>
         SaveData();
         return true;
     }
+    // Whether the in-match action log is expanded. Off by default; the panel writes back on every
+    // toggle, so the choice carries across matches and sessions.
+    public bool ShowActionLog => saveData != null && saveData.ShowActionLog;
+
+    public void SetShowActionLog(bool value)
+    {
+        if (saveData == null || saveData.ShowActionLog == value) return;
+
+        saveData.ShowActionLog = value;
+        SaveData();
+    }
+
     public string GetSaveData()
     {
         // Retrieve deck data from PlayerPrefs or other storage

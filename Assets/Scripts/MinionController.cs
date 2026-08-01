@@ -24,7 +24,7 @@ public class MinionController : MonoBehaviour
 
     public Vector3Int plannedMoveDir = Vector3Int.zero;
     public bool isMovementValidated = false;
-    public bool isAttackedThisTurn = false;
+    public int attacksMadeThisTurn = 0;
     public bool canAttack = false;
     public int age = 0;
 
@@ -139,7 +139,7 @@ public class MinionController : MonoBehaviour
     private void OnTurnSwitch(GameState curState)
     {
         age++;
-        isAttackedThisTurn = false;
+        attacksMadeThisTurn = 0;
         isMovementValidated = false;
 
         // Clear the attack indicator on every turn end; it is re-lit for the player's minions at the
@@ -570,7 +570,7 @@ public class MinionController : MonoBehaviour
     public void ClearAttackReadiness()
     {
         canAttack = false;
-        isAttackedThisTurn = true;
+        attacksMadeThisTurn = modal.attacksPerTurn;
         _attackReady = false;
 
         if (attackHighlight != null)
@@ -584,7 +584,7 @@ public class MinionController : MonoBehaviour
     {
         // Eligibility: does this minion still have its attack this turn? This is independent of whether
         // a target is currently in range.
-        bool eligible = modal.canAttack && modal.canAttackManually && !isAttackedThisTurn && age >= 1;
+        bool eligible = modal.canAttack && modal.canAttackManually && attacksMadeThisTurn < modal.attacksPerTurn && age >= 1;
 
         if (!eligible)
         {
@@ -659,7 +659,7 @@ public class MinionController : MonoBehaviour
 
     public virtual bool CanAttack(Agent opponent)
     {
-        if (!modal.canAttack || !modal.canAttackManually || isAttackedThisTurn || age == 0) return false;
+        if (!modal.canAttack || !modal.canAttackManually || attacksMadeThisTurn >= modal.attacksPerTurn || age == 0) return false;
 
         //var grid = GridManager.Instance.GetGrid();
         List<MinionController> targets = new List<MinionController>();
@@ -783,7 +783,7 @@ public class MinionController : MonoBehaviour
             StartCoroutine(animationController.PlayArrowAnimation(dir, chosen.transform.position, 0.65f, chosen.animationController.PlayArrowHitAnimation));
         }
         LastTarget = chosen;
-        isAttackedThisTurn = true;
+        attacksMadeThisTurn++;
         canAttack = false;
 
         // Tear down the selection (de-highlights every lit target) now that the attack resolved, then
@@ -980,7 +980,7 @@ public class MinionController : MonoBehaviour
     // Used by spawn-on-occupied-cell logic: a start cell is only valid if its occupant can be pushed.
     public bool CanBePushedForward(Vector3Int pushDir)
     {
-        Vector3Int target = Vector3Int.RoundToInt(transform.position) + pushDir;
+        Vector3Int target = Vector3Int.RoundToInt(gridEntity.WorldPos) + pushDir;
         Vector2Int idx = GridManager.Instance.PosToGridIndex(target);
         if (GridManager.Instance.IsOutSideOfGrid(idx)) return false;
         return GridManager.Instance.GetCell(idx).obj == null;
@@ -989,7 +989,7 @@ public class MinionController : MonoBehaviour
     // Move this minion one cell along `pushDir`, bypassing age/canMove gating (Move() does no checks).
     public void PushForward(Vector3Int pushDir)
     {
-        Vector3Int target = Vector3Int.RoundToInt(transform.position) + pushDir;
+        Vector3Int target = Vector3Int.RoundToInt(gridEntity.WorldPos) + pushDir;
         Move(target);
     }
 

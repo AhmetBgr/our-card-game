@@ -17,9 +17,8 @@ public class ActionLogPanel : Singleton<ActionLogPanel>
     [SerializeField] private TMP_Text toggleLabel;
     [SerializeField] private string shownLabel = "Log ▼";
     [SerializeField] private string hiddenLabel = "Log ▲";
-    [SerializeField] private bool startShown = true;
 
-    private bool isShown = true;
+    private bool isShown;
 
     private readonly List<LogEntryHandler> activeEntries = new List<LogEntryHandler>();
 
@@ -31,7 +30,9 @@ public class ActionLogPanel : Singleton<ActionLogPanel>
         {
             toggleButton.onClick.AddListener(ToggleVisibility);
         }
-        SetShown(startShown);
+        // Restored from the save so the player's last choice survives the match; defaults to collapsed.
+        var saveManager = SaveManager.Instance;
+        SetShown(saveManager != null && saveManager.ShowActionLog, persist: false);
     }
 
     public void ToggleVisibility()
@@ -39,9 +40,16 @@ public class ActionLogPanel : Singleton<ActionLogPanel>
         SetShown(!isShown);
     }
 
-    public void SetShown(bool shown)
+    public void SetShown(bool shown, bool persist = true)
     {
         isShown = shown;
+
+        if (persist)
+        {
+            var saveManager = SaveManager.Instance;
+            if (saveManager != null)
+                saveManager.SetShowActionLog(shown);
+        }
 
         if (collapsibleBody != null)
         {

@@ -15,17 +15,18 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: -1317666965, guid: 1a8ab178d35011142a6414dcea890fc6, type: 3}
   cardArt: {fileID: -998509498, guid: 1a8ab178d35011142a6414dcea890fc6, type: 3}
-  cardName: Rookie Ranger
+  cardName: Ranger
   desc: 
-  attack: 1
-  health: 3
-  cost: 2
+  attack: 3
+  health: 5
+  cost: 5
   range: 2
   armor: 0
   collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   type: 0
   selectionIntent: 0
   aiIntent: 0
@@ -34,7 +35,7 @@ MonoBehaviour:
   upgradedVersion: {fileID: 11400000, guid: 49458b2cd6d1c13449ee275ce033d12e, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0
-  defHealth: 3
+  defHealth: 5
   OnPlay:
     m_PersistentCalls:
       m_Calls:

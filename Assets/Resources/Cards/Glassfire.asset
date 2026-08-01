@@ -13,20 +13,21 @@ MonoBehaviour:
   m_Name: Glassfire
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 2429121949536148070, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardArt: {fileID: 2429121949536148070, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
-  cardName: Glassfire
+  minionArt: {fileID: 1661066898, guid: bd63d20d28b7b614ab89e0f11aec2241, type: 3}
+  cardArt: {fileID: 2921582248888115325, guid: bd63d20d28b7b614ab89e0f11aec2241, type: 3}
+  cardName: Shardling
   desc: 
   attack: 4
   health: 2
   cost: 3
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0

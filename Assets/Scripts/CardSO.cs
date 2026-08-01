@@ -28,6 +28,7 @@ public class CardSO : ScriptableObject
     public bool canAttack = true;
     [Tooltip("If false, this unit cannot be selected to attack manually (player click / AI choice), but can still attack via triggered/automatic card actions when canAttack is true.")]
     public bool canAttackManually = true;
+    public int attacksPerTurn = 1;
 
     public Type type;
 

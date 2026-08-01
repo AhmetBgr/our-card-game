@@ -16,16 +16,17 @@ MonoBehaviour:
   minionArt: {fileID: -918481820, guid: 9a3c3282bab329345a993640553965cb, type: 3}
   cardArt: {fileID: 251000710, guid: 9a3c3282bab329345a993640553965cb, type: 3}
   cardName: Veteran Ranger
-  desc: At the start of your turn, deal 1 damage to a random enemy in range.
-  attack: 3
-  health: 3
-  cost: 4
+  desc: At the start of your turn, deal 2 damage to a random enemy in range.
+  attack: 4
+  health: 6
+  cost: 7
   range: 2
   armor: 0
   collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   type: 0
   selectionIntent: 0
   aiIntent: 0
@@ -34,7 +35,7 @@ MonoBehaviour:
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
   isUpgraded: 1
-  defHealth: 1
+  defHealth: 6
   OnPlay:
     m_PersistentCalls:
       m_Calls:
@@ -123,7 +124,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: -1
+          m_IntArgument: -2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

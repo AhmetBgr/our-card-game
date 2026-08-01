@@ -230,7 +230,7 @@ public class MinMaxBrain : AgentBrain
         {
             score += candidate.modal.attack * beneficialHighAttackWeight;
 
-            bool canStillAttack = !candidate.isAttackedThisTurn && candidate.age > 0;
+            bool canStillAttack = candidate.attacksMadeThisTurn < candidate.modal.attacksPerTurn && candidate.age > 0;
             if (canStillAttack)
                 score += beneficialCanAttackBonus;
         }

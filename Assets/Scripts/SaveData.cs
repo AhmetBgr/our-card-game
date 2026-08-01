@@ -11,6 +11,10 @@ public class SaveData
     public int SelectedOpponentDeckIndex;
     public int SelectedHeroIndex;
     public int SelectedOpponentHeroIndex;
+
+    // The action log starts collapsed: `false` is both the fresh-save default and what saves written
+    // before this field existed deserialize to, so old players also get it off until they open it.
+    public bool ShowActionLog;
 }
 
 [Serializable]

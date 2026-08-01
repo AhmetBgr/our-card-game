@@ -13,28 +13,28 @@ MonoBehaviour:
   m_Name: Inferno Shard
   m_EditorClassIdentifier: Assembly-CSharp::CardSO
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: -8886085110732412377, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardArt: {fileID: -8886085110732412377, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardName: Inferno Shard
+  minionArt: {fileID: 1661066898, guid: 06b4c429f8013ac4891c623c13a18835, type: 3}
+  cardArt: {fileID: 2921582248888115325, guid: 06b4c429f8013ac4891c623c13a18835, type: 3}
+  cardName: Frost Shard
   desc: 'On Death: Deal 2 Damage to the enemy hero.'
   attack: 6
   health: 3
   cost: 5
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
   type: 0
+  selectionIntent: 0
   aiIntent: 0
   aiEffectMagnitude: 0
   aiRemovesTarget: 0
   upgradedVersion: {fileID: 0}
   normalVersion: {fileID: 0}
   isUpgraded: 1
-  defHealth: 2
+  defHealth: 3
   OnPlay:
     m_PersistentCalls:
       m_Calls:
