@@ -15,7 +15,7 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 1661066898, guid: 3dc63c6f5660b4f42bdbfdba03c024a8, type: 3}
   cardArt: {fileID: 2921582248888115325, guid: 3dc63c6f5660b4f42bdbfdba03c024a8, type: 3}
-  cardName: Hover Turret
+  cardName: Advanced Turret
   desc: 'Whenever you draw a card: Attack every enemy minion in range.'
   attack: 2
   health: 5
@@ -26,6 +26,7 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   type: 0
   selectionIntent: 0
   aiIntent: 0

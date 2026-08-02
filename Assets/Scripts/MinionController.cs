@@ -227,7 +227,7 @@ public class MinionController : MonoBehaviour
         switch (intent)
         {
             case HoverIntent.SeeRange:
-                MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range);
+                MinionRangeHandler.Instance.ShowRange(gridEntity.GetGridIndex(), modal.range, modal.isPlayerMinion);
                 // Alongside the range tiles, mark the enemy units actually standing in that range.
                 MinionRangeHandler.Instance.ShowTargetsInRange(this);
                 break;

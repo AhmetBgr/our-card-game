@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 77657298, guid: 45d2cf074870c7c46823191f86cb9425, type: 3}
   cardArt: {fileID: 1445312670, guid: 45d2cf074870c7c46823191f86cb9425, type: 3}
   cardName: Broken Crossbow
-  desc: 'When an enemy minion is summoned within range, shoot it automatically.
+  desc: 'When an enemy minion is summoned within range, attack it automatically.
 
     _The
     target can Counter-Attack._
@@ -31,6 +31,7 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   type: 0
   selectionIntent: 0
   aiIntent: 0

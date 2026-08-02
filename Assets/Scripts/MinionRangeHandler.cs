@@ -16,20 +16,23 @@ public class MinionRangeHandler : Singleton<MinionRangeHandler>
 
     public RangeInfo[] ranges;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [Header("Range Tint")]
+    [SerializeField] private Color playerRangeTint = new Color(0.3f, 0.6f, 1f, 1f);
+    [SerializeField] private Color opponentRangeTint = new Color(1f, 0.35f, 0.35f, 1f);
 
-    public void ShowRange(Vector2Int index, int range)
+    public void ShowRange(Vector2Int index, int range, bool isPlayerMinion)
     {
-        //Debug.Log("shouldshow range 2");
+        Color tint = isPlayerMinion ? playerRangeTint : opponentRangeTint;
 
         foreach (RangeInfo rangeInfo in ranges)
         {
-            //Debug.Log("range active?: " + (rangeInfo.indexes.Contains(index) && rangeInfo.range == range));
-            rangeInfo.rangeImageObject.SetActive(rangeInfo.indexes.Contains(index) && rangeInfo.range == range);
+            bool active = rangeInfo.indexes.Contains(index) && rangeInfo.range == range;
+            rangeInfo.rangeImageObject.SetActive(active);
+            if (active)
+            {
+                SpriteRenderer sr = rangeInfo.rangeImageObject.GetComponent<SpriteRenderer>();
+                if (sr != null) sr.color = new Color(tint.r, tint.g, tint.b, sr.color.a);
+            }
         }
     }
 

@@ -52,6 +52,10 @@ public class MinionView : MonoBehaviour
     [SerializeField] private float healthStatChangeFadeInDuration = 0.1f;
     [SerializeField] private float healthStatChangeFadeOutDuration = 0.7f;
 
+    [Header("Frame Tint")]
+    [SerializeField] private Color playerFrameTint = new Color(0.3f, 0.6f, 1f, 1f);
+    [SerializeField] private Color opponentFrameTint = new Color(1f, 0.35f, 0.35f, 1f);
+
     [Tooltip("Purely visual lag: buff/debuff flashes and their stat numbers land this long after the value actually changed. Health loss uses damageIndicatorVisualDelay instead.")]
     [SerializeField] private float statChangeVisualDelay = 0.35f;
 
@@ -89,16 +93,23 @@ public class MinionView : MonoBehaviour
 
         art.sprite = modal.minionArt;
         _isPlayerMinion = modal.isPlayerMinion;
+        ApplyFrameTint();
         ApplyInlineVisibility();
     }
 
     // The team inline is only visible once the spawn animation has finished; before then both stay
     // hidden. Later UpdateView calls (e.g. after taking damage) keep it shown, since _hasAppeared sticks.
+    private void ApplyFrameTint()
+    {
+        if (frame == null) return;
+        frame.color = _isPlayerMinion ? playerFrameTint : opponentFrameTint;
+    }
+
     private void ApplyInlineVisibility()
     {
-        enemyInline.gameObject.SetActive(_hasAppeared && !_isPlayerMinion);
+        /*enemyInline.gameObject.SetActive(_hasAppeared && !_isPlayerMinion);
         if (friendlyInline != null)
-            friendlyInline.gameObject.SetActive(_hasAppeared && _isPlayerMinion);
+            friendlyInline.gameObject.SetActive(_hasAppeared && _isPlayerMinion);*/
     }
 
     private void UpdateAttackText(int value)
