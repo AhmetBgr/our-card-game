@@ -52,6 +52,7 @@ public class MinionController : MonoBehaviour
     public SpriteRenderer moveArrow;
     public Color moveArrowColor = Color.white;
     public Color moveArrowCollideColor = Color.yellow;
+    public Color moveArrowCrippledColor = Color.red;
 
     [Header("Attack Preview")]
     // Shown while this minion is hovered as an attack target and the pending attacker's strike would kill it.
@@ -190,7 +191,7 @@ public class MinionController : MonoBehaviour
         if (GameManager.Instance.currentState == GameState.EndGame)
             return;
 
-        GameManager.Instance.player.handManager.ShowInfoCard(card);
+        GameManager.Instance.player.handManager.ShowInfoCard(card, modal);
 
         // Mirror of the forward in OnMouseDown: during a cell pick this hover belongs to the cell
         // underneath, so the area preview and its death skulls light exactly as if the player had
@@ -1028,8 +1029,8 @@ public class MinionController : MonoBehaviour
     // Movement-preview arrow shown while the player hovers the turn-switch button. The arrow points in
     // this minion's forward direction (up for the player, down for the opponent) and is enabled only when
     // the minion would actually try to advance next turn: white when the cell ahead is free (it will
-    // move or will follow the column forward), yellow only when the cell ahead stays blocked. It stays
-    // hidden when the minion can't move at all — can't-move flag, summoned this turn (age < 1), or facing
+    // move or will follow the column forward), yellow only when the cell ahead stays blocked, red when the
+    // minion is crippled (canMove == false). It stays hidden when summoned this turn (age < 1) or facing
     // the board edge. Collision is resolved via CellAheadClears, which walks the column so a minion tucked
     // behind an ally that is itself advancing shows white (it follows into the vacated cell), and only a
     // real blocker (edge, wall, enemy, or a stuck ally) shows yellow.
@@ -1037,9 +1038,15 @@ public class MinionController : MonoBehaviour
     {
         if (moveArrow == null) return;
 
-        if (!modal.canMove || age < 1)
+        if (age < 1)
         {
             HideMoveArrow();
+            return;
+        }
+
+        if (!modal.canMove)
+        {
+            EnableMoveArrow(moveArrowCrippledColor);
             return;
         }
 
@@ -1096,14 +1103,16 @@ public class MinionController : MonoBehaviour
     // Enable the arrow in white/yellow for as long as it stays shown.
     private void EnableMoveArrow(bool willCollide)
     {
+        EnableMoveArrow(willCollide ? moveArrowCollideColor : moveArrowColor);
+    }
+
+    private void EnableMoveArrow(Color c)
+    {
         if (moveArrow == null) return;
 
-        Color c = willCollide ? moveArrowCollideColor : moveArrowColor;
         moveArrow.color = c;
         moveArrow.gameObject.SetActive(true);
 
-        // The move arrow and the attack sword share the minion's face — while the arrow shows, hide the
-        // sword. It's restored from _attackReady in HideMoveArrow when the arrow goes away.
         HideAttackHighlight();
     }
 

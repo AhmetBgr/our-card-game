@@ -23,6 +23,7 @@ MonoBehaviour:
     - When Collided
     - Cripple
     - Crippled
+    - Overdrive
     useColor: 0
     color: {r: 0.07450981, g: 0.03529412, b: 0, a: 1}
     bold: 1

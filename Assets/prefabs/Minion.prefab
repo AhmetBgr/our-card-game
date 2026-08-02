@@ -1870,6 +1870,7 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   OnPlay:
     m_PersistentCalls:
       m_Calls: []
@@ -1971,7 +1972,7 @@ MonoBehaviour:
   selectionType: 0
   plannedMoveDir: {x: 0, y: 0, z: 0}
   isMovementValidated: 0
-  isAttackedThisTurn: 0
+  attacksMadeThisTurn: 0
   canAttack: 0
   age: 0
   LastTarget: {fileID: 0}
@@ -1980,6 +1981,7 @@ MonoBehaviour:
   moveArrow: {fileID: 5100945084225858546}
   moveArrowColor: {r: 1, g: 1, b: 1, a: 1}
   moveArrowCollideColor: {r: 1, g: 0.9215686, b: 0.015686275, a: 1}
+  moveArrowCrippledColor: {r: 0.7075472, g: 0.07676221, b: 0.07676221, a: 1}
   skull: {fileID: 1943346824808119974}
   skullBreathMinAlpha: 0.25
   skullBreathDuration: 0.6

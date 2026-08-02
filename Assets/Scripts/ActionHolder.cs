@@ -2530,7 +2530,12 @@ public class ActionHolder : ScriptableObject
         }
         if (cancelRequested) yield break;
         selectedMinion.modal.canMove = value;
-        //Debug.Log("selected minion");
+
+        if (!value && !selectedMinion.modal.desc.Contains("Crippled"))
+        {
+            string sep = string.IsNullOrEmpty(selectedMinion.modal.desc) ? "" : "\n";
+            selectedMinion.modal.desc += sep + "Crippled.";
+        }
     }
 
     public void ChangeMinionStatsByOwnership(int value)

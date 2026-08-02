@@ -35,6 +35,17 @@ public class HandManager : MonoBehaviour
         KeywordTooltip.Show(card.desc, (RectTransform)infoCard.transform, this, keywordTooltipPoint);
     }
 
+    public void ShowInfoCard(CardSO card, CardModal runtimeModal)
+    {
+        infoCard.gameObject.SetActive(true);
+        infoCard.card = card;
+        infoCard.modal.CopyFrom(runtimeModal);
+        infoCard.modal.isPlayerMinion = true;
+        infoCard.view.UpdateView(infoCard.modal);
+
+        KeywordTooltip.Show(runtimeModal.desc, (RectTransform)infoCard.transform, this, keywordTooltipPoint);
+    }
+
     public void HideInfoCard()
     {
         infoCard.gameObject.SetActive(false);
