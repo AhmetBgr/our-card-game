@@ -15,7 +15,7 @@ MonoBehaviour:
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
-  cardName: Copycat
+  cardName: Seeker
   desc: 'Ignition: Draw an upgraded card from your deck. If none, draw normally.'
   attack: 2
   health: 2

@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
-  cardName: Pindown
+  cardArt: {fileID: 21300000, guid: d7e6e846ae9f93148afcba39fbd9628d, type: 3}
+  cardName: Roots
   desc: Cripple a minion
   attack: 0
   health: 0

@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
   minionArt: {fileID: 0}
-  cardArt: {fileID: 0}
-  cardName: Pindown Upgraded
+  cardArt: {fileID: 21300000, guid: 2a5c787ca3a729547afd320a6f00afe0, type: 3}
+  cardName: Deep Roots
   desc: 'Cripple a minion.
 
     Give +1/+1 if friendly, -1/-1 if enemy.'
