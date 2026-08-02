@@ -16,10 +16,10 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   cardName: Grand Seeker
-  desc: 'Ignition: Create a copy of an upgraded card from your deck and add it to
-    your hand.
+  desc: 'Ignition: Add a Copy of an upgraded card from your deck.
 
-    If no upgraded cards in deck, draw a card.'
+    If none, draw
+    a card.'
   attack: 3
   health: 3
   cost: 6

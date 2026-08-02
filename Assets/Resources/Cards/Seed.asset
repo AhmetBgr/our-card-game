@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 947604520, guid: b9c12f559a1a0e94db897fbf613ad312, type: 3}
   cardArt: {fileID: 3124949146848436715, guid: b9c12f559a1a0e94db897fbf613ad312, type: 3}
   cardName: Seed
-  desc: 'On Death: Give a random friendly minion +1/+1'
+  desc: 'Breakdown: Give a random friendly minion +1/+1'
   attack: 0
   health: 1
   cost: 0

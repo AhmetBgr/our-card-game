@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 1661066898, guid: 7427ef21f7f9dde48938a7ac55e71d93, type: 3}
   cardArt: {fileID: 2921582248888115325, guid: 7427ef21f7f9dde48938a7ac55e71d93, type: 3}
   cardName: Thief
-  desc: 'On Play: Draw a card and Steal a random Card from Opponent''s deck.'
+  desc: 'Ignition: Draw a card and Steal a random Card from Opponent''s deck.'
   attack: 2
   health: 2
   cost: 4

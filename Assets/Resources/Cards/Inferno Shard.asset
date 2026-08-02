@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 1661066898, guid: 06b4c429f8013ac4891c623c13a18835, type: 3}
   cardArt: {fileID: 2921582248888115325, guid: 06b4c429f8013ac4891c623c13a18835, type: 3}
   cardName: Frost Shard
-  desc: 'On Death: Deal 2 Damage to the enemy hero.'
+  desc: 'Breakdown: Deal 2 Damage to the enemy hero.'
   attack: 6
   health: 3
   cost: 5

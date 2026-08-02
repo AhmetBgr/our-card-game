@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 1661066898, guid: 3bd5013c01341c84faa565fcd2334e7b, type: 3}
   cardArt: {fileID: 2921582248888115325, guid: 3bd5013c01341c84faa565fcd2334e7b, type: 3}
   cardName: Snatcher
-  desc: 'On Play: Draw a card.'
+  desc: 'Ignition: Draw a card.'
   attack: 1
   health: 1
   cost: 2

@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -458737074, guid: 5da0e0bc23284074b9ada81d85fc5139, type: 3}
   cardArt: {fileID: 420565769, guid: 5da0e0bc23284074b9ada81d85fc5139, type: 3}
   cardName: Totem
-  desc: 'On Play: give all adjacent minions +2 Attack
+  desc: 'Ignition: give all adjacent minions +2 Attack
 
 '
   attack: 0

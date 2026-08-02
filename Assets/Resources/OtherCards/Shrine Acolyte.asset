@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 0}
   cardArt: {fileID: 0}
   cardName: Shrine Acolyte
-  desc: 'On Play: Give another friendly minion +2 Health.'
+  desc: 'Ignition: Give another friendly minion +2 Health.'
   attack: 2
   health: 3
   cost: 2

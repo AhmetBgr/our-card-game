@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 1376037665, guid: be9820cbaffd87b4f8c9087f5bd566cb, type: 3}
   cardArt: {fileID: -1392313864, guid: be9820cbaffd87b4f8c9087f5bd566cb, type: 3}
   cardName: Priest
-  desc: 'On Death: Deal 2 damage to randon enemy minion.'
+  desc: 'Breakdown: Deal 2 damage to randon enemy minion.'
   attack: 5
   health: 3
   cost: 4

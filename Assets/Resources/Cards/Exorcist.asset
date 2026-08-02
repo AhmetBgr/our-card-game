@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -1921426611, guid: 004fcc27121a3de44af891e7b19b1649, type: 3}
   cardArt: {fileID: -1534365736, guid: 004fcc27121a3de44af891e7b19b1649, type: 3}
   cardName: Exorcist
-  desc: 'On Death: Gain control of a random enemy minion. _Permanently_'
+  desc: 'Breakdown: Gain control of a random enemy minion. _Permanently_'
   attack: 5
   health: 4
   cost: 6
