@@ -481,12 +481,19 @@ public class Agent : MonoBehaviour
             cardObj.modal.isPlayerMinion = false;
             cardObj.view.UpdateView(cardObj.modal);
             cardObj.transform.DORotate(Vector3.up * 0, 0.15f);
+            // Now the card shows its back, fade it to the pile's tint so it doesn't land bright on the stack.
+            if (deckViewHandler != null) deckViewHandler.TintCardToDeck(cardObj.view.CardBack);
         }));
         sequence.AppendCallback(() => cardObj.transform.SetSiblingIndex(deck.Count > 1 ? 0 : cardHandLayout.transform.parent.childCount - 1));
         sequence.Append(cardObj.transform.DOMove(cardHandLayout.deckPosition.GetChild(cardHandLayout.deckPosition.childCount - 1).position, 0.5f));
-        sequence.OnComplete(() => Destroy(cardObj.gameObject));
+        sequence.OnComplete(() =>
+        {
+            Destroy(cardObj.gameObject);
+            // The card only lands here, so this is when the deck gets its new crooked card.
+            if (deckViewHandler != null) deckViewHandler.SettleIncomingCards();
+        });
 
-        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
+        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded, deferMess: true);
     }
 
     public void AddCardToDeck(CardController card)
@@ -501,7 +508,7 @@ public class Agent : MonoBehaviour
         deck.Insert(insertIndex, card.card);
 
         if (deckViewHandler != null)
-            deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded);
+            deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded, deferMess: true);
 
         RemoveCardFromHand(card);
 
@@ -512,6 +519,8 @@ public class Agent : MonoBehaviour
         if (deckTarget == null)
         {
             Destroy(card.gameObject);
+            // No flight to wait on, so the card is already on the pile.
+            if (deckViewHandler != null) deckViewHandler.SettleIncomingCards();
             return;
         }
 
@@ -528,12 +537,16 @@ public class Agent : MonoBehaviour
                 card.modal.isPlayerMinion = false;
                 card.view.UpdateView(card.modal);
                 card.transform.DORotate(Vector3.zero, 0.15f);
+                // Now the card shows its back, fade it to the pile's tint so it doesn't land bright on the stack.
+                if (deckViewHandler != null) deckViewHandler.TintCardToDeck(card.view.CardBack);
             }
         }));
         sequence.Append(card.transform.DOMove(deckTarget.position, 0.5f));
         sequence.OnComplete(() =>
         {
             if (card != null) Destroy(card.gameObject);
+            // The card only lands here, so this is when the deck gets its new crooked card.
+            if (deckViewHandler != null) deckViewHandler.SettleIncomingCards();
         });
     }
 

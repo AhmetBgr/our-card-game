@@ -28,6 +28,10 @@ public class CardView : MonoBehaviour
 
     //[SerializeField] private Image _iconRenderer;
     [SerializeField] private Image cardBack;
+
+    /// <summary>The back that covers the face on a face-down card — the only thing visible once it's flipped.</summary>
+    public Image CardBack => cardBack;
+
     [SerializeField] private Sprite cardBackImage;
     [SerializeField] private Sprite upgradedCardBackImage;
 
