@@ -17,7 +17,7 @@ MonoBehaviour:
   cardArt: {fileID: -804686564, guid: ccb53726e24183644a16e58f28c11cc1, type: 3}
   cardName: Cursed Rock
   desc: +4 Clash Damage
-  attack: 0
+  attack: 1
   health: 6
   cost: 4
   range: 1
