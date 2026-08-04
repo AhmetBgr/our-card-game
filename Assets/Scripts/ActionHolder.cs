@@ -2513,6 +2513,10 @@ public class ActionHolder : ScriptableObject
 
     }
 
+    // What the board popup says when a minion loses its move, and which FloatingTextConfig preset draws it.
+    private const string CrippledPopupText = "Crippled";
+    private const string CrippledPopupStyle = "debuff";
+
     public void SetCanMove(bool value)
     {
         if (GameManager.Instance.isTesting) return;
@@ -2529,6 +2533,7 @@ public class ActionHolder : ScriptableObject
             yield return null;
         }
         if (cancelRequested) yield break;
+        bool wasCrippled = !selectedMinion.modal.canMove;
         selectedMinion.modal.canMove = value;
 
         if (!value && !selectedMinion.modal.desc.Contains("Crippled"))
@@ -2536,6 +2541,11 @@ public class ActionHolder : ScriptableObject
             string sep = string.IsNullOrEmpty(selectedMinion.modal.desc) ? "" : "\n";
             selectedMinion.modal.desc += sep + "Crippled.";
         }
+
+        // Announce the moment it lands, not every re-application: crippling an already-crippled minion
+        // changes nothing on the board, so it shouldn't flash a popup that says it did.
+        if (!value && !wasCrippled)
+            selectedMinion.ShowFloatingText(CrippledPopupText, CrippledPopupStyle);
     }
 
     public void ChangeMinionStatsByOwnership(int value)

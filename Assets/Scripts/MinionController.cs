@@ -90,6 +90,11 @@ public class MinionController : MonoBehaviour
     private Color _statChangeHealthBgBase;
     private bool _statChangeBgResolved;
 
+    [Header("Floating Text")]
+    // Where status popups ("Crippled", ...) start, relative to this unit's centre. The label rises from
+    // here and fades; everything else about how it looks lives in the FloatingTextConfig style it's given.
+    public Vector3 floatingTextOffset = Vector3.zero;
+
     public SelectionType SelectionType { get => SelectionType.Minion; }
     // Set by GameManager the moment it queues this minion's OnDeath trigger, cleared once that trigger has
     // finished resolving. While it is up, DestroySelf holds off — see the comment there.
@@ -1026,6 +1031,18 @@ public class MinionController : MonoBehaviour
             OnCollided?.Invoke(this, collidedEntity);
         }
     }
+    /// <summary>
+    /// Floats a one-off message off this unit — "Crippled" when it loses its move, and anything else worth
+    /// announcing on the board. <paramref name="styleId"/> names a preset in the FloatingTextConfig asset
+    /// (colour, size, rise, timing); an unknown or empty id falls back to that config's default style.
+    /// </summary>
+    public void ShowFloatingText(string text, string styleId = null)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+
+        FloatingTextManager.ShowOn(transform, text, styleId, floatingTextOffset);
+    }
+
     // Movement-preview arrow shown while the player hovers the turn-switch button. The arrow points in
     // this minion's forward direction (up for the player, down for the opponent) and is enabled only when
     // the minion would actually try to advance next turn: white when the cell ahead is free (it will

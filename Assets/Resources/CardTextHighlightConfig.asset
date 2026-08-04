@@ -73,7 +73,7 @@ MonoBehaviour:
     matchPhrases:
     - Clashes
     - Clash
-    explanation: Triggers when this minion runs into another minion.
+    explanation: Triggers when a minion runs into another minion.
   - displayName: Cripple
     matchPhrases:
     - Cripple
