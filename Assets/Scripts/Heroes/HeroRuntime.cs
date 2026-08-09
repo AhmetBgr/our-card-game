@@ -22,6 +22,16 @@ public class HeroRuntime : MonoBehaviour
 
     private readonly Dictionary<string, int> _counters = new Dictionary<string, int>();
 
+    private readonly HashSet<HeroPassiveSO> _selfStatsApplied = new HashSet<HeroPassiveSO>();
+
+    /// <summary>
+    /// Claims the one-time self-stat stamp for a passive (HeroPassiveSO.ApplyToOwnHero): true the first
+    /// time it is asked for this hero, false ever after. Register can run more than once for the same
+    /// hero, and those stamps are raw += on the statline — without this a re-registration would apply
+    /// the Summoner's -2 Attack twice.
+    /// </summary>
+    public bool ClaimSelfStatApply(HeroPassiveSO passive) => passive != null && _selfStatsApplied.Add(passive);
+
     public int GetCounter(string key) => _counters.TryGetValue(key, out int v) ? v : 0;
 
     /// <summary>

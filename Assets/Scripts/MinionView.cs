@@ -97,6 +97,19 @@ public class MinionView : MonoBehaviour
         ApplyInlineVisibility();
     }
 
+    /// <summary>
+    /// UpdateView, but the attack/health stats are re-seeded as the new baseline instead of being
+    /// diffed against the old one — so no buff/debuff flash plays. For standing modifiers stamped
+    /// during setup (a hero passive's printed -2 Attack), which are part of the statline the player
+    /// starts with, not something that just happened to them.
+    /// </summary>
+    public void UpdateViewWithoutStatFlash(CardModal modal)
+    {
+        _hasAttackValue = false;
+        _hasHealthValue = false;
+        UpdateView(modal);
+    }
+
     // The team inline is only visible once the spawn animation has finished; before then both stay
     // hidden. Later UpdateView calls (e.g. after taking damage) keep it shown, since _hasAppeared sticks.
     private void ApplyFrameTint()
@@ -107,9 +120,9 @@ public class MinionView : MonoBehaviour
 
     private void ApplyInlineVisibility()
     {
-        /*enemyInline.gameObject.SetActive(_hasAppeared && !_isPlayerMinion);
+        enemyInline.gameObject.SetActive(_hasAppeared && !_isPlayerMinion);
         if (friendlyInline != null)
-            friendlyInline.gameObject.SetActive(_hasAppeared && _isPlayerMinion);*/
+            friendlyInline.gameObject.SetActive(_hasAppeared && _isPlayerMinion);
     }
 
     private void UpdateAttackText(int value)

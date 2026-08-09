@@ -30,6 +30,7 @@ MonoBehaviour:
     minAttack: 0
     minMaxHealth: 0
   suppressesCounterAttack: 0
+  heroAttackModifier: 0
   actions:
     m_PersistentCalls:
       m_Calls:

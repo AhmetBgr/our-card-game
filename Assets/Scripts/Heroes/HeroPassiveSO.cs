@@ -49,6 +49,18 @@ public abstract class HeroPassiveSO : ScriptableObject
     public virtual bool SuppressesCounterAttack => false;
 
     /// <summary>
+    /// Standing modifier this passive stamps on its OWN hero, applied once when the hero is registered
+    /// (HeroPassiveSystem.Register), before the first turn. The counterpart to ApplyAuraOnSummon, which
+    /// stamps OTHER minions: this one is for a passive whose cost or bonus is a permanent change to the
+    /// hero's own statline (see the Summoner's -2 Attack).
+    ///
+    /// Applied exactly once per hero per match — HeroRuntime tracks which passives have already stamped —
+    /// so it must not be written as an idempotent "raise to N" clamp; a plain += is correct.
+    /// Default no-op, so every other passive ignores it.
+    /// </summary>
+    public virtual void ApplyToOwnHero(HeroRuntime runtime) { }
+
+    /// <summary>
     /// Called inline from GameManager's trigger coroutine (e.g. InvokeOnMinionTookDamageActions) *after*
     /// the ActionHolder registers are set for this hero, so verbs enqueued here land on the queue
     /// GameManager is already draining. Same contract as minion.modal.OnDeath.Invoke().

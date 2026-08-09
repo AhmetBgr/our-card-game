@@ -26,7 +26,7 @@ public static class ActionLogMessageFactory
         return new ActionLogEntry
         {
             EventType = ActionLogEventType.MinionDied,
-            Message = $"{OwnerLabel(minion.owner)}'s <color=yellow>{minion.card.cardName}</color> died",
+            Message = $"{OwnerLabel(minion.owner)}<color=yellow>{minion.card.cardName}</color> died",
             PreviewCard = minion.card,
             IsPlayerOwned = IsPlayer(minion.owner),
         };

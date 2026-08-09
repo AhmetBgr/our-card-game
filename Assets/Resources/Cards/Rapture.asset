@@ -29,8 +29,8 @@ MonoBehaviour:
   attacksPerTurn: 1
   type: 0
   selectionIntent: 0
-  aiIntent: 0
-  aiEffectMagnitude: 0
+  aiIntent: 2
+  aiEffectMagnitude: 2
   aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: 4f3a9a4cefe95cf4bbc61eef33e68e3f, type: 2}
   normalVersion: {fileID: 0}

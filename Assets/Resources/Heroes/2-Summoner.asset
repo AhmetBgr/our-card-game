@@ -16,9 +16,8 @@ MonoBehaviour:
   minionArt: {fileID: 21300000, guid: 1c0ce752693613c47a7291b50ba4d932, type: 3}
   cardArt: {fileID: 21300000, guid: 1c0ce752693613c47a7291b50ba4d932, type: 3}
   cardName: Summoner
-  desc: When attacked, Summon a 2/2 melee minion on random Spawn tile. _Cannot Counter
-    Attack._
-  attack: 0
+  desc: When attacked, Summon a 2/2 melee minion on random Spawn tile. _-2 Attack._
+  attack: 2
   health: 15
   cost: 0
   range: 2

@@ -475,7 +475,7 @@ public class Agent : MonoBehaviour
         sequence.Append(DOVirtual.DelayedCall(0.5f, () => { }));
 
         sequence.Append(cardObj.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f, 50f, 1, 0.5f));
-        sequence.Join(cardObj.transform.DOScale(cardHandLayout.cardinitialScale, 0.5f));
+        sequence.Join(cardObj.transform.DOScale(cardHandLayout.cardDeckScale, 0.5f));
         sequence.Join(cardObj.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
         {
             cardObj.modal.isPlayerMinion = false;
@@ -529,7 +529,7 @@ public class Agent : MonoBehaviour
 
         Sequence sequence = DOTween.Sequence();
         sequence.Append(card.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f, 50f, 1, 0.5f));
-        sequence.Join(card.transform.DOScale(cardHandLayout.cardinitialScale, 0.5f));
+        sequence.Join(card.transform.DOScale(cardHandLayout.cardDeckScale, 0.5f));
         sequence.Join(card.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
         {
             if (card != null && card.modal != null && card.view != null)

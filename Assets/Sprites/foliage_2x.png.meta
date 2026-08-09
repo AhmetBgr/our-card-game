@@ -1,0 +1,755 @@
+fileFormatVersion: 2
+guid: 5ea36d80ddc3bde4e943c3a9213d11d6
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5818602319014175656
+    second: foliage_2x_0
+  - first:
+      213: -3769986115208355500
+    second: foliage_2x_1
+  - first:
+      213: -5468055560042597957
+    second: foliage_2x_2
+  - first:
+      213: 4054323958821360116
+    second: foliage_2x_3
+  - first:
+      213: 3136095613547459827
+    second: foliage_2x_4
+  - first:
+      213: -4811517419688504990
+    second: foliage_2x_5
+  - first:
+      213: 2086201359674021742
+    second: foliage_2x_6
+  - first:
+      213: -7183643538783722600
+    second: foliage_2x_7
+  - first:
+      213: 8311180106598142699
+    second: foliage_2x_8
+  - first:
+      213: 4711724076264123108
+    second: foliage_2x_9
+  - first:
+      213: -6208241093048601500
+    second: foliage_2x_10
+  - first:
+      213: 8281467451339492159
+    second: foliage_2x_11
+  - first:
+      213: 2022704911348398965
+    second: foliage_2x_12
+  - first:
+      213: -6240206261834323422
+    second: foliage_2x_13
+  - first:
+      213: 8804715606322897013
+    second: foliage_2x_14
+  - first:
+      213: 6863024074030470830
+    second: foliage_2x_15
+  - first:
+      213: -5621234372289390005
+    second: foliage_2x_16
+  - first:
+      213: 4030999244373929578
+    second: foliage_2x_17
+  - first:
+      213: 8946344483304125680
+    second: foliage_2x_18
+  - first:
+      213: 5577908254298371907
+    second: foliage_2x_19
+  - first:
+      213: -7527630701839766421
+    second: foliage_2x_20
+  - first:
+      213: 1932862910064029787
+    second: foliage_2x_21
+  - first:
+      213: 527185393230554203
+    second: foliage_2x_22
+  - first:
+      213: 7348141860611684193
+    second: foliage_2x_23
+  - first:
+      213: -4867443501427370825
+    second: foliage_2x_24
+  - first:
+      213: 8255851278709471717
+    second: foliage_2x_25
+  - first:
+      213: -7187624535289962392
+    second: foliage_2x_26
+  - first:
+      213: -4135197240553716592
+    second: foliage_2x_27
+  - first:
+      213: -8161883195232787321
+    second: foliage_2x_28
+  - first:
+      213: 7756401465085432112
+    second: foliage_2x_29
+  - first:
+      213: 3327582687506225484
+    second: foliage_2x_30
+  - first:
+      213: 3328109807226321231
+    second: foliage_2x_31
+  - first:
+      213: -5704173325147820748
+    second: foliage_2x_32
+  - first:
+      213: 971048084492513535
+    second: foliage_2x_33
+  - first:
+      213: 189572989145118208
+    second: foliage_2x_34
+  - first:
+      213: -1332388801232373525
+    second: foliage_2x_35
+  - first:
+      213: -1067825794971103607
+    second: foliage_2x_36
+  - first:
+      213: 8258531125365035426
+    second: foliage_2x_37
+  - first:
+      213: -8165039353836920664
+    second: foliage_2x_38
+  - first:
+      213: -3116243988409913044
+    second: foliage_2x_39
+  - first:
+      213: -8512927090937717593
+    second: foliage_2x_40
+  - first:
+      213: 5959369207280610493
+    second: foliage_2x_41
+  - first:
+      213: -1664916079276758356
+    second: foliage_2x_42
+  - first:
+      213: -1325370586346120573
+    second: foliage_2x_43
+  - first:
+      213: 6929333002403411677
+    second: foliage_2x_44
+  - first:
+      213: 2673128822930741166
+    second: foliage_2x_45
+  - first:
+      213: -2848504770236719432
+    second: foliage_2x_46
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: foliage_2x_0
+      rect:
+        serializedVersion: 2
+        x: 704
+        y: 703
+        width: 116
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 23223880d627ce74b88930b2f0fcd424
+      internalID: 68246783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_1
+      rect:
+        serializedVersion: 2
+        x: 629
+        y: 765
+        width: 58
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c0b31bf4f6d0af4fad1ba5f18a5bcbc
+      internalID: 1406180931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_2
+      rect:
+        serializedVersion: 2
+        x: 297
+        y: 769
+        width: 95
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: edcf420f5ccff00429ce2ed4cf231f45
+      internalID: -1490237107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_3
+      rect:
+        serializedVersion: 2
+        x: 520
+        y: 707
+        width: 44
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d7d50e2e07e7aa4093c7277c263e834
+      internalID: 1558880843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_4
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 669
+        width: 52
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3d608d6cbeb814d4184a1b21cdb06c6d
+      internalID: -217647979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_5
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 659
+        width: 32
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c049eba1fef71d6408aaf9b2cf1a2e94
+      internalID: -680118377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_6
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 702
+        width: 53
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd8fc6448d5c02343a325d5db5029ad2
+      internalID: 1690077415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_7
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 703
+        width: 30
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3350924bc8ccf3d47a359d865b50e9d8
+      internalID: -298908115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_8
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 625
+        width: 60
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eb4eb5a6d5dede64c8b5c3df2feb81ab
+      internalID: -1945929115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_9
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 459
+        width: 85
+        height: 135
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 022c839ce837e82478564cfd3e89746a
+      internalID: 692301566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_10
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 384
+        width: 81
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f6803231ad7fe2d47ab614ce9018610d
+      internalID: 1092600467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_11
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 531
+        width: 44
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f39744927cee0824abc718ec867246b5
+      internalID: 720653230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_12
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 293
+        width: 89
+        height: 93
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f85b8ba30ef1954798b762165418f76
+      internalID: 1441861758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_13
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 170
+        width: 61
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a56b8c69da257b24d882ce6cccbc0a0e
+      internalID: 1647436778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_14
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 293
+        width: 113
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 861997e6e48eb2e489d58acc1d31931a
+      internalID: 1055976975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_15
+      rect:
+        serializedVersion: 2
+        x: 672
+        y: 445
+        width: 54
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 079743f6f8322b64a8d7dee0ccce4c9b
+      internalID: -415190103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_16
+      rect:
+        serializedVersion: 2
+        x: 763
+        y: 500
+        width: 45
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 920fe2dca103f5f498617a22b0ea21eb
+      internalID: -1740124471
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_17
+      rect:
+        serializedVersion: 2
+        x: 751
+        y: 552
+        width: 77
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ff5084bff3120e44a8ff77ec98cfb590
+      internalID: 731803351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_18
+      rect:
+        serializedVersion: 2
+        x: 766
+        y: 223
+        width: 63
+        height: 119
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 514beb2fba20fe747bb497b62904a284
+      internalID: -1719375981
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_19
+      rect:
+        serializedVersion: 2
+        x: 766
+        y: 182
+        width: 65
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0848aa39a4f819249a6af4b33f802194
+      internalID: -1861975908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: foliage_2x_20
+      rect:
+        serializedVersion: 2
+        x: 673
+        y: 175
+        width: 84
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49e186968b0e82b4a81a9205e2e1d3be
+      internalID: 891430624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      foliage_2x_0: 68246783
+      foliage_2x_1: 1406180931
+      foliage_2x_10: 1092600467
+      foliage_2x_11: 720653230
+      foliage_2x_12: 1441861758
+      foliage_2x_13: 1647436778
+      foliage_2x_14: 1055976975
+      foliage_2x_15: -415190103
+      foliage_2x_16: -1740124471
+      foliage_2x_17: 731803351
+      foliage_2x_18: -1719375981
+      foliage_2x_19: -1861975908
+      foliage_2x_2: -1490237107
+      foliage_2x_20: 891430624
+      foliage_2x_3: 1558880843
+      foliage_2x_4: -217647979
+      foliage_2x_5: -680118377
+      foliage_2x_6: 1690077415
+      foliage_2x_7: -298908115
+      foliage_2x_8: -1945929115
+      foliage_2x_9: 692301566
+      gust of air_0: 2921582248888115325
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

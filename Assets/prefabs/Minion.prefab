@@ -1853,8 +1853,8 @@ MonoBehaviour:
   healthBuffColor: {r: 0.4039216, g: 0.7254902, b: 0.078431375, a: 1}
   healthStatChangeFadeInDuration: 0.1
   healthStatChangeFadeOutDuration: 0.7
-  playerFrameTint: {r: 0.69411767, g: 0.8980392, b: 1, a: 1}
-  opponentFrameTint: {r: 0.78431374, g: 0.29803923, b: 0.29803923, a: 1}
+  playerFrameTint: {r: 0.8901961, g: 0.8901961, b: 0.8901961, a: 1}
+  opponentFrameTint: {r: 0.6981132, g: 0.33917767, b: 0.33917767, a: 1}
   statChangeVisualDelay: 0.5
   damageIndicatorVisualDelay: 0.75
 --- !u!114 &5071159792561095710
@@ -2677,7 +2677,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 1
   m_Sprite: {fileID: 1461745105, guid: ccb53726e24183644a16e58f28c11cc1, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.9245283, g: 0.9245283, b: 0.9245283, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

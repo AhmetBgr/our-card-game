@@ -24,6 +24,9 @@ MonoBehaviour:
   armor: 0
   canMove: 1
   type: 1
+  aiIntent: 0
+  aiEffectMagnitude: 0
+  aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: e5c664c388df34749ae39a34fd09a3f4, type: 2}
   normalVersion: {fileID: 0}
   isUpgraded: 0

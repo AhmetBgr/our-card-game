@@ -586,6 +586,7 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   OnPlay:
     m_PersistentCalls:
       m_Calls: []
@@ -662,6 +663,8 @@ MonoBehaviour:
   healthBuffColor: {r: 0.4039216, g: 0.7254902, b: 0.078431375, a: 1}
   healthStatChangeFadeInDuration: 0.1
   healthStatChangeFadeOutDuration: 0.7
+  playerFrameTint: {r: 0.3, g: 0.6, b: 1, a: 1}
+  opponentFrameTint: {r: 1, g: 0.35, b: 0.35, a: 1}
   statChangeVisualDelay: 0.5
   damageIndicatorVisualDelay: 0.75
 --- !u!114 &9060544395095922235
@@ -687,7 +690,7 @@ MonoBehaviour:
   selectionType: 0
   plannedMoveDir: {x: 0, y: 0, z: 0}
   isMovementValidated: 0
-  isAttackedThisTurn: 0
+  attacksMadeThisTurn: 0
   canAttack: 0
   age: 0
   LastTarget: {fileID: 0}
@@ -696,6 +699,7 @@ MonoBehaviour:
   moveArrow: {fileID: 0}
   moveArrowColor: {r: 1, g: 1, b: 1, a: 1}
   moveArrowCollideColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  moveArrowCrippledColor: {r: 1, g: 0, b: 0, a: 1}
   skull: {fileID: 7264914779533553732}
   skullBreathMinAlpha: 0.25
   skullBreathDuration: 0.6
@@ -2402,7 +2406,7 @@ SpriteRenderer:
   m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: ae4a0942d8004c44ab513f70f58d22d1, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.8901961, g: 0.8901961, b: 0.8901961, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

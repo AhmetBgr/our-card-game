@@ -18,6 +18,9 @@ public class CardHandLayout : MonoBehaviour
 
     public float cardinitialScale;
 
+    [Tooltip("Scale a card shrinks to as it flies onto the deck pile.")]
+    public float cardDeckScale = 0.58f;
+
     private Transform _peekCard;
     private int _peekIndex = -1;
 

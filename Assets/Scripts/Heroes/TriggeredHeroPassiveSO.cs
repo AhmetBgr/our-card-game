@@ -27,12 +27,36 @@ public class TriggeredHeroPassiveSO : HeroPassiveSO
              "with the HeroAttacked trigger; queried by MinionController.Attack independently of `actions`.")]
     [SerializeField] private bool suppressesCounterAttack = false;
 
+    [Tooltip("Standing change to this hero's OWN attack, applied once when the hero is registered and " +
+             "never re-applied. Negative for a drawback (the Summoner's -2). Independent of the trigger " +
+             "and of `actions`; 0 means the passive leaves the statline alone.")]
+    [SerializeField] private int heroAttackModifier = 0;
+
     [Tooltip("ActionHolder verbs, run in order. Selection verbs first, then the effect.")]
     public UnityEvent actions;
 
     public override HeroPassiveTrigger Trigger => trigger;
 
     public override bool SuppressesCounterAttack => suppressesCounterAttack;
+
+    /// <summary>
+    /// Stamps heroAttackModifier onto the hero's own attack. Deliberately NOT clamped at 0: a hero whose
+    /// base attack is under 2, or that is debuffed further later, is meant to end up negative. Negative
+    /// attack is harmless downstream — TakeDamage floors the damage it deals at 0, so a negative-attack
+    /// strike heals nobody, it just does nothing.
+    /// </summary>
+    public override void ApplyToOwnHero(HeroRuntime runtime)
+    {
+        if (heroAttackModifier == 0) return;
+        if (runtime == null || runtime.hero == null || runtime.hero.modal == null) return;
+
+        MinionController hero = runtime.hero;
+        hero.modal.attack += heroAttackModifier;
+
+        // Re-seed rather than diff: this lands during SetupGame, and a red "-2" flash over the hero
+        // before the first turn reads as an incoming enemy debuff rather than a printed drawback.
+        hero.view.UpdateViewWithoutStatFlash(hero.modal);
+    }
 
     private void Awake()
     {

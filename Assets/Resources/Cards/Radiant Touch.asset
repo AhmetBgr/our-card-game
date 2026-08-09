@@ -31,7 +31,7 @@ MonoBehaviour:
   type: 1
   selectionIntent: 0
   aiIntent: 1
-  aiEffectMagnitude: 2
+  aiEffectMagnitude: 1
   aiRemovesTarget: 0
   upgradedVersion: {fileID: 11400000, guid: dd3b6b4521b2b7b46b85dbfcdf01a21f, type: 2}
   normalVersion: {fileID: 0}

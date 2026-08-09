@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a998ef07c6bf28469313d2c45407d77, type: 3}
   m_Name: MinMaxBrain
   m_EditorClassIdentifier: Assembly-CSharp::MinMaxBrain
-  minimumActionScore: 0
+  minimumActionScore: 1
   deadPlayScore: -100
   manaEfficiencyWeight: 10
   unspentManaPenalty: 0.5
@@ -31,12 +31,12 @@ MonoBehaviour:
   heroBiasWhenClear: 70
   harmfulHighAttackWeight: 4
   harmfulLethalBonus: 35
-  harmfulOnFriendlyPenalty: -100
+  harmfulOnFriendlyPenalty: -1000
   beneficialHighAttackWeight: 3
   beneficialCanAttackBonus: 20
-  beneficialOnEnemyPenalty: -100
+  beneficialOnEnemyPenalty: -500
   aoeEnemyWeight: 20
-  aoeFriendlyPenalty: -25
+  aoeFriendlyPenalty: -1000
   aoeAttackWeight: 3
   aoeKillBonus: 25
   beneficialFriendlyWeight: 15

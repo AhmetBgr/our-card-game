@@ -39,6 +39,12 @@ public class HeroPassiveSystem
 
         if (!_heroes.Contains(runtime)) _heroes.Add(runtime);
 
+        // Stamp the passives that modify this hero's OWN statline (the Summoner's -2 Attack). Guarded
+        // per passive by the runtime, so a second Register on the same hero doesn't apply them twice.
+        for (int i = 0; i < heroSO.passives.Count; i++)
+            if (runtime.ClaimSelfStatApply(heroSO.passives[i]))
+                heroSO.passives[i].ApplyToOwnHero(runtime);
+
         // Stamp this hero's auras onto any minions already on the board. Usually none at setup (heroes
         // register before any minion is summoned), but keeps auras correct if a hero is registered later.
         if (hero.owner != null && hero.owner.minions != null)
