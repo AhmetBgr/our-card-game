@@ -167,9 +167,16 @@ public class GameManager : Singleton<GameManager>
 
     IEnumerator SetupGame()
     {
-        // Registered here rather than in Start(): SetupGame is a coroutine driven from GameLoop, so
-        // every HeroController.Start() has already run and hero.card/owner are populated. Start()
-        // ordering between GameManager and HeroController is undefined.
+        // Seed the hero statlines BEFORE registering passives. Register stamps the standing self
+        // modifiers of a hero's passives onto hero.modal (the Summoner's -2 Attack), and
+        // HeroController.Initialize re-seeds that same modal from the CardSO. This code runs inline
+        // from GameManager.Start() — GameLoop's first segment executes during StartCoroutine, it does
+        // not wait a frame — so HeroController.Start() may not have run yet, and the stamp would then
+        // be overwritten by it. EnsureInitialized is idempotent, so ordering stops mattering.
+        // hero.card/owner are safe to read here either way: Agent sets them in Awake().
+        if (player != null && player.hero is HeroController playerHero) playerHero.EnsureInitialized();
+        if (opponent != null && opponent.hero is HeroController opponentHero) opponentHero.EnsureInitialized();
+
         heroPassives.Register(player != null ? player.hero : null);
         heroPassives.Register(opponent != null ? opponent.hero : null);
 

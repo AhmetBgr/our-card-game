@@ -1,8 +1,28 @@
 using UnityEngine;
 public class HeroController : MinionController
 {
+    private bool _initialized;
+
     protected override void Start()
     {
+        EnsureInitialized();
+    }
+
+    /// <summary>
+    /// Seeds this hero's modal from its CardSO, at most once per hero.
+    ///
+    /// Both Start() and GameManager.SetupGame call it, because their order is NOT fixed: SetupGame is
+    /// a coroutine started from GameManager.Start(), so its first segment runs inline during that
+    /// Start(), and Unity's Start() order between GameManager and HeroController is undefined (no
+    /// execution-order override exists). SetupGame stamps the standing self-modifiers of the hero's
+    /// passives (the Summoner's -2 Attack) straight onto modal.attack, while Initialize() re-seeds
+    /// modal from the CardSO — so if Initialize ran second it would silently wipe the stamp.
+    /// Being idempotent makes whichever runs first win and turns the other into a no-op.
+    /// </summary>
+    public void EnsureInitialized()
+    {
+        if (_initialized) return;
+        _initialized = true;
         Initialize(owner, owner == GameManager.Instance.player);
     }
 
