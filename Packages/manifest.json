@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.coffee.ui-particle": "https://github.com/mob-sakai/ParticleEffectForUGUI.git?path=Packages/src#v4.9.1",
     "com.sarpersoher.ide.sublimetext": "https://github.com/ssoher/com.sarpersoher.ide.sublimetext.git",
     "com.unity.ai.assistant": "file:C:/Unity/LocalPackages/com.unity.ai.assistant-2.6.0-pre.1.tgz",
     "com.unity.collab-proxy": "2.11.3",

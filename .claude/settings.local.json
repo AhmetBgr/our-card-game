@@ -53,7 +53,8 @@
       "Bash(awk '{print $5,$9}')",
       "mcp__unity-mcp__Unity_CreateScript",
       "PowerShell(git *)",
-      "Bash(awk '/^  sprites:/,0' \"Assets/Sprites/UIElements/panel_01.png.meta\")"
+      "Bash(awk '/^  sprites:/,0' \"Assets/Sprites/UIElements/panel_01.png.meta\")",
+      "PowerShell(& \"C:\\\\Users\\\\Ahmet\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Unity-Projects-our-card-game\\\\489d38fc-b382-4146-baed-0ea6a793e6a5\\\\scratchpad\\\\upscale2x.ps1\")"
     ]
   }
 }
