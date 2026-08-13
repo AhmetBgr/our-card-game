@@ -552,12 +552,12 @@ public class GameManager : Singleton<GameManager>
             FinishTriggeredAction();
         }
 
-
         isPlayerTurn = true;
 
         switchController.PlaySwitchAnim(true);
 
         yield return new WaitForSeconds(0.5f);
+
 
         // movement
         for (int x = GridManager.Instance.GridWidth - 1; x >= 0; x--)
@@ -779,6 +779,50 @@ public class GameManager : Singleton<GameManager>
         isTesting = false;
         _executingTriggeredActions = true;
 
+        if (!isPlayerTurn)
+        {
+            //Debug.Log("execution complete4");
+
+            //opponent.handManager.RemoveFromHand(card);
+            if (card != null)
+            {
+                opponent.RemoveCardFromHand(card);
+
+                // Same container the player's played card goes to (Canvas/CardParent). Previously this
+                // parented to the Canvas itself and forced the card to be the LAST sibling, which drew it
+                // over CardSelectionPanel and GameOverPanel; CardParent sits below both.
+                card.transform.SetParent(PlayArea.Instance != null
+                    ? PlayArea.Instance.PlayedCardParent
+                    : opponent.cardHandLayout.transform.parent);
+                card.transform.SetAsLastSibling();
+                card.transform.localRotation = Quaternion.identity;
+
+                card.transform.DOScale(Vector3.one * 1.5f, 0.5f);
+                card.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
+                {
+                    card.modal.isPlayerMinion = true;
+                    card.view.UpdateView(card.modal);
+                    card.transform.DORotate(Vector3.up * 0, 0.15f);
+                });
+                card.transform.DOMove(PlayArea.Instance.opponentCardPos.position, 0.5f).OnComplete(() =>
+                {
+                    card.transform.DOScale(0f, 0.25f).SetDelay(1f).OnComplete(() =>
+                    {
+                        if (card.modal.upgradedVerdion != null)
+                        {
+                            opponent.SpawnCardToDeck(card.modal.upgradedVerdion, true);
+                        }
+                        card.transform.SetParent(discardPile);
+                        card.gameObject.SetActive(false);
+                    });
+                });
+
+                //yield return new WaitForSeconds(3f);
+            }
+
+            //opponent.UpdateHand();
+        }
+
         Debug.Log("executeing card actions");
         while (actionQueue.Count > 0)
         {
@@ -789,6 +833,8 @@ public class GameManager : Singleton<GameManager>
             }
             Debug.Log("executeing action");
             IEnumerator action = actionQueue.Dequeue();
+
+            if (!isPlayerTurn) yield return new WaitForSeconds(0.35f);
             yield return StartCoroutine(action);
         }
         Debug.Log("execution complete");
@@ -837,45 +883,7 @@ public class GameManager : Singleton<GameManager>
         }
         else
         {
-            //Debug.Log("execution complete4");
 
-            //opponent.handManager.RemoveFromHand(card);
-            if (card != null) {
-                opponent.RemoveCardFromHand(card);
-
-                // Same container the player's played card goes to (Canvas/CardParent). Previously this
-                // parented to the Canvas itself and forced the card to be the LAST sibling, which drew it
-                // over CardSelectionPanel and GameOverPanel; CardParent sits below both.
-                card.transform.SetParent(PlayArea.Instance != null
-                    ? PlayArea.Instance.PlayedCardParent
-                    : opponent.cardHandLayout.transform.parent);
-                card.transform.SetAsLastSibling();
-                card.transform.localRotation = Quaternion.identity;
-
-                card.transform.DOScale(Vector3.one * 1.5f, 0.5f);
-                card.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
-                {
-                    card.modal.isPlayerMinion = true;
-                    card.view.UpdateView(card.modal);
-                    card.transform.DORotate(Vector3.up * 0, 0.15f);
-                });
-                card.transform.DOMove(PlayArea.Instance.opponentCardPos.position, 0.5f).OnComplete(() =>
-                {
-                    card.transform.DOScale(0f, 0.25f).SetDelay(1f).OnComplete(() =>
-                    {
-                        if (card.modal.upgradedVerdion != null)
-                        {
-                            opponent.SpawnCardToDeck(card.modal.upgradedVerdion, true);
-                        }
-                        card.transform.SetParent(discardPile);
-                        card.gameObject.SetActive(false);
-                    });
-                });
-
-                yield return new WaitForSeconds(3f);
-            }
-
-            //opponent.UpdateHand();
         }
 
         isPlayingCard = false;

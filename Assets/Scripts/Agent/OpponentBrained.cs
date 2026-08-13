@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 public class OpponentBrained : Agent
@@ -50,6 +51,7 @@ public class OpponentBrained : Agent
     public IEnumerator Play(CardController card)
     {
         Debug.Log("opponent should play card");
+        //yield return new WaitForSeconds(0.5f);
         yield return StartCoroutine(GameManager.Instance.PlayCard(card, this));
     }
 
