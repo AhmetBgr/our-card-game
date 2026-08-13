@@ -38,11 +38,34 @@ public class CardController : MonoBehaviour
 
     private void Update()
     {
-        if (!modal.isPlayerMinion) return;
-        view.UpdateGearSpeed(modal);
+        // The playable outline and the spinning cost gear both claim "you can play this right now", so
+        // they share one condition: the card must be the player's own, still in their hand, on their
+        // turn, and affordable. Note this is NOT gated on isPlayerMinion — that flag also means "drawn
+        // face up", and the play-area reveal flips it on the OPPONENT's played card, which used to make
+        // an enemy card light up and spin its gear off the PLAYER's mana. It also can't early-out when
+        // the card doesn't qualify: the outline has to be actively cleared when the turn ends.
+        bool playable = IsPlayableHandCard();
+        view.UpdateGearSpeed(modal, playable);
         // Driven per-frame rather than on a mana-changed event: available mana moves from plays, refunds
         // and turn start, and the gear speed above already rides this same tick.
-        view.SetPlayableOutline(CardView.IsPlayableNow(modal));
+        view.SetPlayableOutline(playable);
+    }
+
+    /// <summary>
+    /// Is this card the player's to play this instant — theirs, in their hand, their turn, affordable?
+    /// Only drives the highlight; the real play gate is GameManager.PlayCard.
+    /// </summary>
+    private bool IsPlayableHandCard()
+    {
+        var gm = GameManager.Instance;
+        if (gm == null || gm.player == null || modal == null) return false;
+        if (!gm.CanPlayerPlayCards) return false;
+        // owner, not isPlayerMinion: ownership is fixed when the card is instantiated, while
+        // isPlayerMinion gets rewritten by the reveal/return-to-deck flip animations.
+        if (modal.owner != gm.player) return false;
+        if (!gm.player.hand.Contains(this)) return false;
+
+        return CardView.IsPlayableNow(modal);
     }
     public void Initialize(Agent owner, bool isPlayerCard)
     {

@@ -150,7 +150,12 @@ public class CardView : MonoBehaviour
 
     /// <summary>
     /// Can the player pay for this card right now? Single definition so the cost gear, the playable
-    /// outline and the selection panel can't drift apart on what "playable" means.
+    /// outline and the selection panel can't drift apart on what "affordable" means.
+    ///
+    /// Affordability ONLY — it says nothing about whose card this is or whether it's their turn. A card
+    /// sitting in the hand needs those too (see CardController.IsPlayableHandCard); the selection panel
+    /// deliberately doesn't, since its options are offered to the player even on the opponent's turn
+    /// (a triggered draw that empties the deck) and should still show what they could afford.
     /// </summary>
     public static bool IsPlayableNow(CardModal card)
     {
@@ -186,11 +191,16 @@ public class CardView : MonoBehaviour
         if (hoveredOutline != null) hoveredOutline.SetActive(_hovered && _playable);
     }
 
-    public void UpdateGearSpeed(CardModal card)
+    /// <summary>
+    /// Spin the cost gear at a rate matching the card's cost, or freeze it when the card isn't playable.
+    /// `playable` is passed in rather than derived from IsPlayableNow so the gear and the outline can't
+    /// disagree: the caller decides once (see CardController.IsPlayableHandCard, which adds the
+    /// ownership / in-hand / whose-turn tests that affordability alone doesn't cover).
+    /// </summary>
+    public void UpdateGearSpeed(CardModal card, bool playable)
     {
-        if (gearRotateTween == null) return;
+        if (gearRotateTween == null || card == null) return;
 
-        bool playable = IsPlayableNow(card);
         // Spin rate scales with cost, but a playable card must always visibly spin — otherwise a
         // zero-cost card freezes (timeScale 0) and looks unaffordable. Floor the speed at 1 so a
         // cost-0 card spins like a cost-1 card.

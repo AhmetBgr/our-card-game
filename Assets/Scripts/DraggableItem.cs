@@ -30,8 +30,11 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
         if (!Interactable) return;
 
         // While a card is being played (resolving in the play area), no card can be
-        // dragged — the played card can only be cancelled, not moved.
-        if (GameManager.Instance != null && GameManager.Instance.isPlayingCard) return;
+        // dragged — the played card can only be cancelled, not moved. Cards are also
+        // undraggable outside the player's own turn (DraggableItem only ever lives on
+        // real hand cards; selection-panel previews use a prefab without it).
+        if (GameManager.Instance != null &&
+            (GameManager.Instance.isPlayingCard || !GameManager.Instance.CanPlayerPlayCards)) return;
 
         isdragging = true;
         AnyCardDragging = true;

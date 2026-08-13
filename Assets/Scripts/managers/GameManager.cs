@@ -62,6 +62,15 @@ public class GameManager : Singleton<GameManager>
     public GameState currentState;
     public int maxMana = 0;
     public bool isPlayerTurn;
+
+    /// <summary>
+    /// True only while the player actually owns the turn. isPlayerTurn alone is not enough: it flips back
+    /// to true at the end of OpponentTurn while the AI's minion movement phase is still running, and
+    /// currentState alone is not enough either (it stays OpponentTurn through that same window). Every
+    /// player-initiated card play gates on this so a hand card can't be dropped during the AI's turn.
+    /// </summary>
+    public bool CanPlayerPlayCards => isPlayerTurn && currentState == GameState.PlayerTurn;
+
     public bool isTesting = false;
     public bool isTestingFailed = false;
     public static event Action<GameState> OnTurnEnd;
@@ -683,7 +692,13 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log("agent.availibleMana: " + agent.availibleMana);
 
         bool isPlayTurn = currentState == GameState.PlayerTurn || currentState == GameState.OpponentTurn;
-        if ((!isPlayTurn || isPlayingCard || card.modal.cost > agent.availibleMana) && !isTesting) yield break;
+
+        // An agent may only play on its own turn. isPlayingCard used to cover this by accident for the
+        // player: the AI's play routine held it true across a trailing 3s animation wait, so there was no
+        // window to drop into. That wait is gone (the reveal now runs in parallel with the card's effects),
+        // which leaves real gaps between AI plays — hence an explicit turn check rather than a timing one.
+        bool isAgentsTurn = agent == player ? CanPlayerPlayCards : !isPlayerTurn;
+        if ((!isPlayTurn || !isAgentsTurn || isPlayingCard || card.modal.cost > agent.availibleMana) && !isTesting) yield break;
 
         // Playing a card preempts any in-progress attack/minion selection (e.g. mid-attack), tearing it
         // down so the played card's own selection steps start from a clean slate.
@@ -797,16 +812,19 @@ public class GameManager : Singleton<GameManager>
                 card.transform.SetAsLastSibling();
                 card.transform.localRotation = Quaternion.identity;
 
-                card.transform.DOScale(Vector3.one * 1.5f, 0.5f);
+                // Scale / timings live on PlayArea next to the player's equivalents, so the deliberate
+                // asymmetry between the two (the AI's card is bigger and lingers, because it also flips
+                // face-up here and has to be readable) can be tuned against them rather than guessed at.
+                card.transform.DOScale(Vector3.one * PlayArea.OpponentPlayedCardScale, PlayArea.OpponentPlayedCardTweenDuration);
                 card.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
                 {
                     card.modal.isPlayerMinion = true;
                     card.view.UpdateView(card.modal);
                     card.transform.DORotate(Vector3.up * 0, 0.15f);
                 });
-                card.transform.DOMove(PlayArea.Instance.opponentCardPos.position, 0.5f).OnComplete(() =>
+                card.transform.DOMove(PlayArea.Instance.opponentCardPos.position, PlayArea.OpponentPlayedCardTweenDuration).OnComplete(() =>
                 {
-                    card.transform.DOScale(0f, 0.25f).SetDelay(1f).OnComplete(() =>
+                    card.transform.DOScale(0f, 0.25f).SetDelay(PlayArea.OpponentPlayedCardHoldDuration).OnComplete(() =>
                     {
                         if (card.modal.upgradedVerdion != null)
                         {
@@ -1050,13 +1068,20 @@ public class GameManager : Singleton<GameManager>
         if (sourceCard != null && sourceCard.modal != null && sourceCard.card == card)
             minion.modal.CopyFrom(sourceCard.modal);
 
+        // Re-assert ownership AFTER CopyFrom and BEFORE UpdateView. CopyFrom drags owner/isPlayerMinion
+        // over from the hand card, and an opponent card's modal is flipped to isPlayerMinion=true by the
+        // play-area reveal animation (that flag doubles as "render this card face-up"). MinionView caches
+        // the side on UpdateView and never re-reads it, so summoning off a copied modal used to bake the
+        // player's frame tint into an enemy minion.
+        minion.modal.isPlayerMinion = ownerIsPlayer;
+        minion.modal.owner = owner;
+
         minion.view.UpdateView(minion.modal);
         minion.view.PlayAppearAnimation();
         ActionHolder.thisMinion = minion;
         ActionHolder.thisCardSO = minion.card;
 
         owner.minions.Add(minion);
-        minion.modal.isPlayerMinion = ownerIsPlayer;
         minion.owner = owner;
 
         // Let hero aura passives stamp per-minion stats (e.g. collision damage on friendly minions).

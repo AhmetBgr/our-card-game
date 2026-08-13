@@ -14,8 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DeckSO
   deckName: deck 2
   cards:
-  - {fileID: 11400000, guid: eb2f4ea431e3ed041972f62d43d96fe9, type: 2}
   - {fileID: 11400000, guid: 377e9f3361b21724a8e31f9651265cde, type: 2}
-  - {fileID: 11400000, guid: 8922d099d35125644acae2f040f4893a, type: 2}
+  - {fileID: 11400000, guid: 9d41007c59a5afa489b444fec73d5232, type: 2}
   - {fileID: 11400000, guid: 3d15a0ce9b1f4872a53c6e0d7f2b8941, type: 2}
-  - {fileID: 11400000, guid: a1e416c7ad9913848ac3413e5802f091, type: 2}
+  - {fileID: 11400000, guid: fef1dcad43a8674478fbbda0bedf61be, type: 2}
+  - {fileID: 11400000, guid: 8922d099d35125644acae2f040f4893a, type: 2}
+  - {fileID: 11400000, guid: 0917abf24b59c1348aa490b12d36dc99, type: 2}
+  - {fileID: 11400000, guid: d108f43a5214df34aa81873ef4952feb, type: 2}
+  - {fileID: 11400000, guid: c3d4e5f6a7b809012cdef01234567890, type: 2}
+  - {fileID: 11400000, guid: 1f960f83250ea8c48a0b2985788cbb53, type: 2}
+  - {fileID: 11400000, guid: 0415f35a7c5b5f04e9a81731f3153023, type: 2}

@@ -470,9 +470,12 @@ public class Agent : MonoBehaviour
         cardObj.view.UpdateView(cardObj.modal);
         cardObj.transform.localScale = Vector3.zero;
 
+        // Pop size / timing live on PlayArea, not here: this runs for both agents, and the forged card
+        // lands on the same spot the played card just left (cardPlayPos is PlayArea.cardPos), so the two
+        // scales are read as one animation and belong on one component.
         Sequence sequence = DOTween.Sequence();
-        sequence.Append(cardObj.transform.DOScale(Vector3.one*1.2f, 0.25f));
-        sequence.Append(DOVirtual.DelayedCall(0.5f, () => { }));
+        sequence.Append(cardObj.transform.DOScale(Vector3.one * PlayArea.ForgedCardPopScale, PlayArea.ForgedCardPopDuration));
+        sequence.Append(DOVirtual.DelayedCall(PlayArea.ForgedCardHoldDuration, () => { }));
 
         sequence.Append(cardObj.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f, 50f, 1, 0.5f));
         sequence.Join(cardObj.transform.DOScale(cardHandLayout.cardDeckScale, 0.5f));
