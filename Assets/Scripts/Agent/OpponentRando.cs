@@ -99,14 +99,15 @@ public class OpponentRando : Agent
             if (availableActions.Count == 0)
                 yield break;
 
-            ActionHolder.OnWaitingCellSelect += SelectCell;
-            ActionHolder.OnWaitingMinionSelect += SelectMinion;
-            ActionHolder.OnWaitingCardChoice += ChooseCard;
+            SubscribeSelectionHandlers();
 
             // The unsubscribe MUST run no matter how the action ends — a leaked handler would auto-resolve
             // the PLAYER's cell/minion picks on their turn (summoning with no prompt). A finally guarantees
             // it even if the action throws; the empty-target case cancels the current card gracefully
             // (see SelectCell/SelectMinion) instead of stopping this coroutine, which would skip the finally.
+            //
+            // It does NOT cover the scene going away underneath us — see OpponentBrained for the full
+            // reasoning; OnDestroy below is what covers a match restarted mid-AI-turn.
             try
             {
                 IEnumerator action = availableActions[UnityEngine.Random.Range(0, availableActions.Count)];
@@ -121,17 +122,44 @@ public class OpponentRando : Agent
             }
             finally
             {
-                ActionHolder.OnWaitingCellSelect -= SelectCell;
-                ActionHolder.OnWaitingMinionSelect -= SelectMinion;
-                ActionHolder.OnWaitingCardChoice -= ChooseCard;
+                UnsubscribeSelectionHandlers();
             }
 
             if (GameManager.Instance.currentState == GameState.EndGame)
                 break;
 
             yield return new WaitForSeconds(1);
-           
+
         }
+    }
+
+    private void SubscribeSelectionHandlers()
+    {
+        // Unsubscribe first so a re-entry can't stack a second copy of the same handler.
+        UnsubscribeSelectionHandlers();
+
+        ActionHolder.OnWaitingCellSelect += SelectCell;
+        ActionHolder.OnWaitingMinionSelect += SelectMinion;
+        ActionHolder.OnWaitingCardChoice += ChooseCard;
+    }
+
+    private void UnsubscribeSelectionHandlers()
+    {
+        // Idempotent: -= on a delegate that isn't subscribed is a no-op, so this is safe to call from
+        // both the finally above and OnDestroy, whichever gets there first (or only).
+        ActionHolder.OnWaitingCellSelect -= SelectCell;
+        ActionHolder.OnWaitingMinionSelect -= SelectMinion;
+        ActionHolder.OnWaitingCardChoice -= ChooseCard;
+    }
+
+    /// <summary>
+    /// The teardown path the coroutine's finally cannot reach. Runs on scene unload, so a match restarted
+    /// mid-AI-turn cannot carry these handlers into the next one and auto-resolve the player's picks.
+    /// </summary>
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        UnsubscribeSelectionHandlers();
     }
     public void SelectMinion(List<MinionController> minions, CardSO card)
     {

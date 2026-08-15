@@ -197,7 +197,37 @@ public class ActionHolder : ScriptableObject
     // cell and minion prompts. Args: the options offered, and the card that asked.
     public static event Action<List<CardSO>, CardSO> OnWaitingCardChoice;
 
+    /// <summary>
+    /// Wipes everything on this class that outlives a scene. Called from <see cref="GameManager.Awake"/>,
+    /// so every match starts from a blank slate however the previous one ended.
+    ///
+    /// The events matter most. They are static, and their only subscribers (the AI's PlayTurn) attach for
+    /// the duration of one action and detach in a coroutine `finally` — which Unity does NOT run when the
+    /// owning object is destroyed. Restarting a match mid-AI-turn therefore used to strand the AI's
+    /// handlers here, and they then answered the PLAYER's cell/minion prompts the instant those opened:
+    /// the summon highlight flashed and the minion landed wherever a dead agent's brain scored best,
+    /// with no chance to click. The AI now also unsubscribes in OnDestroy; this is the backstop that keeps
+    /// any future subscriber from reintroducing the same bug.
+    ///
+    /// Nothing subscribes before GameManager.Awake — the AI only attaches from inside PlayTurn, which
+    /// GameManager.Start kicks off — so clearing here cannot drop a live handler.
+    /// </summary>
+    public static void ResetForNewMatch()
+    {
+        OnSelect = null;
+        OnWaitingCellSelect = null;
+        OnWaitingMinionSelect = null;
+        OnWaitingCardChoice = null;
 
+        ResetSelections();
+
+        cancelRequested = false;
+        thisMinion = null;
+        thisCard = null;
+        thisCardSO = null;
+        DiedMinionAmount = 0;
+        curActionsList = new Queue<IEnumerator>();
+    }
 
     #region SELECTION
 

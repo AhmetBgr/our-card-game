@@ -31,6 +31,15 @@ public class SelectionManager
         }
     }
 
+    /// <summary>
+    /// Drops the manager between matches. This is a plain C# singleton, so it — and any request left open
+    /// when the scene was torn down — outlives the scene: a stale <c>_active</c> makes
+    /// <see cref="TryResolveClick"/> swallow every click in the NEXT match as "invalid target". Replaces
+    /// rather than tears down the instance, because the request's minions all died with the old scene and
+    /// there is no resting state left to restore. Called from <see cref="GameManager.Awake"/>.
+    /// </summary>
+    public static void ResetForNewMatch() => _instance = null;
+
     public enum SelectionKind { Minion, AttackTarget }
 
     private sealed class SelectionRequest

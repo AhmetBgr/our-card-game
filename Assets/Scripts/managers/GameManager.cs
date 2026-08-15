@@ -161,6 +161,13 @@ public class GameManager : Singleton<GameManager>
     {
         base.Awake();
 
+        // Every static that outlives the scene is cleared here, before anything in this match can touch
+        // it. A Replay/Restart is a plain scene load, so without this the previous match's selection
+        // state, its event subscribers and its open selection request all carry over — see
+        // ActionHolder.ResetForNewMatch for what that did to the player's cell picks.
+        ActionHolder.ResetForNewMatch();
+        SelectionManager.ResetForNewMatch();
+
         // Static, so it outlives the scene: re-resolve per match rather than letting a Replay inherit
         // the previous one's answer.
         isTutorialMatch = !SaveManager.Instance.IsTutorial;

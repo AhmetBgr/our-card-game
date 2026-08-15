@@ -211,7 +211,10 @@ public class Agent : MonoBehaviour
         MinionController.OnDied += UpdateMinions;
     }
 
-    private void OnDestroy()
+    // Virtual so the AI subclasses can drop their own static-event subscriptions here. Unity resolves a
+    // message like OnDestroy to ONE method per component type, so a subclass declaring its own private
+    // OnDestroy would hide this one and silently leak the OnDied handler below.
+    protected virtual void OnDestroy()
     {
         MinionController.OnDied -= UpdateMinions;
     }
