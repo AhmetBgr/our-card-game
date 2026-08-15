@@ -204,6 +204,11 @@ public class StatsTracker : Singleton<StatsTracker>
         var gm = GameManager.Instance;
         stats.won = won;
 
+        // Latched at GameManager.Awake and never flipped mid-scene — MarkTutorialPlayed only writes the
+        // save flag — so this still reads true here, after the win condition that ends the tutorial has
+        // already retired it.
+        stats.isTutorial = GameManager.IsTutorialMatch;
+
         if (gm != null && gm.player != null && gm.player.hero != null && gm.player.hero.modal != null)
         {
             stats.heroFinalHp = gm.player.hero.modal.health;

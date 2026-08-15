@@ -32,6 +32,7 @@ MonoBehaviour:
   comebackBonus: 25
   oneTurnKillBonus: 50
   comebackHpThreshold: 5
+  tutorialScore: -100
   gradeS: 300
   gradeA: 260
   gradeB: 210
@@ -60,6 +61,7 @@ MonoBehaviour:
   flawlessLabel: Flawless win
   comebackLabel: Comeback
   oneTurnKillLabel: One turn kill
+  tutorialLabel: Tutorial
   victoryValue: Victory
   defeatValue: Defeat
   turnsSurvivedFormat: '{0} turns'
@@ -68,3 +70,4 @@ MonoBehaviour:
   flawlessValue: No Damage!
   comebackValue: Clutch!
   oneTurnKillValue: OTK!
+  tutorialValue: Tutorial!

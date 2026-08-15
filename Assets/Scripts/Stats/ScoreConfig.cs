@@ -35,6 +35,14 @@ public class ScoreConfig : ScriptableObject
     public int oneTurnKillBonus = 750;
     public int comebackHpThreshold = 5;
 
+    [Header("Tutorial")]
+
+    [Tooltip("Added as its own breakdown row on the tutorial match, and only there. Unlike the win-only " +
+             "bonuses above it applies whether the tutorial was won or lost — it is a property of WHICH " +
+             "match was played, not of how it went. Set it to 0 to score the tutorial like any other match; " +
+             "the row is then dropped rather than shown as a pointless zero.")]
+    public int tutorialScore = 250;
+
     [Header("Grade thresholds (minimum total score for each grade)")]
     public int gradeS = 3000;
     public int gradeA = 2200;
@@ -70,6 +78,7 @@ public class ScoreConfig : ScriptableObject
     public string flawlessLabel = "Flawless win";
     public string comebackLabel = "Comeback";
     public string oneTurnKillLabel = "One turn kill";
+    public string tutorialLabel = "Tutorial";
 
     [Header("Breakdown row values ({0} is replaced by the number)")]
     public string victoryValue = "Victory";
@@ -80,6 +89,7 @@ public class ScoreConfig : ScriptableObject
     public string flawlessValue = "No Damage!";
     public string comebackValue = "Clutch!";
     public string oneTurnKillValue = "OTK!";
+    public string tutorialValue = "Tutorial!";
 
     public string GradeFor(int score)
     {

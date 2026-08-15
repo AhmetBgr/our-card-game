@@ -27,6 +27,11 @@ public class MatchStats
     public bool comeback;
     public bool oneTurnKill;
 
+    // Which match this was, rather than how it went. Stamped by StatsTracker from
+    // GameManager.IsTutorialMatch, so this class keeps its no-scene-dependency rule and stays testable
+    // with a plain object.
+    public bool isTutorial;
+
     // --- Persisted best (filled in by StatsTracker after scoring, from SaveManager) ---
     public int highScore;         // best score ever recorded, including this match
     public int previousHighScore; // best as it stood before this match was counted
@@ -137,6 +142,12 @@ public class MatchStats
             if (comeback) Add(cfg.comebackLabel, cfg.comebackValue, cfg.comebackBonus);
             if (oneTurnKill) Add(cfg.oneTurnKillLabel, cfg.oneTurnKillValue, cfg.oneTurnKillBonus);
         }
+
+        // Last row, and deliberately OUTSIDE the win-only block above: the tutorial can be lost, and this
+        // is paid for playing it either way. Skipped entirely at 0 so switching it off leaves the panel
+        // exactly as it was rather than adding a row worth nothing.
+        if (isTutorial && cfg.tutorialScore != 0)
+            Add(cfg.tutorialLabel, cfg.tutorialValue, cfg.tutorialScore);
 
         // Deliberately not floored at zero: a match that earns more penalties than points scores below
         // zero, and the panel counts down to it row by row rather than snapping back up to 0 at the end.

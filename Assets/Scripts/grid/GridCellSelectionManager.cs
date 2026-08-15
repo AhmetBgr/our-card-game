@@ -21,6 +21,11 @@ public class GridCellSelectionManager : MonoBehaviour
     private CardSO _sourceCard;
     private readonly List<MinionController> _skullPreviewMinions = new List<MinionController>();
 
+    [Tooltip("Tutorial-only hint shown while a cell pick is open — but only for the picks whose verb " +
+             "supplies wording (see the prompt argument on BeginSelection), so a spell's area pick stays " +
+             "silent while the summon pick explains itself. Optional: leave empty for no hint at all.")]
+    [SerializeField] private TutorialPrompt prompt;
+
     public bool HasActiveSession => _selectableIndexes.Count > 0;
 
     private void Awake()
@@ -34,11 +39,17 @@ public class GridCellSelectionManager : MonoBehaviour
         Instance = this;
     }
 
+    /// <param name="promptMessage">
+    /// Wording for the tutorial hint to show while this pick is open, or null for no hint. Passed by the
+    /// verb rather than derived here, because only the verb knows what it is asking the player FOR — the
+    /// selectable set alone cannot tell a summon placement apart from a spell's area.
+    /// </param>
     public void BeginSelection(
         IEnumerable<Vector2Int> selectableIndexes,
         Func<Vector2Int, IEnumerable<Vector2Int>> hoverAreaProvider,
         bool previewOccupantPush = false,
-        CardSO sourceCard = null)
+        CardSO sourceCard = null,
+        string promptMessage = null)
     {
         // Starting a cell selection preempts any active minion/attack selection (mutual preempt with
         // SelectionManager, which calls EndSelection() here when it begins a minion/attack request).
@@ -58,11 +69,19 @@ public class GridCellSelectionManager : MonoBehaviour
         _hoverAreaProvider = hoverAreaProvider;
         _previewOccupantPush = previewOccupantPush;
         _sourceCard = sourceCard;
+
+        // After the EndSelection() above, which hides whatever the preempted pick was saying. Show() kills
+        // that fade out rather than queueing behind it, so back-to-back picks don't blink.
+        if (prompt != null && !string.IsNullOrEmpty(promptMessage)) prompt.Show(promptMessage);
     }
 
     public void EndSelection()
     {
         ClearHoverPreview();
+
+        // Every teardown path runs through here — resolved, cancelled, or preempted by a minion/attack
+        // request — so the hint cannot outlive the pick it belongs to.
+        if (prompt != null) prompt.Hide();
 
         foreach (var index in _selectableIndexes)
         {

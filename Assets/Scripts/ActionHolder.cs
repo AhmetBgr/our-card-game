@@ -294,6 +294,13 @@ public class ActionHolder : ScriptableObject
         return GameManager.Instance.isPlayerTurn ? Vector3Int.up : Vector3Int.down;
     }
 
+    /// <summary>
+    /// Wording of the tutorial hint shown while the player picks the tile to summon onto. Only
+    /// <see cref="_SelectCell"/> passes it: that is the summon placement. The other cell picks below are
+    /// spell areas, and a prompt naming a summon would be wrong on every one of them.
+    /// </summary>
+    public const string SummonCellPrompt = "Select a Tile To Summon";
+
     public void SelectCell(int rowIndex = 2)
     {
         IEnumerator cor = _SelectCell(rowIndex);
@@ -344,7 +351,8 @@ public class ActionHolder : ScriptableObject
                 selectableIndexes,
                 CellFootprints.Single,
                 previewOccupantPush: true,
-                sourceCard: thisCardSO);
+                sourceCard: thisCardSO,
+                promptMessage: SummonCellPrompt);
         }
         if (GameManager.Instance.isPlayerTurn)
         {
