@@ -15,7 +15,22 @@ public class HeroDatabase : PermanentSingleton<HeroDatabase>
     /// <summary>Sentinel SelectedHeroIndex meaning "pick a random hero at game start" (mirrors the mystery deck).</summary>
     public const int RandomHeroIndex = -1;
 
+    /// <summary>Where the tutorial-only heroes live, relative to Resources.</summary>
+    public const string TutorialHeroesFolder = "Heroes/Other";
+
+    /// <summary>
+    /// The heroes a match can actually be played with: everything under Heroes/ except the
+    /// tutorial-only ones. This is what SelectedHeroIndex indexes into, what the setup scene's
+    /// carousel lists, and what a random roll picks from.
+    /// </summary>
     public List<HeroSO> AllHeroes = new List<HeroSO>();
+
+    /// <summary>
+    /// Tutorial-only heroes, held apart from <see cref="AllHeroes"/> so neither Quick Play's random
+    /// roll nor the custom-game carousel can offer them. Only ever addressed by name, by the tutorial
+    /// itself (see <see cref="GetHeroByName"/>), so they need no stable index.
+    /// </summary>
+    private readonly List<HeroSO> tutorialHeroes = new List<HeroSO>();
 
     protected override void Awake()
     {
@@ -26,18 +41,28 @@ public class HeroDatabase : PermanentSingleton<HeroDatabase>
     void LoadHeroes()
     {
         AllHeroes.Clear();
+        tutorialHeroes.Clear();
 
         // Resources.LoadAll recurses into subfolders but only returns HeroSO assets, so the
         // Passives/ subfolder (HeroPassiveSO) is naturally excluded.
         HeroSO[] heroes = Resources.LoadAll<HeroSO>("Heroes");
 
-        AllHeroes.AddRange(heroes);
+        // Loading the subfolder on its own is what makes the split possible: a HeroSO carries no
+        // record of where it came from, so at runtime there's nothing else to tell them apart by.
+        HeroSO[] tutorialOnly = Resources.LoadAll<HeroSO>(TutorialHeroesFolder);
+        tutorialHeroes.AddRange(tutorialOnly);
+
+        foreach (var hero in heroes)
+        {
+            if (Array.IndexOf(tutorialOnly, hero) < 0)
+                AllHeroes.Add(hero);
+        }
 
         // Resources load order is not guaranteed; sort by asset name so SelectedHeroIndex maps
         // to the same hero across sessions and between the Menu and Game scenes.
         AllHeroes.Sort((a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
 
-        Debug.Log($"Loaded {AllHeroes.Count} heroes into HeroDatabase.");
+        Debug.Log($"Loaded {AllHeroes.Count} heroes into HeroDatabase ({tutorialHeroes.Count} tutorial-only heroes held back).");
     }
 
     public HeroSO GetHeroByIndex(int index)
@@ -47,6 +72,26 @@ public class HeroDatabase : PermanentSingleton<HeroDatabase>
 
         index = Mathf.Clamp(index, 0, AllHeroes.Count - 1);
         return AllHeroes[index];
+    }
+
+    /// <summary>
+    /// The hero whose asset is named <paramref name="assetName"/>, or null when there is no such hero.
+    /// Lets callers that need one specific hero (the tutorial match-up) address it by name instead of
+    /// by a position in the name-sorted list, which shifts whenever a hero asset is added or renamed.
+    /// Null rather than a fallback hero, so a caller can tell "not found" from a real answer and go
+    /// back to the saved selection instead of silently fielding the wrong hero.
+    /// </summary>
+    public HeroSO GetHeroByName(string assetName)
+    {
+        // Searches the tutorial-only heroes too — being unpickable is about the random roll and the
+        // carousel, not about being unreachable to the code that deliberately asks for one.
+        var hero = AllHeroes.Find(h => h != null && h.name == assetName)
+                   ?? tutorialHeroes.Find(h => h != null && h.name == assetName);
+
+        if (hero == null)
+            Debug.LogWarning($"Hero asset not found: {assetName}.");
+
+        return hero;
     }
 
     public HeroSO GetRandomHero()

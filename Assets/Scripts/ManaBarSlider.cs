@@ -184,6 +184,6 @@ public class ManaBarSlider : MonoBehaviour
     {
         if (manaText == null) return;
 
-        manaText.text = currentMana + "/" + GameManager.Instance.maxMana;
+        manaText.text = currentMana + "/" + GameManager.Instance.PlayerMaxMana;
     }
 }

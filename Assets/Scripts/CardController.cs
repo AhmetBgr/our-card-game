@@ -58,14 +58,26 @@ public class CardController : MonoBehaviour
     private bool IsPlayableHandCard()
     {
         var gm = GameManager.Instance;
+        if (gm == null || !gm.CanPlayerPlayCards) return false;
+        if (!IsPlayerHandCard()) return false;
+
+        return CardView.IsPlayableNow(modal);
+    }
+
+    /// <summary>
+    /// Is this card sitting in the player's own hand? The half of <see cref="IsPlayableHandCard"/>
+    /// that isn't about timing or mana, split out for callers that care where the card is but not
+    /// whether it can be played this instant (the tutorial hints).
+    /// </summary>
+    private bool IsPlayerHandCard()
+    {
+        var gm = GameManager.Instance;
         if (gm == null || gm.player == null || modal == null) return false;
-        if (!gm.CanPlayerPlayCards) return false;
         // owner, not isPlayerMinion: ownership is fixed when the card is instantiated, while
         // isPlayerMinion gets rewritten by the reveal/return-to-deck flip animations.
         if (modal.owner != gm.player) return false;
-        if (!gm.player.hand.Contains(this)) return false;
 
-        return CardView.IsPlayableNow(modal);
+        return gm.player.hand.Contains(this);
     }
     public void Initialize(Agent owner, bool isPlayerCard)
     {
@@ -102,6 +114,11 @@ public class CardController : MonoBehaviour
         // card can't peek (mid-drag, already peeking, no room in the fan).
         view.SetHoveredOutline(true);
 
+        // The tutorial's stat labels ride the same hover, for the opening turns of that match only.
+        // In hand rather than the isPlayerMinion check above, which is also true of the OPPONENT's
+        // card once the play-area reveal flips it face up.
+        view.SetTutorialHints(IsPlayerHandCard() && GameManager.Instance.ShouldShowTutorialHints);
+
         if (!canPeek) return;
         if (handLayout == null || !handLayout.BeginPeek(this)) return;
 
@@ -134,6 +151,7 @@ public class CardController : MonoBehaviour
         // Cleared unconditionally, mirroring OnPointerEnter — a card that was hovered without peeking
         // would otherwise keep its outline lit after the pointer left.
         view.SetHoveredOutline(false);
+        view.SetTutorialHints(false);
         KeywordTooltip.Hide(this);
 
         if (!isPeeking) return;

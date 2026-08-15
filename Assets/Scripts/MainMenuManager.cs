@@ -42,6 +42,22 @@ public class MainMenuManager : MonoBehaviour
 
         // Always open on the menu itself, however the panel was left in the editor.
         ShowCredits(false);
+
+        TryStartTutorial();
+    }
+
+    /// <summary>
+    /// The tutorial hasn't been played yet, so skip the title screen entirely and drop straight into
+    /// the Game scene. The match-up itself is applied there by <see cref="Agent.ApplySavedSelection"/>,
+    /// not written into the save here, so it can't overwrite the player's own hero and deck choices.
+    /// <see cref="GameManager.CheckWinCondition"/> flips the save flag when that match ends, so the
+    /// menu behaves normally from the next visit onwards.
+    /// </summary>
+    void TryStartTutorial()
+    {
+        if (SaveManager.Instance.IsTutorial) return;
+
+        GoToScene(gameSceneName);
     }
 
     void Update()

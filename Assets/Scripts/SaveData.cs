@@ -15,6 +15,10 @@ public class SaveData
     // The action log starts collapsed: `false` is both the fresh-save default and what saves written
     // before this field existed deserialize to, so old players also get it off until they open it.
     public bool ShowActionLog;
+
+    // False until the tutorial match has been played through. `false` is both the fresh-save default
+    // and what older saves deserialize to, so existing players get the tutorial once as well.
+    public bool IsTutorial;
 }
 
 [Serializable]

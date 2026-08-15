@@ -29,7 +29,7 @@ public class ManaBarController : MonoBehaviour
     {
         if (mainText == null) return;
 
-        mainText.text = currentMana + "/" + GameManager.Instance.maxMana;
+        mainText.text = currentMana + "/" + GameManager.Instance.PlayerMaxMana;
     }
 
     private void OnDestroy()
@@ -41,7 +41,7 @@ public class ManaBarController : MonoBehaviour
     // Update is called once per frame
     public void UpdateMacManaBarText(int value)
     {
-        if(value == GameManager.Instance.maxMana | value == GameManager.Instance.player.availibleMana)
+        if(value == GameManager.Instance.PlayerMaxMana | value == GameManager.Instance.player.availibleMana)
         {
             animator.speed = 0f;
             //gear.DOKill();
@@ -52,15 +52,15 @@ public class ManaBarController : MonoBehaviour
 
         for (int i = 0; i < maxBarTextObjects.Length; i++)
         {
-            maxBarTextObjects[i].gameObject.SetActive(i == value || i == GameManager.Instance.maxMana);
-            maxBarTextObjects[i].color = i == GameManager.Instance.maxMana ?  Color.white : maxManaColor;
+            maxBarTextObjects[i].gameObject.SetActive(i == value || i == GameManager.Instance.PlayerMaxMana);
+            maxBarTextObjects[i].color = i == GameManager.Instance.PlayerMaxMana ?  Color.white : maxManaColor;
         }
     }
 
     private void PlayCorrectAnimation(int newValue, int oldValue)
     {
         //Debug.Log("old: " + oldValue + ", new: " +  newValue);
-        //Debug.Log("max mana: " + GameManager.Instance.maxMana);
+        //Debug.Log("max mana: " + GameManager.Instance.PlayerMaxMana);
 
         gearRotateTween.timeScale = ((float)newValue) / 1f;
 

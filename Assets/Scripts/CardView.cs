@@ -40,6 +40,11 @@ public class CardView : MonoBehaviour
     [SerializeField] private GameObject highlightOutline;
     [Tooltip("Lit while the pointer is over the card, but only while the playable outline is also lit.")]
     [SerializeField] private GameObject hoveredOutline;
+    [Tooltip("Labels that name the card's attack/health/cost. Shown only during the tutorial match, while this card is hovered in hand.")]
+    [SerializeField] private GameObject tutorialHints;
+    [Tooltip("The attack and health labels inside Tutorial Hints. Hidden on spells, which show neither stat.")]
+    [SerializeField] private GameObject tutorialAttackHint;
+    [SerializeField] private GameObject tutorialHealthHint;
 
     [SerializeField] private TextMeshProUGUI nametext;
     [SerializeField] private TextMeshProUGUI desctext;
@@ -122,8 +127,16 @@ public class CardView : MonoBehaviour
 
         // Keyed off health, not attack: a 0-attack minion is still a minion and must show its attack
         // stat. Only spells (attack == 0 && health == 0) hide it, and health == 0 already covers those.
-        attacktext.transform.parent.gameObject.SetActive(card.health > 0 && faceUp);
-        healthtext.transform.parent.gameObject.SetActive(card.health > 0 && faceUp);
+        bool showsStats = card.health > 0 && faceUp;
+        attacktext.transform.parent.gameObject.SetActive(showsStats);
+        healthtext.transform.parent.gameObject.SetActive(showsStats);
+
+        // The tutorial labels annotate those same two boxes, so they follow them exactly rather than
+        // re-deriving the condition — a label pointing at a stat the card doesn't draw is worse than
+        // no label. Set here rather than in SetTutorialHints because these are children of that root:
+        // their state survives the root being toggled on and off by hover.
+        if (tutorialAttackHint != null) tutorialAttackHint.SetActive(showsStats);
+        if (tutorialHealthHint != null) tutorialHealthHint.SetActive(showsStats);
 
 
     }
@@ -189,6 +202,17 @@ public class CardView : MonoBehaviour
     private void ApplyHoveredOutline()
     {
         if (hoveredOutline != null) hoveredOutline.SetActive(_hovered && _playable);
+    }
+
+    /// <summary>
+    /// Show or hide the stat-naming hint labels. Unlike the hover outline this is not gated on
+    /// affordability — the tutorial is teaching what the numbers mean, which is worth reading on a
+    /// card the player can't pay for yet. The caller decides when it applies (see
+    /// <see cref="CardController.OnPointerEnter"/>).
+    /// </summary>
+    public void SetTutorialHints(bool on)
+    {
+        if (tutorialHints != null) tutorialHints.SetActive(on);
     }
 
     /// <summary>

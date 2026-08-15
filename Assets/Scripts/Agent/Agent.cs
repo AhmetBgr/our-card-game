@@ -139,15 +139,29 @@ public class Agent : MonoBehaviour
 
         if (hero != null)
         {
-            var selectedHero = HeroDatabase.Instance.GetSelectedHero(side);
+            var selectedHero = TutorialHero(side) ?? HeroDatabase.Instance.GetSelectedHero(side);
             if (selectedHero != null)
                 hero.card = selectedHero;
+        }
+
+        deck.Clear();
+
+        // The tutorial deals the player an authored deck instead of whatever they have saved, so its
+        // scripted opening plays out the same every time. Taken straight from the asset rather than
+        // written into a save slot, which would overwrite a deck the player built. The opponent is
+        // unaffected and still uses its saved selection.
+        if (GameManager.IsTutorialMatch && side == SelectionSide.Player && SaveManager.TutorialDeck != null)
+        {
+            foreach (var cardSO in SaveManager.TutorialDeck.cards)
+                if (cardSO != null)
+                    deck.Add(cardSO);
+
+            return;
         }
 
         var decks = saveManager.GetDecks(side);
         var selectedDeck = decks[saveManager.GetSelectedDeckIndex(side)];
 
-        deck.Clear();
         foreach (var cardName in selectedDeck.Deck)
         {
             CardSO cardSO = DeckDatabase.Instance.GetCard(cardName);
@@ -156,6 +170,22 @@ public class Agent : MonoBehaviour
             else
                 Debug.LogWarning($"Card with name {cardName} not found in database.");
         }
+    }
+
+    /// <summary>
+    /// The hero the tutorial fixes for <paramref name="side"/>, or null outside the tutorial match (and
+    /// if the asset is missing), leaving the saved selection to decide. Resolved here at match setup
+    /// rather than written into the save by the menu, so the tutorial fields the right heroes however
+    /// the Game scene was entered — including straight from the editor — and without overwriting a hero
+    /// the player picked for themselves.
+    /// </summary>
+    static HeroSO TutorialHero(SelectionSide side)
+    {
+        if (!GameManager.IsTutorialMatch) return null;
+
+        return HeroDatabase.Instance.GetHeroByName(side == SelectionSide.Opponent
+            ? SaveManager.TutorialOpponentHeroName
+            : SaveManager.TutorialPlayerHeroName);
     }
 
     protected void ShuffleDeck()

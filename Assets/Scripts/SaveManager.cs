@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class SaveManager : PermanentSingleton<SaveManager>
@@ -8,7 +9,21 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
     public const int DeckSlotCount = 10;
 
+    [Tooltip("Legacy PlayerPrefs key. Only read once, to migrate saves written before the JSON file existed.")]
     public string saveDataKey = "DeckData";
+
+    [Tooltip("File the save is written to, under Application.persistentDataPath.")]
+    public string saveFileName = "savedata.json";
+
+    /// <summary>
+    /// Absolute path of the save file. persistentDataPath is the only directory guaranteed writable on
+    /// every platform we ship to, so the save never lives next to the build.
+    /// </summary>
+    public string SaveFilePath =>
+        Path.Combine(Application.persistentDataPath,
+            string.IsNullOrWhiteSpace(saveFileName) ? DefaultSaveFileName : saveFileName);
+
+    const string DefaultSaveFileName = "savedata.json";
 
     public SaveData saveData;
     public DeckSO defaultDeck;
@@ -52,22 +67,52 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
     public void LoadData()
     {
-        // Load data from PlayerPrefs or other storage
-        //string deckData = PlayerPrefs.GetString(saveDataKey, string.Empty);
-        string json = PlayerPrefs.GetString(saveDataKey, string.Empty);
+        string json = ReadSaveFile();
+
+        // Nothing on disk yet: a player upgrading from a build that stored the save in PlayerPrefs still
+        // has their decks there, so adopt that payload once and let the SaveData() below write the file.
+        bool migrated = false;
+        if (string.IsNullOrEmpty(json))
+        {
+            json = PlayerPrefs.GetString(saveDataKey, string.Empty);
+            migrated = !string.IsNullOrEmpty(json);
+        }
+
         if (!string.IsNullOrEmpty(json))
         {
             // Deserialize and load the deck data
             Debug.Log($"Loaded deck data: {json}");
-            saveData = JsonUtility.FromJson<SaveData>(json);
+            try
+            {
+                saveData = JsonUtility.FromJson<SaveData>(json);
+            }
+            catch (System.Exception e)
+            {
+                // A truncated or hand-edited file must not brick the game; fall through to a fresh save.
+                Debug.LogError($"Save file at {SaveFilePath} could not be parsed, starting a new save. {e.Message}");
+                saveData = null;
+            }
+
             EnsureSaveDataIsValid();
         }
 
+        bool createdNewSave = false;
         if (saveData == null || saveData.Decks == null || saveData.Decks.Length == 0)
         {
             Debug.Log("No deck data found.");
             CreateNewSave();
+            createdNewSave = true;
+        }
+
+        // Write immediately when the file doesn't reflect what we just loaded: a fresh or migrated save
+        // has no file yet, and a corrupt one must be replaced rather than re-read on the next boot.
+        if (migrated || createdNewSave || !File.Exists(SaveFilePath))
             SaveData();
+
+        if (migrated)
+        {
+            PlayerPrefs.DeleteKey(saveDataKey);
+            PlayerPrefs.Save();
         }
     }
 
@@ -75,8 +120,43 @@ public class SaveManager : PermanentSingleton<SaveManager>
     {
         var value = SerializeData();
 
-        PlayerPrefs.SetString(saveDataKey, value);
-        PlayerPrefs.Save();
+        // Write to a sibling temp file first, then swap it in: a crash mid-write leaves the previous
+        // save intact instead of a half-flushed one.
+        string path = SaveFilePath;
+        string tempPath = path + ".tmp";
+
+        try
+        {
+            string directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+
+            File.WriteAllText(tempPath, value);
+
+            if (File.Exists(path))
+                File.Delete(path);
+
+            File.Move(tempPath, path);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Failed to write save file at {path}: {e.Message}");
+        }
+    }
+
+    string ReadSaveFile()
+    {
+        string path = SaveFilePath;
+
+        try
+        {
+            return File.Exists(path) ? File.ReadAllText(path) : string.Empty;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Failed to read save file at {path}: {e.Message}");
+            return string.Empty;
+        }
     }
 
     public int HighScore => saveData != null ? saveData.HighScore : 0;
@@ -104,12 +184,38 @@ public class SaveManager : PermanentSingleton<SaveManager>
         SaveData();
     }
 
-    public string GetSaveData()
+    // Asset names of the two heroes the tutorial match forces on each side.
+    public const string TutorialPlayerHeroName = "3-Hunter_Tutorial";
+    public const string TutorialOpponentHeroName = "1-Berserker_Tutorial";
+
+    public const string TutorialDeckResourcePath = "Decks/Tutorial Deck";
+
+    private static DeckSO tutorialDeck;
+
+    /// <summary>
+    /// The authored deck the player is dealt in the tutorial match. Loaded from Resources rather than
+    /// wired into a scene, so it resolves the same whether the game boots through the menu or the Game
+    /// scene is played directly. Null-safe: a missing asset just leaves the player on their saved deck.
+    /// </summary>
+    public static DeckSO TutorialDeck =>
+        tutorialDeck != null ? tutorialDeck : (tutorialDeck = Resources.Load<DeckSO>(TutorialDeckResourcePath));
+
+    /// <summary>
+    /// False until the tutorial match has been finished. While it is false the title screen skips
+    /// itself and drops straight into the Game scene, where <see cref="Agent.ApplySavedSelection"/>
+    /// fields the tutorial heroes and deck. See <see cref="SetTutorial"/>.
+    /// </summary>
+    public bool IsTutorial => saveData != null && saveData.IsTutorial;
+
+    public void SetTutorial(bool value)
     {
-        // Retrieve deck data from PlayerPrefs or other storage
-        string deckData = PlayerPrefs.GetString(saveDataKey, string.Empty);
-        return deckData;
+        if (saveData == null || saveData.IsTutorial == value) return;
+
+        saveData.IsTutorial = value;
+        SaveData();
     }
+
+    public string GetSaveData() => ReadSaveFile();
     public void RemoveCard(string cardName, int deckIndex, SelectionSide side = SelectionSide.Player)
     {
         if (!IsValidDeckIndex(deckIndex, side))
@@ -203,12 +309,8 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
         return true;
     }
-    public string SerializeData()
-    {
-        // todo: serialize saveData to json
-        string value = JsonUtility.ToJson(saveData);
-        return value;
-    }
+    // Pretty-printed: the save is a file on disk now, so it's worth being readable when debugging.
+    public string SerializeData() => JsonUtility.ToJson(saveData, true);
 
     void EnsureSaveDataIsValid()
     {

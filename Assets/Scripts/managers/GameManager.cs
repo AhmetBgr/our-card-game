@@ -60,7 +60,38 @@ public class GameManager : Singleton<GameManager>
     [SerializeField] private Queue<IEnumerator> defaultActionQueue;
 
     public GameState currentState;
-    public int maxMana = 0;
+
+    [Header("Mana")]
+    [Tooltip("Max mana the player gets on their FIRST turn. Every turn of theirs after that adds one, up to the cap.")]
+    [SerializeField] private int playerStartingMana = 1;
+    [Tooltip("What the player starts on in the tutorial match instead, so the opening turn has enough mana to actually play something and follow along.")]
+    [SerializeField] private int tutorialPlayerStartingMana = 3;
+    [Tooltip("The opponent's equivalent. Separate from the player's so the AI can be handed an easier or harder opening.")]
+    [SerializeField] private int opponentStartingMana = 1;
+    [Tooltip("Neither side's max mana grows past this.")]
+    [SerializeField] private int manaCap = 10;
+
+    // The tutorial only changes where the player's ramp STARTS — from there it climbs by one a turn
+    // like any other match, so the head start narrows rather than compounding.
+    private int PlayerStartingMana => IsTutorialMatch ? tutorialPlayerStartingMana : playerStartingMana;
+
+    // "This side hasn't taken a turn yet", so their next turn opens on their starting mana rather
+    // than one more than last turn's.
+    private const int NoTurnTakenYet = -1;
+
+    /// <summary>
+    /// Max mana the player refills to at the start of their turn, and the denominator the mana bar
+    /// shows. Grows on the player's turns only.
+    /// </summary>
+    public int PlayerMaxMana { get; private set; } = NoTurnTakenYet;
+
+    /// <summary>
+    /// The opponent's own max mana, grown on the opponent's turns only. Tracked separately from
+    /// <see cref="PlayerMaxMana"/> rather than shared, so the two sides can ramp from different
+    /// starting points; with equal starting values the two stay in lockstep, as they always did.
+    /// </summary>
+    public int OpponentMaxMana { get; private set; } = NoTurnTakenYet;
+
     public bool isPlayerTurn;
 
     /// <summary>
@@ -82,6 +113,59 @@ public class GameManager : Singleton<GameManager>
 
     private readonly HeroPassiveSystem heroPassives = new HeroPassiveSystem();
 
+    /// <summary>
+    /// True while the match being played is the one-off tutorial match — what the tutorial-only UI
+    /// (the cards' stat-naming hints) keys off.
+    ///
+    /// Latched once at scene load rather than read live from the save: <see cref="CheckWinCondition"/>
+    /// flips the save flag the instant the match ends, and the hints shouldn't blink off mid-match
+    /// because the final blow landed while a card was hovered.
+    ///
+    /// Resolves itself on first read as well as in Awake, because <see cref="Agent.ApplySavedSelection"/>
+    /// asks during ITS Awake to pick the tutorial deck, and execution order between the two components
+    /// isn't defined. Both paths read the same save flag, which nothing touches before the match ends,
+    /// so whichever wins the race gets the same answer.
+    /// </summary>
+    public static bool IsTutorialMatch
+    {
+        get
+        {
+            if (isTutorialMatch == null) isTutorialMatch = !SaveManager.Instance.IsTutorial;
+            return isTutorialMatch.Value;
+        }
+    }
+
+    private static bool? isTutorialMatch;
+
+    // Statics survive between play sessions when domain reload is off, so clear the cache before each
+    // run. Without this, a stale answer from the previous session could be handed to Agent.Awake, which
+    // reads this and may run before GameManager.Awake gets to re-resolve it.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetTutorialMatchCache() => isTutorialMatch = null;
+
+    /// <summary>How many of the player's turns the tutorial's stat hints keep appearing for.</summary>
+    public const int TutorialHintTurns = 2;
+
+    /// <summary>Player turns begun so far this match; 0 until the first one starts.</summary>
+    public int PlayerTurnsStarted { get; private set; }
+
+    /// <summary>
+    /// Should a hovered hand card show the tutorial's stat hints? True for the player's first
+    /// <see cref="TutorialHintTurns"/> turns of the tutorial match, then never again. Counted in
+    /// player turns rather than hovers so the hints stay available for as long as the player is
+    /// finding their feet, however much or little they mouse around in that time.
+    /// </summary>
+    public bool ShouldShowTutorialHints => IsTutorialMatch && PlayerTurnsStarted <= TutorialHintTurns;
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        // Static, so it outlives the scene: re-resolve per match rather than letting a Replay inherit
+        // the previous one's answer.
+        isTutorialMatch = !SaveManager.Instance.IsTutorial;
+    }
+
     void Start()
     {
         StartCoroutine(GameLoop());
@@ -98,6 +182,16 @@ public class GameManager : Singleton<GameManager>
         OnMinionSummoned -= OnMinionSummonedForLog;
         heroPassives.Clear();
 
+        // The Game scene is going away: back to the menu, a replay, or the game shutting down.
+        MarkTutorialPlayed();
+    }
+
+    // Quitting tears the scene down too, but this runs BEFORE any OnDestroy, while SaveManager is
+    // certainly still alive — teardown order between the two isn't defined, and the tutorial must not
+    // survive being quit out of.
+    private void OnApplicationQuit()
+    {
+        MarkTutorialPlayed();
     }
 
 
@@ -128,7 +222,6 @@ public class GameManager : Singleton<GameManager>
         {
             if (isPlayerTurn)
             {
-                maxMana = Mathf.Clamp(maxMana +1, 0, 10);
                 /*for (int i = player.minions.Count - 1; i >= 0; i--)
                 {
                     if (player.minions[i] == null)
@@ -231,7 +324,10 @@ public class GameManager : Singleton<GameManager>
     IEnumerator PlayerTurn()
     {
         currentState = GameState.PlayerTurn;
-        player.availibleMana = maxMana;
+        PlayerTurnsStarted++;
+        // Grown here rather than in GameLoop, so each side's ramp lives with the turn it belongs to.
+        PlayerMaxMana = GrowMaxMana(PlayerMaxMana, PlayerStartingMana);
+        player.availibleMana = PlayerMaxMana;
         player.curState = Player.State.Waiting;
         //Debug.Log("Player's Turn");
         yield return StartCoroutine(DrawTurnStartCards(player));
@@ -245,6 +341,15 @@ public class GameManager : Singleton<GameManager>
 
         yield return new WaitForSeconds(0.5f);
     }
+
+    /// <summary>
+    /// A side's max mana for the turn about to start: their configured starting mana on their first
+    /// turn, one more than last turn on every turn after, never past <see cref="manaCap"/>. Shared by
+    /// both sides so their ramps can't drift apart in anything but their starting value.
+    /// </summary>
+    private int GrowMaxMana(int current, int startingMana) =>
+        Mathf.Clamp(current == NoTurnTakenYet ? startingMana : current + 1, 0, manaCap);
+
     public IEnumerator InvokeOnTurnEnd()
     {
         // A turn boundary aborts any in-progress selection so it can't leak into the next turn.
@@ -507,7 +612,8 @@ public class GameManager : Singleton<GameManager>
 
         currentState = GameState.OpponentTurn;
         //Debug.Log("Opponent's Turn");
-        opponent.availibleMana = maxMana;
+        OpponentMaxMana = GrowMaxMana(OpponentMaxMana, opponentStartingMana);
+        opponent.availibleMana = OpponentMaxMana;
 
         yield return StartCoroutine(DrawTurnStartCards(opponent));
 
@@ -653,15 +759,34 @@ public class GameManager : Singleton<GameManager>
         {
             Debug.Log("Player Loses!");
             currentState = GameState.EndGame;
+            MarkTutorialPlayed();
             PopupManager.Instance.OpenGameOverPopup(false, 1f);
         }
         else if (opponent.hero.modal.health <= 0)
         {
             Debug.Log("Player Wins!");
             currentState = GameState.EndGame;
+            MarkTutorialPlayed();
             PopupManager.Instance.OpenGameOverPopup(true, 1f);
 
         }
+    }
+
+    /// <summary>
+    /// Retires the tutorial so the title screen stops auto-launching it. Called from every way out of
+    /// the tutorial match — winning, losing, walking back to the menu, quitting — because the player
+    /// only gets shown it once, whether or not they saw it through. A no-op in any other match.
+    /// </summary>
+    private void MarkTutorialPlayed()
+    {
+        if (!IsTutorialMatch) return;
+
+        var saveManager = SaveManager.Instance;
+        // Null once the app is tearing down: PermanentSingleton refuses to hand out an instance after
+        // one has been destroyed. OnApplicationQuit above is what actually covers the quit case.
+        if (saveManager == null) return;
+
+        saveManager.SetTutorial(true);
     }
 
     // Editor-only debug triggers (see GameManagerEditor) to preview the end-game panels without

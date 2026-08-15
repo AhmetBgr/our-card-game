@@ -5649,7 +5649,10 @@ MonoBehaviour:
   - {fileID: 1184556070}
   selectables: []
   currentState: 0
-  maxMana: 0
+  playerStartingMana: 1
+  tutorialPlayerStartingMana: 3
+  opponentStartingMana: 1
+  manaCap: 10
   isPlayerTurn: 1
   isTesting: 0
   isTestingFailed: 0

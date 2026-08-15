@@ -147,8 +147,8 @@ public class StatsTracker : Singleton<StatsTracker>
         var gm = GameManager.Instance;
         if (gm == null) return;
 
-        manaGrantedTotal += gm.maxMana;
-        currentTurnGranted = gm.maxMana;
+        manaGrantedTotal += gm.PlayerMaxMana;
+        currentTurnGranted = gm.PlayerMaxMana;
         currentTurnSpent = 0;
 
         if (gm.opponent != null && gm.opponent.hero != null && gm.opponent.hero.modal != null)
