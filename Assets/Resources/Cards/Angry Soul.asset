@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -338611786, guid: e206d4d6209337e4a9a8e4e86992786d, type: 3}
   cardArt: {fileID: 702928343, guid: e206d4d6209337e4a9a8e4e86992786d, type: 3}
   cardName: Angry Soul
-  desc: 'Ignition: Absorb a random friendly adjacent minion to Gain Its stats.
+  desc: 'Ignition: Absorb random friendly adjacent minion to Gain Its stats
 
     Whenever
     it takes damage, Gains +1 Attack
@@ -31,6 +31,7 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   type: 1
   selectionIntent: 0
   aiIntent: 0
@@ -137,6 +138,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnAnyMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
+  OnThisMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrewCard:

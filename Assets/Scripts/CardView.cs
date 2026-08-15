@@ -51,6 +51,8 @@ public class CardView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI attacktext;
     [SerializeField] private TextMeshProUGUI healthtext;
     [SerializeField] private TextMeshProUGUI costText;
+    [Tooltip("Names the card's type on its face: \"Minion\" or \"Spell\".")]
+    [SerializeField] private TextMeshProUGUI cardTypeText;
     [SerializeField] private Transform costTransform;
 
     private Tween gearRotateTween;
@@ -113,15 +115,21 @@ public class CardView : MonoBehaviour
         cardBack.enabled = !faceUp;
         cardBack.sprite = card.isUpgraded ? upgradedCardBackImage : cardBackImage;
 
+        // One definition of "this is a spell", so the type label can never name a type the frame
+        // art disagrees with.
+        bool isSpell = card.attack == 0 && card.health == 0;
+
         if (card.isUpgraded)
         {
-            frame.sprite = card.attack == 0 && card.health == 0 ? upgradedSpellFrame : upgradedMinionFrame;
+            frame.sprite = isSpell ? upgradedSpellFrame : upgradedMinionFrame;
 
         }
-        else { 
-            frame.sprite = card.attack ==0 && card.health ==0 ? spellFrame : minionFrame;
+        else {
+            frame.sprite = isSpell ? spellFrame : minionFrame;
 
         }
+
+        if (cardTypeText != null) cardTypeText.text = isSpell ? "Spell" : "Minion";
 
         minionTypeIconObjects[0].transform.parent.gameObject.SetActive(faceUp);
 
