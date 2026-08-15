@@ -1670,6 +1670,7 @@ GameObject:
   - component: {fileID: 2615169628972146479}
   - component: {fileID: 8335237738569045233}
   - component: {fileID: 8428830829305225385}
+  - component: {fileID: 7450525779440791657}
   m_Layer: 0
   m_Name: Minion
   m_TagString: Untagged
@@ -1792,6 +1793,9 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
+  OnThisMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
   OnOwnerDrawedCard:
     m_PersistentCalls:
       m_Calls: []
@@ -1901,6 +1905,7 @@ MonoBehaviour:
   statDebuffColor: {r: 1, g: 0, b: 0, a: 1}
   statChangeBreathMinAlpha: 0.25
   statChangeBreathDuration: 0.6
+  floatingTextOffset: {x: 0, y: 0, z: 0}
   deathTriggerPending: 0
 --- !u!114 &2615169628972146479
 MonoBehaviour:
@@ -1952,6 +1957,36 @@ SortingGroup:
   m_SortingOrder: 2
   m_SortAtRoot: 0
   m_Sort3DAs2D: 0
+--- !u!114 &7450525779440791657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4113462982911207717}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8d630165843d5f42b1db833df06e3e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SummoningSicknessIndicator
+  glyph: z
+  zCount: 3
+  startOffset: {x: 0.15, y: 0.15, z: 0}
+  travel: {x: 0.4, y: 0.5, z: 0}
+  sway: 0.05
+  swayCycles: 1
+  cycleDuration: 3
+  fadeInFraction: 0.18
+  appearDelay: 0.25
+  fontSize: 2.5
+  startScale: 0.4
+  endScale: 1.15
+  color: {r: 0.9621854, g: 1, b: 0.75, a: 1}
+  outlineColor: {r: 0.05522615, g: 0.13207549, b: 0.013082949, a: 1}
+  outlineWidth: 0.2
+  sortingLayer: Layer 3
+  sortingOrder: 100
+  font: {fileID: 11400000, guid: cb2dc93349b49fe4cbbea8095b20ae39, type: 2}
 --- !u!1 &4113462982911301001
 GameObject:
   m_ObjectHideFlags: 0

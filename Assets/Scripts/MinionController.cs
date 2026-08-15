@@ -128,8 +128,32 @@ public class MinionController : MonoBehaviour
 
     protected virtual void Start()
     {
-        /*if(showInfo != null) 
+        /*if(showInfo != null)
             showInfo.card = card;*/
+
+        EnsureSummoningSicknessIndicator();
+    }
+
+    /// <summary>
+    /// Gives this minion the looping "zzz" that marks it summoning-sick (see
+    /// <see cref="SummoningSicknessIndicator"/>). Attached here rather than authored into the minion
+    /// prefabs so every prefab and variant gets it from one place, and because summons don't go through
+    /// <see cref="Initialize"/> — GameManager.SummonMinion builds the minion inline, so Start() is the
+    /// only hook every summoned minion is guaranteed to run.
+    ///
+    /// Heroes are excluded by <see cref="HeroController"/> overriding Start() without calling base: they
+    /// also start at age 0, but they were never summoned, so they must not snore through turn one. The
+    /// indicator asserts that itself too, in case that override ever changes.
+    ///
+    /// An instance already present on the prefab (added by hand to retune the defaults) is reused rather
+    /// than doubled up.
+    /// </summary>
+    private void EnsureSummoningSicknessIndicator()
+    {
+        var indicator = GetComponent<SummoningSicknessIndicator>();
+        if (indicator == null) indicator = gameObject.AddComponent<SummoningSicknessIndicator>();
+
+        indicator.Bind(this);
     }
     public void Initialize(Agent owner, bool isPlayerMinion)
     {
