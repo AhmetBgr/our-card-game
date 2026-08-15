@@ -55,7 +55,50 @@ public class CardView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI cardTypeText;
     [SerializeField] private Transform costTransform;
 
+    [Header("Stat change punch")]
+    [Tooltip("What the stat-change punch scales. Leave empty to use the card face (the parent of the frame image), which is the whole drawn card. Not the root: CardHandLayout lerps every hand card's root scale back to 1 every frame and would flatten the punch.")]
+    [SerializeField] private Transform statPunchTarget;
+    [Tooltip("Wait before the punch plays, so it lands with the effect that caused the stat change instead of ahead of it. The numbers themselves still update immediately.")]
+    [SerializeField] private float statPunchDelay = 0.5f;
+    [Tooltip("Scale punch played on the card when one of its stats changes while the player can see it (an in-hand buff).")]
+    [SerializeField] private float statPunchScale = 0.15f;
+    [SerializeField] private float statPunchDuration = 0.35f;
+    [SerializeField] private int statPunchVibrato = 0;
+
     private Tween gearRotateTween;
+
+    // Last stat line drawn, and which card it belonged to, so a change can be told apart from this
+    // view simply being pointed at a different card. Tracked whether or not the card is visible, so a
+    // buff landing on a face-down card is absorbed silently instead of punching later on the reveal.
+    private CardModal _statsSource;
+    private string _statsCardName;
+    private int _lastAttack;
+    private int _lastHealth;
+    private int _lastCost;
+    private bool _hasStats;
+
+    private Tween statPunchTween;
+
+    // Scale the punch started from, so it can be restored exactly when a second change interrupts it
+    // mid-swing instead of compounding off a half-punched size.
+    private Vector3 statPunchBaseScale = Vector3.one;
+
+    private bool IsStatPunching => statPunchTween != null && statPunchTween.IsActive() && statPunchTween.IsPlaying();
+
+    /// <summary>
+    /// The card as drawn: everything on the face hangs off the frame image's parent, so scaling it
+    /// scales the whole card. Resolved rather than wired, since <see cref="VisualRect"/> already treats
+    /// the frame as "the card the player sees". Falls back to the root if a prefab has no frame.
+    /// </summary>
+    private Transform StatPunchTarget
+    {
+        get
+        {
+            if (statPunchTarget != null) return statPunchTarget;
+            if (frame != null && frame.transform.parent != null) return frame.transform.parent;
+            return transform;
+        }
+    }
 
     // Latest requests from the two independent drivers of the hover outline: the pointer
     // (OnPointerEnter/Exit) and affordability (pushed every frame from CardController.Update).
@@ -81,7 +124,7 @@ public class CardView : MonoBehaviour
 
     private void OnDestroy()
     {
-
+        statPunchTween?.Kill();
     }
 
     /// <summary>
@@ -146,7 +189,58 @@ public class CardView : MonoBehaviour
         if (tutorialAttackHint != null) tutorialAttackHint.SetActive(showsStats);
         if (tutorialHealthHint != null) tutorialHealthHint.SetActive(showsStats);
 
+        // Last, so the punch only fires once the pass that changed the numbers has finished drawing them.
+        ApplyStatChangePunch(card, faceUp);
+    }
 
+    /// <summary>
+    /// Punch the whole card whenever one of its stats changes — a card sitting in hand getting buffed
+    /// or discounted (ActionHolder's ChangeCardAttack / ChangeCardHealth / ChangeMinionsCost) is easy
+    /// to miss otherwise, since nothing about the card moves.
+    /// </summary>
+    private void ApplyStatChangePunch(CardModal card, bool faceUp)
+    {
+        // A view showing a different card is showing a new statline, not a changed one. The deck panel
+        // and the info card reuse a single object for every card the pointer touches, so identity is
+        // checked by modal AND card name — those objects keep the same CardModal and only its contents
+        // get rewritten.
+        bool sameCard = _hasStats && _statsSource == card && _statsCardName == card.name;
+        bool statsChanged = card.attack != _lastAttack || card.health != _lastHealth || card.cost != _lastCost;
+
+        // One punch per change, not one per stat: a buff that moves attack and health together is a
+        // single event and should read as a single hit.
+        if (sameCard && faceUp && statsChanged)
+            PlayStatPunch();
+
+        _statsSource = card;
+        _statsCardName = card.name;
+        _lastAttack = card.attack;
+        _lastHealth = card.health;
+        _lastCost = card.cost;
+        _hasStats = true;
+    }
+
+    private void PlayStatPunch()
+    {
+        if (!gameObject.activeInHierarchy) return;
+
+        Transform target = StatPunchTarget;
+
+        // A punch already in flight is rewound to the scale it started from before the new one begins,
+        // so back-to-back buffs each punch from the authored size instead of compounding off a
+        // half-punched one.
+        if (IsStatPunching)
+        {
+            statPunchTween.Kill();
+            target.localScale = statPunchBaseScale;
+        }
+        else
+        {
+            statPunchBaseScale = target.localScale;
+        }
+
+        statPunchTween = target.DOPunchScale(statPunchBaseScale * statPunchScale, statPunchDuration,
+            vibrato: statPunchVibrato, elasticity: 0f).SetDelay(statPunchDelay);
     }
     /// <summary>
     /// Turn-into-another-card flip: one full 360° spin around Y, with `onHalfway` fired at the halfway

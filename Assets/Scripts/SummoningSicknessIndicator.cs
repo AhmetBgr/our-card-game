@@ -8,12 +8,20 @@ using UnityEngine;
 /// nor attack yet. Several "z" glyphs drift diagonally off the minion's head, growing and fading as they
 /// go, staggered so there is always one in flight.
 ///
-/// The condition is exactly <c>MinionController.age &lt; 1</c> — the same test that suppresses the move
-/// arrow (<see cref="MinionController.ShowMoveArrow"/>) and gates attacking (<c>SetReadyToAttack</c>).
-/// That single test already covers "and not overdrived": Overdrive is implemented as
-/// <c>ActionHolder.RemoveSummoningSickness</c>, which stamps <c>age = 1</c> the moment the minion lands,
-/// so an Overdrive minion is never age 0 to begin with and never snores. <see cref="appearDelay"/> also
-/// outlasts the summon pop-in, so the queued Overdrive action resolves long before the first z would show.
+/// The minion sleeps from the moment it is summoned until the START of its owner's next turn — not until
+/// the end of the turn it landed on, which is a full enemy turn too early.
+///
+/// This deliberately does NOT read <c>age &lt; 1</c>. <c>age</c> ticks at the end of BOTH turns
+/// (<c>GameManager.InvokeOnTurnEnd</c> runs from <c>EndPlayerTurn</c> and <c>EndOpponentTurn</c> alike),
+/// so a minion summoned on its owner's turn is already age 1 for the whole of the enemy's turn, even
+/// though its owner has had no chance to use it. The wake test is instead "it can actually act now":
+/// age is up AND it is the owner's turn. See <see cref="IsAsleep"/> for why that has to be latched.
+///
+/// That also covers "and not overdrived" without a special case: Overdrive is
+/// <c>ActionHolder.RemoveSummoningSickness</c>, which stamps <c>age = 1</c> while the owner's turn is
+/// still running, so such a minion satisfies the wake test the instant it lands and never snores.
+/// <see cref="appearDelay"/> outlasts the summon pop-in besides, so the queued Overdrive action resolves
+/// before the first z would have become visible.
 ///
 /// Deliberately zero-setup, in the spirit of <see cref="FloatingTextManager"/>: the labels are built in
 /// code and <see cref="MinionController.Start"/> attaches the component itself, so every minion prefab
@@ -46,6 +54,8 @@ public class SummoningSicknessIndicator : MonoBehaviour
     [SerializeField, Range(0.01f, 0.9f)] private float fadeInFraction = 0.18f;
     [Tooltip("Held before the first z appears, so the z's don't start mid summon pop-in (MinionView.PlayAppearAnimation runs 0.25s delay + 0.5s scale-up). Re-applied every time the indicator is shown.")]
     [SerializeField] private float appearDelay = 0.75f;
+    [Tooltip("Held after the minion wakes at the START of its owner's next turn, before the z's stop, so they don't vanish the instant the turn flips. The loop keeps running normally through the hold, so this tail runs INTO the new turn, overlapping the sword indicator lighting up. 0 = disappear immediately. A minion that DIES always drops them at once, whatever this is set to.")]
+    [SerializeField] private float disappearDelay = 0.35f;
 
     [Header("Look")]
     [Tooltip("World font size, in the same units the FloatingTextConfig styles use (their labels sit at 2-4 on this board).")]
@@ -76,6 +86,13 @@ public class SummoningSicknessIndicator : MonoBehaviour
     private bool _shown;
     private bool _built;
 
+    // Time.time at which a pending disappearDelay hold fires; negative means no hide is pending.
+    private float _hideAt = -1f;
+
+    // Latched by IsAsleep once this minion has reached a turn of its own with its age up, i.e. the first
+    // moment it could actually be used. Starts false so a freshly summoned minion sleeps.
+    private bool _hasWoken;
+
     /// <summary>Wires the minion up front, for callers that add this component at runtime.</summary>
     public void Bind(MinionController minion) => _minion = minion;
 
@@ -95,24 +112,84 @@ public class SummoningSicknessIndicator : MonoBehaviour
     // change notification. The check is two field reads; the tweens only exist while the z's are up.
     private void Update()
     {
-        bool shouldShow = ShouldShow();
-        if (shouldShow == _shown) return;
-
-        _shown = shouldShow;
-        if (shouldShow) Show();
-        else Hide();
-    }
-
-    private bool ShouldShow()
-    {
-        if (_minion == null || _minion.modal == null) return false;
-
         // A minion whose health has hit 0 is mid-death (the corpse lingers ~1s for its death clip before
-        // DestroySelf) — it shouldn't keep snoring on the way out.
-        if (_minion.modal.health <= 0) return false;
+        // DestroySelf). It drops the z's on the spot, ignoring disappearDelay: that delay exists to soften
+        // a minion WAKING UP, not to keep a corpse snoring into its death animation.
+        if (IsDeadOrDying())
+        {
+            CancelPendingHide();
+            if (_shown) { _shown = false; Hide(); }
+            return;
+        }
 
-        return _minion.age < 1;
+        if (IsAsleep())
+        {
+            // Also the "woke and fell back asleep inside the hold" case (an effect pushing age back to 0):
+            // the pending hide is cancelled and the loop simply keeps running, so there is no restart blink.
+            CancelPendingHide();
+            if (!_shown) { _shown = true; Show(); }
+            return;
+        }
+
+        if (!_shown) return; // awake and already hidden — nothing to wind down
+
+        // Awake, but still showing: run out disappearDelay before the z's go. Time.time rather than a
+        // coroutine so falling back asleep mid-hold is a single field reset, with nothing to cancel.
+        if (_hideAt < 0f) _hideAt = Time.time + disappearDelay;
+        if (Time.time < _hideAt) return;
+
+        CancelPendingHide();
+        _shown = false;
+        Hide();
     }
+
+    /// <summary>
+    /// Whether the z's should be up: true until the minion has been able to act for the first time.
+    ///
+    /// The wake test is "age is up AND it is the owner's turn", which lands exactly on the turn
+    /// transition, because GameManager flips <c>isPlayerTurn</c> BEFORE invoking OnTurnEnd. At the end of
+    /// the opponent's turn <c>isPlayerTurn</c> is already true when age ticks, so a player minion wakes on
+    /// the very step into the player's turn — the same step where SetPlayerMinionsReadyToAttack lights its
+    /// sword. At the end of the PLAYER's turn the flag has already gone false, so the same minion stays
+    /// asleep through the enemy turn instead of waking early. Opponent minions get the mirror of this.
+    ///
+    /// Latched rather than evaluated fresh every frame, because "age is up AND owner's turn" is false for
+    /// EVERY minion during the enemy's turn — read directly, the entire board would start snoring whenever
+    /// it wasn't your turn. The latch is released again if anything pushes age back below 1, so a
+    /// re-applied summoning sickness still shows.
+    /// </summary>
+    private bool IsAsleep()
+    {
+        if (IsDeadOrDying()) return false;
+
+        if (_minion.age < 1) _hasWoken = false;
+        else if (IsOwnersTurn()) _hasWoken = true;
+
+        return !_hasWoken;
+    }
+
+    // Whose turn it is, from this minion's point of view. Prefers the owner reference — authoritative, and
+    // re-asserted by GameManager.SummonMinion after CopyFrom — and falls back to the modal's side flag for
+    // a minion whose owner hasn't been assigned yet (SummonMinion sets owner a few lines after Instantiate).
+    private bool IsOwnersTurn()
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null) return false;
+
+        bool ownerIsPlayer = _minion.owner != null
+            ? _minion.owner == gameManager.player
+            : _minion.modal.isPlayerMinion;
+
+        return gameManager.isPlayerTurn == ownerIsPlayer;
+    }
+
+    private bool IsDeadOrDying()
+    {
+        // A missing minion/modal counts as dying, so the z's are dropped rather than left orphaned.
+        return _minion == null || _minion.modal == null || _minion.modal.health <= 0;
+    }
+
+    private void CancelPendingHide() => _hideAt = -1f;
 
     private void Show()
     {
@@ -222,6 +299,15 @@ public class SummoningSicknessIndicator : MonoBehaviour
         label.enableAutoSizing = false;
         label.overflowMode = TextOverflowModes.Overflow;
 
+        // The z's are pure decoration and must never eat a click or a hover: they sit directly over the
+        // minion's face, which is exactly where the player clicks to attack. Nothing here is given a
+        // Collider, so the legacy OnMouseDown/OnMouseEnter messages the whole board runs on (see
+        // BoardInteractionGate) pass straight through them. This line covers the other route: TMP_Text
+        // derives from MaskableGraphic, so it WOULD be a GraphicRaycaster target if these labels ever
+        // ended up under a Canvas. They don't today — the container hangs off the minion root, which has
+        // no Canvas ancestor — but this makes the requirement explicit rather than incidental.
+        label.raycastTarget = false;
+
         // Reads the per-label material instance TMP creates, so the outline is local to these glyphs.
         label.outlineColor = outlineColor;
         label.outlineWidth = outlineWidth;
@@ -252,7 +338,14 @@ public class SummoningSicknessIndicator : MonoBehaviour
 
     // DOTween outlives the GameObject, so a minion destroyed (or disabled) mid-loop must not leave a
     // tween writing into dead labels.
-    private void OnDisable() => KillTweens();
+    private void OnDisable()
+    {
+        // Full reset, not just KillTweens: leaving _shown true would make the next Update() see "already
+        // showing" on re-enable and skip Show(), stranding the z's frozen at whatever pose they died on.
+        CancelPendingHide();
+        _shown = false;
+        Hide();
+    }
 
     private void OnDestroy() => KillTweens();
 }

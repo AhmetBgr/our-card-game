@@ -1978,6 +1978,7 @@ MonoBehaviour:
   cycleDuration: 3
   fadeInFraction: 0.18
   appearDelay: 0.25
+  disappearDelay: 0.5
   fontSize: 2.5
   startScale: 0.4
   endScale: 1.15
