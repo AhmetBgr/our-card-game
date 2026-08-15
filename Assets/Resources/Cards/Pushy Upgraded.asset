@@ -101,6 +101,9 @@ MonoBehaviour:
   OnAnyMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
+  OnThisMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
   OnOwnerDrewCard:
     m_PersistentCalls:
       m_Calls: []

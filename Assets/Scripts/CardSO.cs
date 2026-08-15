@@ -56,6 +56,10 @@ public class CardSO : ScriptableObject
     public UnityEvent OnTurnStart; 
     public UnityEvent OnOwnerTurnEnd; //
     public UnityEvent OnAnyMinionSummoned;
+    [Tooltip("Fires once on THIS minion the moment it enters play — from its own card, a token summon, " +
+             "a copy, or a hero passive. Unlike OnPlay it also runs for summons with no hand card behind " +
+             "them; unlike OnAnyMinionSummoned it never fires for other minions entering play.")]
+    public UnityEvent OnThisMinionSummoned;
     //public UnityEvent OnAnyMinionDied;
     public UnityEvent OnOwnerDrewCard; //
     public UnityEvent OnMinionCollided; //

@@ -43,6 +43,7 @@ public class GameManager : Singleton<GameManager>
     private Queue<IEnumerator> onMinionTookDamageActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onHeroAttackedActions = new Queue<IEnumerator>();
     private Queue<IEnumerator> onAnyMinionSummonedActions = new Queue<IEnumerator>();
+    private Queue<IEnumerator> onThisMinionSummonedActions = new Queue<IEnumerator>();
     private readonly List<HeroPassiveSO> _heroPassiveMatchBuffer = new List<HeroPassiveSO>();
 
     // Triggered-action execution uses shared ActionHolder globals. To prevent different triggers
@@ -65,7 +66,7 @@ public class GameManager : Singleton<GameManager>
     [Tooltip("Max mana the player gets on their FIRST turn. Every turn of theirs after that adds one, up to the cap.")]
     [SerializeField] private int playerStartingMana = 1;
     [Tooltip("What the player starts on in the tutorial match instead, so the opening turn has enough mana to actually play something and follow along.")]
-    [SerializeField] private int tutorialPlayerStartingMana = 3;
+    [SerializeField] private int tutorialPlayerStartingMana = 2;
     [Tooltip("The opponent's equivalent. Separate from the player's so the AI can be handed an easier or harder opening.")]
     [SerializeField] private int opponentStartingMana = 1;
     [Tooltip("Neither side's max mana grows past this.")]
@@ -1226,13 +1227,14 @@ public class GameManager : Singleton<GameManager>
 
         OnMinionSummoned?.Invoke(minion);
 
-        // Broadcast the summon to every other minion's OnAnyMinionSummoned trigger (e.g. crossbows that
-        // snap-fire at enemies entering play). Routed through the triggered-action scheduler so it can't
-        // race the play/trigger currently draining, exactly like death/collision/took-damage.
-        EnqueueTriggeredAction(() => StartCoroutine(InvokeOnAnyMinionSummonedActions(minion)));
+        // Broadcast the summon: first the new minion's own OnThisMinionSummoned trigger, then every other
+        // minion's OnAnyMinionSummoned trigger (e.g. crossbows that snap-fire at enemies entering play).
+        // Routed through the triggered-action scheduler so it can't race the play/trigger currently
+        // draining, exactly like death/collision/took-damage.
+        EnqueueTriggeredAction(() => StartCoroutine(InvokeMinionSummonedActions(minion)));
     }
 
-    private IEnumerator InvokeOnAnyMinionSummonedActions(MinionController summoned)
+    private IEnumerator InvokeMinionSummonedActions(MinionController summoned)
     {
         // FinishTriggeredAction is OUTSIDE the using (see InvokeOnMinionDeathActions) so a scope's Restore()
         // can't clobber the selection state of whatever pending trigger it drains next.
@@ -1245,6 +1247,31 @@ public class GameManager : Singleton<GameManager>
             List<MinionController> reactors = new List<MinionController>();
             foreach (var m in player.minions) if (m != null && m != summoned) reactors.Add(m);
             foreach (var m in opponent.minions) if (m != null && m != summoned) reactors.Add(m);
+
+            // The new arrival reacts to its own summon first, before the rest of the board hears about it.
+            // This is the token-safe counterpart to OnPlay: it fires for every way a minion can enter play
+            // (its own card, a token/random/copy summon, a hero passive), not just for a card leaving hand.
+            // thisMinion and summonedMinion both point at the newcomer, so verbs written against either
+            // context resolve to it.
+            if (summoned != null && summoned.modal != null && summoned.modal.OnThisMinionSummoned != null)
+            {
+                using (ActionHolder.PushScope())
+                {
+                    onThisMinionSummonedActions.Clear();
+                    ActionHolder.ResetSelections();
+                    ActionHolder.summonedMinion = summoned;
+                    ActionHolder.thisMinion = summoned;
+                    ActionHolder.thisCardSO = summoned.card;
+                    ActionHolder.thisCard = null;
+                    ActionHolder.selectedAgent = summoned.owner;
+                    ActionHolder.curActionsList = onThisMinionSummonedActions;
+
+                    this.isTesting = false;
+                    summoned.modal.OnThisMinionSummoned.Invoke();
+
+                    yield return StartCoroutine(ExecuteActions(onThisMinionSummonedActions));
+                }
+            }
 
             foreach (var reactor in reactors)
             {

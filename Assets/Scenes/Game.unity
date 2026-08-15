@@ -6422,7 +6422,7 @@ MonoBehaviour:
   selectables: []
   currentState: 0
   playerStartingMana: 1
-  tutorialPlayerStartingMana: 3
+  tutorialPlayerStartingMana: 2
   opponentStartingMana: 1
   manaCap: 10
   isPlayerTurn: 1

@@ -33,6 +33,7 @@ public class CardModal : MonoBehaviour
     public UnityEvent OnTurnStart;
     public UnityEvent OnOwnerTurnEnd;
     public UnityEvent OnAnyMinionSummoned;
+    public UnityEvent OnThisMinionSummoned;
     //public UnityEvent OnAnyMinionDied;
     public UnityEvent OnOwnerDrawedCard;
     public UnityEvent OnMinionCollided;
@@ -67,6 +68,7 @@ public class CardModal : MonoBehaviour
         OnTurnStart = card.OnTurnStart;
         OnOwnerTurnEnd = card.OnOwnerTurnEnd;
         OnAnyMinionSummoned = card.OnAnyMinionSummoned;
+        OnThisMinionSummoned = card.OnThisMinionSummoned;
         OnOwnerDrawedCard = card.OnOwnerDrewCard;
         OnMinionCollided = card.OnMinionCollided;
         BonusEvents = card.BonusEvents;
