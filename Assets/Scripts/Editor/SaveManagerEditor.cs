@@ -28,6 +28,9 @@ public class SaveManagerEditor : Editor
 
         if (GUILayout.Button("Clear Save Data"))
             Clear(saveManager);
+
+        if (GUILayout.Button("Replay Tutorial"))
+            ReplayTutorial(saveManager);
     }
 
     [MenuItem("Tools/Save Data/Clear Save Data")]
@@ -43,6 +46,80 @@ public class SaveManagerEditor : Editor
         }
 
         Clear(saveManager);
+    }
+
+    /// <summary>
+    /// Re-arms the tutorial without touching anything else in the save.
+    ///
+    /// Worth having next to Clear Save Data rather than folded into it: <see cref="SaveData.IsTutorial"/>
+    /// latches true the first time the tutorial is finished OR walked out of, and from then on
+    /// <see cref="GameManager.IsTutorialMatch"/> is false — which silently switches off every
+    /// tutorial-only feature at once (the prompts, the drop-zone indicator, the reduced starting mana,
+    /// the tutorial score row). Clearing the whole save fixes that too, but at the cost of the decks and
+    /// the high score, which is a steep price for wanting to look at the tutorial again.
+    /// </summary>
+    [MenuItem("Tools/Save Data/Replay Tutorial")]
+    private static void ReplayTutorialFromMenu()
+    {
+        SaveManager saveManager = Resolve();
+
+        if (saveManager == null)
+        {
+            Debug.LogError("Replay Tutorial: no SaveManager found.");
+            return;
+        }
+
+        ReplayTutorial(saveManager);
+    }
+
+    private static void ReplayTutorial(SaveManager saveManager)
+    {
+        // In Play Mode the live instance owns the value and writes it back on quit, so go through it and
+        // let SetTutorial persist. Resolved again rather than reusing the argument, so clicking the button
+        // on the PREFAB mid-play still updates the running game.
+        if (Application.isPlaying)
+        {
+            SaveManager live = Object.FindObjectOfType<SaveManager>();
+            if (live != null)
+            {
+                live.SetTutorial(false);
+                Debug.Log("Tutorial re-armed on the running game. Reload the Game scene to see it.");
+                return;
+            }
+        }
+
+        string path = saveManager.SaveFilePath;
+        if (!File.Exists(path))
+        {
+            Debug.Log("Replay Tutorial: no save file, so the tutorial is already armed.");
+            return;
+        }
+
+        try
+        {
+            // Round-tripped through the game's own serializer rather than string-patched, so no other part
+            // of the payload can be disturbed on the way past.
+            SaveData data = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
+            if (data == null)
+            {
+                Debug.LogError($"Replay Tutorial: {path} could not be parsed.");
+                return;
+            }
+
+            if (!data.IsTutorial)
+            {
+                Debug.Log("Replay Tutorial: already armed — the next match is a tutorial match.");
+                return;
+            }
+
+            data.IsTutorial = false;
+            File.WriteAllText(path, JsonUtility.ToJson(data, true));
+            Debug.Log("Tutorial re-armed. Decks, high score and settings untouched.");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Replay Tutorial: could not rewrite {path}: {e.Message}");
+        }
     }
 
     /// <summary>

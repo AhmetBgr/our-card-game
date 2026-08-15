@@ -85,34 +85,19 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
 
     [Header("Tutorial drop-zone hint")]
 
-    [Tooltip("Faded in while the player drags a card, in the TUTORIAL MATCH ONLY, so a first-time player " +
-             "can see where a card is meant to go. Leave empty to use this object's own Image — that " +
-             "graphic IS the drop target (a transparent raycast catcher filling the canvas rect), so what " +
-             "lights up is exactly the area a drop is accepted in. Point it at a dedicated child graphic " +
-             "instead to call out a smaller region.")]
-    [SerializeField] private Graphic dropZoneHighlight;
+    [Tooltip("Switched on while the player drags a card, in the TUTORIAL MATCH ONLY, so a first-time " +
+             "player can see where a card is meant to go.\n\n" +
+             "Its look is entirely yours — sprite, colour, alpha, size — because this only toggles the " +
+             "object and never writes to the graphic. That is deliberate: the earlier version tinted this " +
+             "object's OWN Image to a colour set here, which meant the code and the authored art fought " +
+             "over the same property. Leave it empty for no indicator.")]
+    [SerializeField] private GameObject dropZoneIndicator;
 
-    [Tooltip("Colour the highlight fades TO while a card is being dragged. The alpha is what makes the " +
-             "zone readable; keep it low, since the default target is a large area sitting over the board. " +
-             "The resting colour is read off the graphic at Awake, so it is never hard-coded here and " +
-             "whatever you author stays the 'off' state.")]
-    [SerializeField] private Color dropZoneHighlightColor = new Color(1f, 1f, 1f, 0.08f);
-
-    [Tooltip("The \"drag here to play\" prompt, brought in and out with the zone. Optional: leave it empty " +
-             "for a zone with no wording. The wording itself is authored on the prompt's own label — this " +
-             "does not set it — and TutorialPrompt owns the tutorial-only rule, the fade and the " +
-             "activation, so it behaves exactly like the cell-pick hint.")]
+    [Tooltip("The \"drag here to play\" prompt, brought in and out alongside the indicator. Optional: " +
+             "leave it empty for an indicator with no wording. The wording itself is authored on the " +
+             "prompt's own label — this does not set it — and TutorialPrompt owns the tutorial-only rule, " +
+             "the fade and the activation, so it behaves exactly like the cell-pick hint.")]
     [SerializeField] private TutorialPrompt dropZonePrompt;
-
-    [Tooltip("Seconds for the ZONE TINT fade, in each direction. The prompt has its own duration on " +
-             "TutorialPrompt; keep the two equal so the tint and the wording arrive together.")]
-    [SerializeField] private float dropZoneFadeDuration = 0.15f;
-
-    // Resolved once in Awake so the per-drag path does no lookups. The resting colour is captured from
-    // the graphic rather than assumed, so fading back always lands on exactly what was authored.
-    private Graphic dropZone;
-    private Color dropZoneRestColor;
-    private Tween dropZoneTween;
 
     // True from the moment a drop starts resolving (CanPlay test) until it finishes.
     // Set synchronously so a second card dropped during the async test window is
@@ -123,10 +108,15 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
     {
         base.Awake();
 
-        dropZone = dropZoneHighlight != null ? dropZoneHighlight : GetComponent<Graphic>();
-        if (dropZone != null) dropZoneRestColor = dropZone.color;
-
+        // Both start from rest however the scene left them: the indicator is authored ACTIVE so it can be
+        // styled without entering play mode, and nothing else switches it off.
+        SetIndicatorActive(false);
         if (dropZonePrompt != null) dropZonePrompt.HideImmediate();
+    }
+
+    private void SetIndicatorActive(bool active)
+    {
+        if (dropZoneIndicator != null) dropZoneIndicator.SetActive(active);
     }
 
     // Driven by DraggableItem's existing drag events rather than by a hook inside OnDrop: the hint has to
@@ -146,10 +136,8 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
         DraggableItem.DragEnded -= HideDropZone;
         DraggableItem.DragCancelled -= HideDropZone;
 
-        // Never leave the board tinted behind us — the scene can go away mid-drag (restart / exit), and
-        // a half-finished fade would otherwise be the last thing written to the graphic.
-        if (dropZoneTween != null) dropZoneTween.Kill();
-        if (dropZone != null) dropZone.color = dropZoneRestColor;
+        // Never leave the indicator lit behind us — the scene can go away mid-drag (restart / exit).
+        SetIndicatorActive(false);
         if (dropZonePrompt != null) dropZonePrompt.HideImmediate();
     }
 
@@ -172,18 +160,9 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
 
     private void SetDropZoneShown(bool shown)
     {
-        if (dropZone != null)
-        {
-            // Killed rather than allowed to stack: picking a card straight back up mid-fade would
-            // otherwise run two colour tweens at once and settle on whichever finished last. Unscaled, so
-            // a pause menu opened mid-drag (Time.timeScale 0, which does not stop uGUI drag events) can't
-            // strand the fade halfway.
-            if (dropZoneTween != null) dropZoneTween.Kill();
-
-            dropZoneTween = dropZone
-                .DOColor(shown ? dropZoneHighlightColor : dropZoneRestColor, dropZoneFadeDuration)
-                .SetUpdate(true);
-        }
+        // A straight toggle, with no tween: the indicator's appearance is authored, and anything faded
+        // here would have to write the very colour/alpha that authoring owns.
+        SetIndicatorActive(shown);
 
         // Activation, fading and the tutorial-only rule all belong to TutorialPrompt — the cell-pick hint
         // needs the identical behaviour, and two copies of it would have drifted.

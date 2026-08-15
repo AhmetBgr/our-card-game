@@ -17,7 +17,7 @@ public class CardPoolSO : ScriptableObject
     public int choiceCount = 3;
 
     [Tooltip("Mana knocked off a card discovered into hand from this pool. Never takes a cost below 0.")]
-    public int costReduction = 3;
+    public int costReduction = 2;
 
     /// <summary>Every non-null entry, as a fresh list the caller may filter in place.</summary>
     public List<CardSO> UsableCards()
