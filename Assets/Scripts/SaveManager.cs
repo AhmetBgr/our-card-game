@@ -184,6 +184,18 @@ public class SaveManager : PermanentSingleton<SaveManager>
         SaveData();
     }
 
+    // Whether hovered hand cards tilt toward the pointer. On by default; the toggle writes back
+    // immediately so the choice carries across matches and sessions.
+    public bool HoverTiltEnabled => saveData == null || saveData.HoverTiltEnabled;
+
+    public void SetHoverTiltEnabled(bool value)
+    {
+        if (saveData == null || saveData.HoverTiltEnabled == value) return;
+
+        saveData.HoverTiltEnabled = value;
+        SaveData();
+    }
+
     // Asset names of the two heroes the tutorial match forces on each side.
     public const string TutorialPlayerHeroName = "3-Hunter_Tutorial";
     public const string TutorialOpponentHeroName = "1-Berserker_Tutorial";

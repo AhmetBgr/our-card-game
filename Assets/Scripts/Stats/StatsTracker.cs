@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 // Passive, non-invasive match-stats collector. Mirrors the ActionLogPanel pattern: a scene-scoped
@@ -26,10 +25,6 @@ public class StatsTracker : Singleton<StatsTracker>
     private int manaSpentTotal;
     private int currentTurnGranted;
     private int currentTurnSpent;
-
-    // HP a minion had right before its next damaging hit — used to compute the "needed" (non-wasted)
-    // portion of the lethal blow for overkill efficiency.
-    private readonly Dictionary<MinionController, int> lastKnownHealth = new Dictionary<MinionController, int>();
 
     protected override void Awake()
     {
@@ -77,8 +72,6 @@ public class StatsTracker : Singleton<StatsTracker>
     {
         if (minion == null || minion is HeroController) return;
 
-        lastKnownHealth[minion] = minion.modal != null ? minion.modal.health : 0;
-
         if (IsPlayerOwned(minion))
         {
             friendlyAlive++;
@@ -101,8 +94,18 @@ public class StatsTracker : Singleton<StatsTracker>
             return;
         }
 
-        // Remember current HP so the next (possibly lethal) hit can be split into needed vs overkill.
-        if (minion.modal != null) lastKnownHealth[minion] = minion.modal.health;
+        if (minion.modal == null) return;
+
+        // Lethal hit: TakeDamage fires this BEFORE Die() and never clamps health, so the negative
+        // remainder is exactly the wasted part of this blow and the rest of it is what was needed.
+        // Splitting it here rather than in OnMinionDied uses the hit's own damage number, so a heal or
+        // buff landing since the previous hit (neither fires OnTookDamage) can't skew the needed half.
+        if (minion.modal.health <= 0 && !IsPlayerOwned(minion))
+        {
+            int overkill = Mathf.Max(0, -minion.modal.health);
+            stats.overkillDamage += overkill;
+            stats.neededDamage += Mathf.Max(0, effectiveDamage - overkill);
+        }
     }
 
     private void OnMinionDied(MinionController minion)
@@ -123,18 +126,9 @@ public class StatsTracker : Singleton<StatsTracker>
             killsThisTurn++;
             if (killsThisTurn > stats.maxKillsInOneTurn) stats.maxKillsInOneTurn = killsThisTurn;
 
-            // TakeDamage does not clamp health, so a lethal blow leaves modal.health negative.
-            int healthAtDeath = minion.modal != null ? minion.modal.health : 0;
-            int overkill = Mathf.Max(0, -healthAtDeath);
-            int hpBefore;
-            if (!lastKnownHealth.TryGetValue(minion, out hpBefore))
-                hpBefore = minion.modal != null ? Mathf.Max(0, minion.modal.defHealth) : 0;
-
-            stats.overkillDamage += overkill;
-            stats.neededDamage += Mathf.Max(0, hpBefore);
+            // Overkill is split off the killing blow in OnMinionTookDamage, which TakeDamage fires just
+            // before this. A death from a non-damage source spent no damage, so it contributes nothing.
         }
-
-        lastKnownHealth.Remove(minion);
     }
 
     private void OnTurnStarted(GameState state)

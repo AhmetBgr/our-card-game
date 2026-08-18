@@ -19,6 +19,11 @@ public class SaveData
     // False until the tutorial match has been played through. `false` is both the fresh-save default
     // and what older saves deserialize to, so existing players get the tutorial once as well.
     public bool IsTutorial;
+
+    // Whether hovered hand cards tilt toward the pointer. Defaults on (both for a fresh save and for
+    // saves written before this field existed) since it's the existing look; players who dislike the
+    // motion can turn it off.
+    public bool HoverTiltEnabled = true;
 }
 
 [Serializable]

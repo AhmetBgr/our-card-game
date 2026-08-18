@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 2279270367809720109, guid: d63582f3f629afa4a8e5bdfd0486e04a,
     type: 3}
   cardArt: {fileID: 0}
-  cardName: Pirate Upgraded
+  cardName: Two Headed Something
   desc: Overdrive, Can Attack Twice per turn.
   attack: 4
   health: 4

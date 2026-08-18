@@ -19,6 +19,9 @@ public class CardView : MonoBehaviour
     /// </summary>
     public RectTransform VisualRect => frame != null ? frame.rectTransform : (RectTransform)transform;
 
+    /// <summary>The frame Image, exposed so components (e.g. the metallic sheen driver) can reach it without a duplicate serialized reference.</summary>
+    public Image FrameImage => frame;
+
     [SerializeField] private Sprite minionFrame;
     [SerializeField] private Sprite spellFrame;
     [SerializeField] private Sprite upgradedMinionFrame;
