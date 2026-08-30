@@ -16,15 +16,17 @@ MonoBehaviour:
   minionArt: {fileID: -1127841548, guid: 71444647c78b26c4db204bd1388ac784, type: 3}
   cardArt: {fileID: 4177589214123082665, guid: 71444647c78b26c4db204bd1388ac784, type: 3}
   cardName: Blessed Seed
-  desc: 'Breakdown: Give all friendly minion +1/+1'
+  desc: 'Breakdown: Give all friendly minions +1/+1'
   attack: 0
   health: 1
   cost: 2
   range: 1
   armor: 0
+  collisionDamage: 0
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   type: 0
   selectionIntent: 0
   aiIntent: 0
@@ -143,6 +145,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnAnyMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
+  OnThisMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrewCard:

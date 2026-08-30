@@ -148,15 +148,18 @@ public class KeywordTooltipPanel : MonoBehaviour
 
         // The panel lives on its own dedicated overlay canvas (see the facade), so no scale or
         // pixels-per-unit compensation is needed here: rendering is identical in every scene by
-        // construction. The anchor sits on a DIFFERENT canvas, but overlay canvases share
-        // screen-pixel world space, so InverseTransformPoint converts its corners correctly.
+        // construction. The anchor can sit on a DIFFERENT canvas with a different render mode (e.g.
+        // Screen Space - Camera), so its world corners aren't in the same world space as this
+        // canvas — route through screen space, which both render modes agree on, instead of
+        // assuming a shared world space.
         rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
 
         var corners = new Vector3[4];
         anchor.GetWorldCorners(corners);
 
-        Vector2 min = canvasRect.InverseTransformPoint(corners[0]);
-        Vector2 max = canvasRect.InverseTransformPoint(corners[2]);
+        Camera anchorCamera = anchor.GetComponentInParent<Canvas>()?.worldCamera;
+        Vector2 min = WorldPointToCanvasLocal(canvasRect, corners[0], anchorCamera, canvas.worldCamera);
+        Vector2 max = WorldPointToCanvasLocal(canvasRect, corners[2], anchorCamera, canvas.worldCamera);
 
         bool fitsRight = max.x + gap + rect.rect.width <= canvasRect.rect.width * 0.5f;
 
@@ -172,8 +175,8 @@ public class KeywordTooltipPanel : MonoBehaviour
     }
 
     // Pins the stack's top-left corner to a world-space point (an authored empty RectTransform in
-    // the scene), clamped inside the canvas. Overlay canvases share screen-pixel world space, so
-    // the point can live on any of them.
+    // the scene), clamped inside the canvas. The point can live on any canvas/render mode — routed
+    // through screen space (see WorldPointToCanvasLocal) rather than assuming a shared world space.
     private void PlaceAt(Transform point)
     {
         var canvas = GetComponentInParent<Canvas>();
@@ -184,7 +187,8 @@ public class KeywordTooltipPanel : MonoBehaviour
         rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.pivot = new Vector2(0f, 1f);
 
-        Vector2 p = canvasRect.InverseTransformPoint(point.position);
+        Camera pointCamera = point.GetComponentInParent<Canvas>()?.worldCamera;
+        Vector2 p = WorldPointToCanvasLocal(canvasRect, point.position, pointCamera, canvas.worldCamera);
 
         float halfW = canvasRect.rect.width * 0.5f;
         float halfH = canvasRect.rect.height * 0.5f;
@@ -192,6 +196,20 @@ public class KeywordTooltipPanel : MonoBehaviour
         p.y = Mathf.Clamp(p.y, -halfH + rect.rect.height + edgeMargin, halfH - edgeMargin);
 
         rect.anchoredPosition = p;
+    }
+
+    /// <summary>
+    /// Converts a world-space point read off one canvas into the local space of a (possibly
+    /// differently rendered) target canvas, via screen space — the one coordinate system every
+    /// render mode agrees on. Needed because the source point's canvas and this panel's canvas can
+    /// use different render modes (e.g. a Screen Space - Camera hand canvas vs. this panel's
+    /// dedicated Screen Space - Overlay canvas), which no longer share a common world space.
+    /// </summary>
+    private static Vector2 WorldPointToCanvasLocal(RectTransform targetCanvasRect, Vector3 worldPoint, Camera sourceCamera, Camera targetCamera)
+    {
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(sourceCamera, worldPoint);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(targetCanvasRect, screenPoint, targetCamera, out Vector2 localPoint);
+        return localPoint;
     }
 }
 

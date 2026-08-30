@@ -10,6 +10,9 @@ public class Cursor : MonoBehaviour{
     public Transform cursor;
     public Image cursorIcon;
 
+    private RectTransform cursorRect;
+    private Canvas cursorCanvas;
+
     public Vector3 pos;
     public Vector2 worldPos;
     public Vector2 mouseWorldPos;
@@ -35,6 +38,8 @@ public class Cursor : MonoBehaviour{
     private void Start(){
         instance.cam = Camera.main;
         instance.UILayer = LayerMask.NameToLayer("UI");
+        instance.cursorRect = cursor as RectTransform;
+        instance.cursorCanvas = cursor.GetComponentInParent<Canvas>();
         //gameObject.SetActive(false);
     }
 
@@ -68,7 +73,14 @@ public class Cursor : MonoBehaviour{
     }
 
     private void SetCursorPos(Vector3 pos){
-        cursor.position = pos;
+        // pos is a screen-space point (pixels); cursor's canvas is Screen Space - Camera, so its
+        // world position must be derived through the canvas's camera rather than assigned directly
+        // (world space no longer equals screen space, unlike a Screen Space - Overlay canvas).
+        if (cursorRect != null && RectTransformUtility.ScreenPointToWorldPointInRectangle(cursorRect, pos, cursorCanvas != null ? cursorCanvas.worldCamera : null, out Vector3 worldPoint))
+            cursor.position = worldPoint;
+        else
+            cursor.position = pos;
+
         worldPos = cam.ScreenToWorldPoint(pos);
     }
 

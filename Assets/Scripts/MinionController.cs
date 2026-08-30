@@ -535,13 +535,22 @@ public class MinionController : MonoBehaviour
 
         // Tear the area preview back down for the same reason OnMouseEnter raised it — otherwise it
         // stays lit after the cursor leaves a minion that was standing on a previewed cell.
-        if (GridCellSelectionManager.Instance != null && gridEntity != null)
+        bool inCellPick = GridCellSelectionManager.Instance != null &&
+                          GridCellSelectionManager.Instance.HasActiveSession;
+
+        if (inCellPick && gridEntity != null)
             GridCellSelectionManager.Instance.TryHoverExitCellAt(gridEntity.GetGridIndex());
 
         MinionRangeHandler.Instance.HideRange();
         MinionRangeHandler.Instance.HideTargetsInRange();
         HideMoveArrow();
-        HideDeathPreview();
+
+        // During a cell pick the skull on this minion belongs to the AREA preview, not to this hover:
+        // OnMouseEnter returned before ShowDeathPreview, so there is nothing of ours to clear here, and
+        // GridCellSelectionManager hides every skull it lit. Clearing anyway wiped a skull the NEXT
+        // cell's preview had already lit, since Unity runs that cell's enter before this exit — the same
+        // clobber _hoverOriginIndex guards against on the cell side.
+        if (!inCellPick) HideDeathPreview();
     }
 
     private void OnDrawGizmosSelected()

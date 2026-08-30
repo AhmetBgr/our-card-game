@@ -109,12 +109,22 @@ public class CardHoverTilt : MonoBehaviour
         Vector3[] corners = new Vector3[4];
         _rect.GetWorldCorners(corners); // 0=BL, 1=TL, 2=TR, 3=BR
 
-        // World position ≈ screen position for a Screen-Space-Overlay canvas, which is what this
-        // project's cards use — no camera/projection conversion needed.
-        _refCenter = (Vector2)(corners[0] + corners[2]) * 0.5f;
+        // Project the cached (unrotated) world corners into actual screen pixels, since this is
+        // compared against Input.mousePosition below. World position only equals screen position
+        // for a Screen Space - Overlay canvas; cards live on a Screen Space - Camera canvas, so the
+        // projection needs the canvas's camera. Doing this once here (not every frame from the live
+        // transform) is what avoids the self-reference feedback loop described above — the
+        // projection of a fixed snapshot is safe, only re-deriving from the rotating rect isn't.
+        Camera cam = _rect.GetComponentInParent<Canvas>()?.worldCamera;
+        Vector2 bl = RectTransformUtility.WorldToScreenPoint(cam, corners[0]);
+        Vector2 tl = RectTransformUtility.WorldToScreenPoint(cam, corners[1]);
+        Vector2 tr = RectTransformUtility.WorldToScreenPoint(cam, corners[2]);
+        Vector2 br = RectTransformUtility.WorldToScreenPoint(cam, corners[3]);
+
+        _refCenter = (bl + tr) * 0.5f;
         _refHalfExtent = new Vector2(
-            Vector2.Distance(corners[0], corners[3]) * 0.5f,
-            Vector2.Distance(corners[0], corners[1]) * 0.5f);
+            Vector2.Distance(bl, br) * 0.5f,
+            Vector2.Distance(bl, tl) * 0.5f);
 
         _hasReference = _refHalfExtent.x > 0f && _refHalfExtent.y > 0f;
     }

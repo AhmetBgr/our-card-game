@@ -25,6 +25,10 @@ public class MainMenuManager : MonoBehaviour
 
     void Start()
     {
+        // Checked before the buttons are wired: when it fires, this scene is already on its way out and
+        // is never shown, so there is nothing here for the player to press.
+        if (TryStartTutorial()) return;
+
         if (quickPlayButton != null)
             quickPlayButton.onClick.AddListener(OnQuickPlay);
 
@@ -42,8 +46,6 @@ public class MainMenuManager : MonoBehaviour
 
         // Always open on the menu itself, however the panel was left in the editor.
         ShowCredits(false);
-
-        TryStartTutorial();
     }
 
     /// <summary>
@@ -53,11 +55,21 @@ public class MainMenuManager : MonoBehaviour
     /// <see cref="GameManager.CheckWinCondition"/> flips the save flag when that match ends, so the
     /// menu behaves normally from the next visit onwards.
     /// </summary>
-    void TryStartTutorial()
+    /// <returns>True when the hand-off happened, so the caller can stop setting the menu up.</returns>
+    bool TryStartTutorial()
     {
-        if (SaveManager.Instance.IsTutorial) return;
+        if (SaveManager.Instance.IsTutorial) return false;
 
-        GoToScene(gameSceneName);
+        // Skipped, not faded: the scene starts under a fully opaque overlay that is only fading in this
+        // same frame, so a normal transition would fade the menu up and straight back down -- two seconds
+        // of a title screen the player was never meant to reach. SkipToScene holds that black through the
+        // load instead, and fades in on the Game scene.
+        if (SceneTransitionManager.Instance != null)
+            SceneTransitionManager.Instance.SkipToScene(gameSceneName);
+        else
+            SceneManager.LoadScene(gameSceneName);
+
+        return true;
     }
 
     void Update()

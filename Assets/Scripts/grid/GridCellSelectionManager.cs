@@ -21,12 +21,32 @@ public class GridCellSelectionManager : MonoBehaviour
     private CardSO _sourceCard;
     private readonly List<MinionController> _skullPreviewMinions = new List<MinionController>();
 
+    // The cell the current hover preview was built from, if any. Unity delivers OnMouseEnter on the
+    // newly hovered collider BEFORE OnMouseExit on the one just left (see the same note on
+    // MinionRangeHandler.ShowTargetsInRange), and board cells tile with no gap between them — so the
+    // outgoing cell's exit lands AFTER the incoming cell has already drawn its area, and an
+    // unconditional clear there tore the fresh preview straight back down. Result: the area highlight
+    // survived only the first hover after the cursor entered the board, and every cell-to-cell move
+    // left the board blank. Only the cell that owns the preview may clear it.
+    private Vector2Int _hoverOriginIndex;
+    private bool _hasHoverOrigin;
+
+    // Freezes the open session's hover and click handling while leaving its highlights on screen. Set by
+    // ActionHolder.AwaitCellSelection to hold an AI-chosen cell up long enough to be seen: the session
+    // must stay open for the preview to render, which leaves every cell live, and without this the
+    // player could hover the preview off the opponent's pick or click a different cell out from under
+    // it. Cleared by BeginSelection/EndSelection, so it cannot outlive the pick that set it.
+    private bool _inputLocked;
+
     [Tooltip("Tutorial-only hint shown while a cell pick is open — but only for the picks whose verb " +
              "supplies wording (see the prompt argument on BeginSelection), so a spell's area pick stays " +
              "silent while the summon pick explains itself. Optional: leave empty for no hint at all.")]
     [SerializeField] private TutorialPrompt prompt;
 
     public bool HasActiveSession => _selectableIndexes.Count > 0;
+
+    /// <summary>See <see cref="_inputLocked"/>. Only meaningful while a session is open.</summary>
+    public void SetInputLocked(bool value) => _inputLocked = value;
 
     private void Awake()
     {
@@ -69,6 +89,7 @@ public class GridCellSelectionManager : MonoBehaviour
         _hoverAreaProvider = hoverAreaProvider;
         _previewOccupantPush = previewOccupantPush;
         _sourceCard = sourceCard;
+        _inputLocked = false;
 
         // After the EndSelection() above, which hides whatever the preempted pick was saying. Show() kills
         // that fade out rather than queueing behind it, so back-to-back picks don't blink.
@@ -92,11 +113,13 @@ public class GridCellSelectionManager : MonoBehaviour
         _hoverAreaProvider = null;
         _previewOccupantPush = false;
         _sourceCard = null;
+        _inputLocked = false;
     }
 
     public void OnCellHoverEnter(Vector2Int index)
     {
         if (!HasActiveSession) return;
+        if (_inputLocked) return;
         if (!_selectableIndexes.Contains(index)) return;
         if (_hoverAreaProvider == null) return;
 
@@ -105,9 +128,19 @@ public class GridCellSelectionManager : MonoBehaviour
         IEnumerable<Vector2Int> area = _hoverAreaProvider.Invoke(index);
         if (area == null) return;
 
+        _hoverOriginIndex = index;
+        _hasHoverOrigin = true;
+
         foreach (var areaIndex in area)
         {
             //if (!_selectableIndexes.Contains(areaIndex)) continue;
+
+            // Footprints come back unclamped, and on this board every cell but the centre has a plus arm
+            // hanging off the edge. Filtered here with the SILENT bounds check: IsOutSideOfGrid logs two
+            // lines per miss, and each off-grid arm otherwise reached it three times per hover (preview
+            // on, death preview, preview off) — console flood and a visible editor hitch on every move.
+            if (GridManager.Instance == null || !GridManager.Instance.IsInsideGrid(areaIndex)) continue;
+
             _hoverPreviewIndexes.Add(areaIndex);
             SetCellHoverPreview(areaIndex, true);
             PreviewOccupantDeath(areaIndex);
@@ -120,13 +153,20 @@ public class GridCellSelectionManager : MonoBehaviour
     public void OnCellHoverExit(Vector2Int index)
     {
         if (!HasActiveSession) return;
+        if (_inputLocked) return;
         if (!_selectableIndexes.Contains(index)) return;
+
+        // Not the cell the preview belongs to — its exit arrived after a newer cell already took over.
+        // See _hoverOriginIndex.
+        if (!_hasHoverOrigin || _hoverOriginIndex != index) return;
+
         ClearHoverPreview();
     }
 
     public void OnCellClicked(Transform cellTransform)
     {
         if (!HasActiveSession) return;
+        if (_inputLocked) return;
         if (cellTransform == null) return;
 
         Vector2Int index = GridManager.Instance.PosToGridIndex(cellTransform.position);
@@ -179,15 +219,15 @@ public class GridCellSelectionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// The cell transform at `index`, but only if it belongs to the active session. The selectable-set
-    /// lookup deliberately comes before the bounds check: heroes live off the grid, so their index misses
-    /// here and never reaches IsOutSideOfGrid, which logs a warning on every miss.
+    /// The cell transform at `index`, but only if it belongs to the active session. Heroes live off the
+    /// grid, so their index misses the selectable set and never reaches the bounds check at all — and the
+    /// bounds check itself is the SILENT one, since an off-grid probe here is expected, not an error.
     /// </summary>
     private Transform ResolveSessionCell(Vector2Int index)
     {
         if (!HasActiveSession) return null;
         if (!_selectableIndexes.Contains(index)) return null;
-        if (GridManager.Instance == null || GridManager.Instance.IsOutSideOfGrid(index)) return null;
+        if (GridManager.Instance == null || !GridManager.Instance.IsInsideGrid(index)) return null;
 
         var cell = GridManager.Instance.GetCell(index);
         return cell.cellObj != null ? cell.cellObj.transform : null;
@@ -195,6 +235,8 @@ public class GridCellSelectionManager : MonoBehaviour
 
     private void ClearHoverPreview()
     {
+        _hasHoverOrigin = false;
+
         foreach (var index in _hoverPreviewIndexes)
         {
             SetCellHoverPreview(index, false);
@@ -217,7 +259,7 @@ public class GridCellSelectionManager : MonoBehaviour
     private void PreviewOccupantDeath(Vector2Int index)
     {
         if (_sourceCard == null) return;
-        if (GridManager.Instance == null || GridManager.Instance.IsOutSideOfGrid(index)) return;
+        if (GridManager.Instance == null || !GridManager.Instance.IsInsideGrid(index)) return;
 
         var cell = GridManager.Instance.GetCell(index);
         if (cell.obj != null && cell.obj.TryGetComponent(out MinionController occupant))
@@ -233,7 +275,7 @@ public class GridCellSelectionManager : MonoBehaviour
     private void ShowPushPreview(Vector2Int index)
     {
         if (GridManager.Instance == null) return;
-        if (GridManager.Instance.IsOutSideOfGrid(index)) return;
+        if (!GridManager.Instance.IsInsideGrid(index)) return;
 
         var cell = GridManager.Instance.GetCell(index);
         if (cell.obj != null && cell.obj.TryGetComponent(out MinionController occupant))
@@ -255,7 +297,7 @@ public class GridCellSelectionManager : MonoBehaviour
     private static void SetCellSelectable(Vector2Int index, bool value)
     {
         if (GridManager.Instance == null) return;
-        if (GridManager.Instance.IsOutSideOfGrid(index)) return;
+        if (!GridManager.Instance.IsInsideGrid(index)) return;
 
         var cell = GridManager.Instance.GetCell(index);
         if (cell.cellObj == null) return;
@@ -269,7 +311,7 @@ public class GridCellSelectionManager : MonoBehaviour
     private static void SetCellHoverPreview(Vector2Int index, bool value)
     {
         if (GridManager.Instance == null) return;
-        if (GridManager.Instance.IsOutSideOfGrid(index)) return;
+        if (!GridManager.Instance.IsInsideGrid(index)) return;
 
         var cell = GridManager.Instance.GetCell(index);
         if (cell.cellObj == null) return;

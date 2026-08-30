@@ -81,12 +81,13 @@ public class SelectableEntity : MonoBehaviour
     {
         KillBreathAnimation();
         //highlight.DOFade(0f, 1f).SetLoops(-1, LoopType.Yoyo);
-        breathSequence = DOTween.Sequence();
+      
+        /*breathSequence = DOTween.Sequence();
         breathSequence.AppendInterval(0.5f);
         //breathSequence.Append(highlight.DOColor(selectableColor, 1f));
         breathSequence.Append(highlight.DOColor(Color.clear, 0.5f));
         //breathSequence.Append(highlight.DOColor(selectableColor, 1f));
-        breathSequence.SetLoops(-1, LoopType.Yoyo);
+        breathSequence.SetLoops(-1, LoopType.Yoyo);*/
     }
     private void KillBreathAnimation()
     {
@@ -130,6 +131,11 @@ public class SelectableEntity : MonoBehaviour
     {
         //if (highlight == null) return;
         hover.enabled = _isHoverPreview;
-        highlight.enabled = iSselectable;
+
+        // The hover sprite REPLACES the selectable brackets on the cell it covers rather than stacking
+        // over them: a cell inside the previewed area is saying "this is what the card hits", and the
+        // "you may pick this" brackets underneath only muddy that. A cell drops back to the brackets the
+        // moment the preview moves off it, as long as it is still selectable.
+        highlight.enabled = iSselectable && !_isHoverPreview;
     }
 }

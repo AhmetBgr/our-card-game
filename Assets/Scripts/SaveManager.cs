@@ -18,12 +18,29 @@ public class SaveManager : PermanentSingleton<SaveManager>
     /// <summary>
     /// Absolute path of the save file. persistentDataPath is the only directory guaranteed writable on
     /// every platform we ship to, so the save never lives next to the build.
+    ///
+    /// Not used by the WebGL player -- see <see cref="WebStorageKey"/>.
     /// </summary>
     public string SaveFilePath =>
         Path.Combine(Application.persistentDataPath,
             string.IsNullOrWhiteSpace(saveFileName) ? DefaultSaveFileName : saveFileName);
 
     const string DefaultSaveFileName = "savedata.json";
+
+    /// <summary>
+    /// PlayerPrefs key the browser build stores the save under, instead of a file.
+    ///
+    /// On WebGL, Application.persistentDataPath points into an in-memory emscripten filesystem that is
+    /// only flushed to the browser's IndexedDB when the engine asks it to -- and the engine only asks
+    /// from the PlayerPrefs subsystem, or when the page opts in with `autoSyncPersistentDataPath`, which
+    /// the default web template leaves off. A System.IO write there therefore looks like it succeeded
+    /// and is thrown away the moment the tab reloads. PlayerPrefs.Save() is the one write the browser
+    /// build actually persists, so on that platform the whole save rides on it.
+    ///
+    /// Deliberately distinct from <see cref="saveDataKey"/>: that key is the pre-file legacy payload,
+    /// which is still migrated (and then deleted) here exactly as it is on every other platform.
+    /// </summary>
+    const string WebStorageKey = "SaveDataJson";
 
     public SaveData saveData;
     public DeckSO defaultDeck;
@@ -89,7 +106,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
             catch (System.Exception e)
             {
                 // A truncated or hand-edited file must not brick the game; fall through to a fresh save.
-                Debug.LogError($"Save file at {SaveFilePath} could not be parsed, starting a new save. {e.Message}");
+                Debug.LogError($"Saved data could not be parsed, starting a new save. {e.Message}");
                 saveData = null;
             }
 
@@ -106,7 +123,7 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
         // Write immediately when the file doesn't reflect what we just loaded: a fresh or migrated save
         // has no file yet, and a corrupt one must be replaced rather than re-read on the next boot.
-        if (migrated || createdNewSave || !File.Exists(SaveFilePath))
+        if (migrated || createdNewSave || !HasStoredSave())
             SaveData();
 
         if (migrated)
@@ -116,10 +133,17 @@ public class SaveManager : PermanentSingleton<SaveManager>
         }
     }
 
-    public void SaveData()
-    {
-        var value = SerializeData();
+    public void SaveData() => WriteSaveFile(SerializeData());
 
+    void WriteSaveFile(string value)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // PlayerPrefs.Save() is what pushes the browser's in-memory filesystem out to IndexedDB, so it
+        // has to run on every save rather than being left to quit time -- a closing tab may never get
+        // that far. See WebStorageKey.
+        PlayerPrefs.SetString(WebStorageKey, value);
+        PlayerPrefs.Save();
+#else
         // Write to a sibling temp file first, then swap it in: a crash mid-write leaves the previous
         // save intact instead of a half-flushed one.
         string path = SaveFilePath;
@@ -142,10 +166,14 @@ public class SaveManager : PermanentSingleton<SaveManager>
         {
             Debug.LogError($"Failed to write save file at {path}: {e.Message}");
         }
+#endif
     }
 
     string ReadSaveFile()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return PlayerPrefs.GetString(WebStorageKey, string.Empty);
+#else
         string path = SaveFilePath;
 
         try
@@ -157,6 +185,20 @@ public class SaveManager : PermanentSingleton<SaveManager>
             Debug.LogError($"Failed to read save file at {path}: {e.Message}");
             return string.Empty;
         }
+#endif
+    }
+
+    /// <summary>
+    /// Whether the store already holds a save, so <see cref="LoadData"/> can tell "nothing written yet"
+    /// from "read it back fine" without assuming the store is a file.
+    /// </summary>
+    bool HasStoredSave()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return PlayerPrefs.HasKey(WebStorageKey);
+#else
+        return File.Exists(SaveFilePath);
+#endif
     }
 
     public int HighScore => saveData != null ? saveData.HighScore : 0;
@@ -370,9 +412,16 @@ public class SaveManager : PermanentSingleton<SaveManager>
             decks[MysteryDeckIndex].isLocked = true;
     }
 
-    void CreateNewSave()
+    void CreateNewSave() => saveData = BuildNewSaveData();
+
+    /// <summary>
+    /// A fresh save, exactly as a first launch would build it. Handed back rather than assigned so the
+    /// editor's "Clear Save Data (Tutorial Completed)" can write one straight to disk: the SaveManager it asks
+    /// is usually the prefab, and assigning <see cref="saveData"/> on that would dirty the asset.
+    /// </summary>
+    public SaveData BuildNewSaveData()
     {
-        saveData = new SaveData
+        return new SaveData
         {
             HighScore = 0,
             SelectedDeckIndex = 0,

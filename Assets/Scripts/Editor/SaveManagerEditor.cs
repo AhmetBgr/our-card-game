@@ -27,7 +27,10 @@ public class SaveManagerEditor : Editor
             MessageType.None);
 
         if (GUILayout.Button("Clear Save Data"))
-            Clear(saveManager);
+            Clear(saveManager, markTutorialCompleted: false);
+
+        if (GUILayout.Button("Clear Save Data (Tutorial Completed)"))
+            Clear(saveManager, markTutorialCompleted: true);
 
         if (GUILayout.Button("Replay Tutorial"))
             ReplayTutorial(saveManager);
@@ -45,7 +48,30 @@ public class SaveManagerEditor : Editor
             return;
         }
 
-        Clear(saveManager);
+        Clear(saveManager, markTutorialCompleted: false);
+    }
+
+    /// <summary>
+    /// The same wipe, but with the tutorial left marked as already played.
+    ///
+    /// The plain clear hands back a save that is fresh in every sense, tutorial included — which is a
+    /// detour when what you wanted to look at is the state a returning player boots into: straight to the
+    /// title screen, decks back to the defaults, no high score. A separate entry rather than a choice in
+    /// the dialog, so either one stays a single click and can be bound to a shortcut.
+    /// </summary>
+    [MenuItem("Tools/Save Data/Clear Save Data (Tutorial Completed)")]
+    private static void ClearTutorialCompletedFromMenu()
+    {
+        SaveManager saveManager = Resolve();
+
+        if (saveManager == null)
+        {
+            Debug.LogError("Clear Save Data (Tutorial Completed): no SaveManager found. Expected one in the " +
+                           "loaded scenes (Play Mode) or a prefab carrying the component.");
+            return;
+        }
+
+        Clear(saveManager, markTutorialCompleted: true);
     }
 
     /// <summary>
@@ -144,15 +170,18 @@ public class SaveManagerEditor : Editor
         return null;
     }
 
-    private static void Clear(SaveManager saveManager)
+    private static void Clear(SaveManager saveManager, bool markTutorialCompleted)
     {
         string path = saveManager.SaveFilePath;
         bool hasFile = File.Exists(path);
 
         if (!EditorUtility.DisplayDialog(
-                "Clear save data?",
+                markTutorialCompleted ? "Clear save data (tutorial completed)?" : "Clear save data?",
                 "This wipes both sides' decks, the high score, the selected hero and deck, and the action " +
-                "log setting — and re-arms the tutorial, so the next launch plays it again.\n\n" +
+                "log setting — " +
+                (markTutorialCompleted
+                    ? "and marks the tutorial as already played, so the next launch opens the title screen."
+                    : "and re-arms the tutorial, so the next launch plays it again.") + "\n\n" +
                 (hasFile ? path : "(no save file on disk; the legacy PlayerPrefs key is still cleared)") +
                 "\n\nThis cannot be undone.",
                 "Clear", "Cancel"))
@@ -192,6 +221,8 @@ public class SaveManagerEditor : Editor
             PlayerPrefs.Save();
         }
 
+        bool resetLiveInstance = false;
+
         // In Play Mode the running SaveManager still holds the old save in memory and writes it back on
         // quit and on pause, which would undo all of the above the moment you leave Play Mode. Drop it and
         // reload: with no file and no PlayerPrefs left, LoadData() builds a fresh save and writes it out.
@@ -204,10 +235,44 @@ public class SaveManagerEditor : Editor
             {
                 live.saveData = null;
                 live.LoadData();
+
+                // LoadData has already written the fresh save out, so this only has to flip the one flag
+                // and let SetTutorial persist it.
+                if (markTutorialCompleted)
+                    live.SetTutorial(true);
+
+                resetLiveInstance = true;
+            }
+        }
+
+        // Outside Play Mode nothing writes a save until the game next boots — and that boot would build
+        // one with the tutorial armed, which is the one thing this variant exists to avoid. So write the
+        // fresh save out here with the flag already set, rather than leaving the store empty.
+        if (markTutorialCompleted && !resetLiveInstance)
+        {
+            try
+            {
+                SaveData fresh = saveManager.BuildNewSaveData();
+                fresh.IsTutorial = true;
+
+                string directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(directory))
+                    Directory.CreateDirectory(directory);
+
+                File.WriteAllText(path, JsonUtility.ToJson(fresh, true));
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Clear Save Data (Tutorial Completed): the save was cleared, but the " +
+                               $"replacement could not be written to {path}: {e.Message}");
+                return;
             }
         }
 
         Debug.Log($"Save data cleared ({deletedFiles} file(s) deleted): {path}" +
-                  (Application.isPlaying ? " — the running game was reset to a fresh save." : string.Empty));
+                  (markTutorialCompleted
+                      ? " — replaced with a fresh save that counts the tutorial as played."
+                      : string.Empty) +
+                  (resetLiveInstance ? " — the running game was reset to it." : string.Empty));
     }
 }

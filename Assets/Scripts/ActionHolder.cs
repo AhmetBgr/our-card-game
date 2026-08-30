@@ -301,6 +301,55 @@ public class ActionHolder : ScriptableObject
     /// </summary>
     public const string SummonCellPrompt = "Select a Tile To Summon";
 
+    /// <summary>
+    /// How long an AI-chosen cell is held on screen before the highlight is torn down. Long enough to
+    /// read at a glance, short enough not to pad out every opponent turn.
+    /// </summary>
+    private const float AiCellPickDisplayDuration = 0.6f;
+
+    /// <summary>
+    /// Waits for the open cell pick to be answered and then closes it — and, when nobody was waiting on
+    /// human input, holds the answer on screen long enough for it to actually be seen.
+    ///
+    /// The AI answers OnWaitingCellSelect SYNCHRONOUSLY: OpponentBrained and OpponentRando both write
+    /// <see cref="selectedcell"/> from inside the Invoke, so by the time the wait loop below is reached
+    /// the pick is already made and the loop runs ZERO iterations. BeginSelection and EndSelection
+    /// therefore landed in the same frame and the board lit up and went dark without ever being
+    /// rendered — which is why the opponent's summon cells were invisible while the player's own picks
+    /// are obvious. Hovering the chosen cell during the hold reuses the player's own preview path, so
+    /// the opponent's placement reads exactly like a player pick: footprint, push arrow, death skulls.
+    ///
+    /// A human pick already takes frames, so the hold is skipped for it — it would only add lag after
+    /// the click — as it is for a cancelled pick and for the AI's headless lookahead (isTesting).
+    /// </summary>
+    private IEnumerator AwaitCellSelection()
+    {
+        bool answeredBeforeAnyFrame = selectedcell != null;
+
+        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
+        {
+            yield return null;
+        }
+
+        GridCellSelectionManager cellSelection = GridCellSelectionManager.Instance;
+
+        if (answeredBeforeAnyFrame && selectedcell != null && cellSelection != null
+            && !cancelRequested && !GameManager.Instance.isTesting)
+        {
+            cellSelection.OnCellHoverEnter(GridManager.Instance.PosToGridIndex(selectedcell.position));
+
+            // The session has to stay open for the preview to render, which leaves the cells live. Lock
+            // it: without this the player could hover the preview off the opponent's pick, or click a
+            // different cell and re-point it, during the hold.
+            cellSelection.SetInputLocked(true);
+
+            yield return new WaitForSeconds(AiCellPickDisplayDuration);
+        }
+
+        currentCellFootprint = null;
+        if (cellSelection != null) cellSelection.EndSelection();
+    }
+
     public void SelectCell(int rowIndex = 2)
     {
         IEnumerator cor = _SelectCell(rowIndex);
@@ -352,7 +401,11 @@ public class ActionHolder : ScriptableObject
                 CellFootprints.Single,
                 previewOccupantPush: true,
                 sourceCard: thisCardSO,
-                promptMessage: SummonCellPrompt);
+                // Only the player is ever being asked to place something. The opponent's own summon now
+                // holds this highlight on screen for a beat (see AwaitCellSelection), and a "Select a
+                // Tile" hint over the AI's placement would be telling the player to do a pick that isn't
+                // theirs to make.
+                promptMessage: GameManager.Instance.isPlayerTurn ? SummonCellPrompt : null);
         }
         if (GameManager.Instance.isPlayerTurn)
         {
@@ -367,14 +420,7 @@ public class ActionHolder : ScriptableObject
         currentCellFootprint = CellFootprints.Single;
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
-        {
-            //Debug.Log("selecting cell");
-
-            yield return null;
-        }
-        currentCellFootprint = null;
-        if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
+        yield return AwaitCellSelection();
         if (cancelRequested) yield break;
         selectedCells.Clear();
         selectedCells.Add(selectedcell);
@@ -425,15 +471,7 @@ public class ActionHolder : ScriptableObject
         currentCellFootprint = CellFootprints.ThreeDown;
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
-        {
-            //Debug.Log("selecting cell");
-
-            yield return null;
-        }
-
-        currentCellFootprint = null;
-        if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
+        yield return AwaitCellSelection();
         if (cancelRequested) yield break;
 
         selectedCells.Clear();
@@ -496,13 +534,7 @@ public class ActionHolder : ScriptableObject
         currentCellFootprint = CellFootprints.Plus;
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
-        {
-            yield return null;
-        }
-
-        currentCellFootprint = null;
-        if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
+        yield return AwaitCellSelection();
         if (cancelRequested) yield break;
 
         selectedCells.Clear();
@@ -679,14 +711,7 @@ public class ActionHolder : ScriptableObject
         currentCellFootprint = CellFootprints.FullColumn;
         OnWaitingCellSelect?.Invoke(selectableCells, thisCardSO);
 
-        while (selectedcell == null && !cancelRequested && !GameManager.Instance.isTesting)
-        {
-            //Debug.Log("selecting cell");
-
-            yield return null;
-        }
-        currentCellFootprint = null;
-        if (GridCellSelectionManager.Instance != null) GridCellSelectionManager.Instance.EndSelection();
+        yield return AwaitCellSelection();
         if (cancelRequested) yield break;
 
         selectedMinions.Clear();

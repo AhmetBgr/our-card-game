@@ -19,6 +19,16 @@ public class Agent : MonoBehaviour
     public CardController cardPrefab;
     public Transform cardPlayPos;
 
+    /// <summary>
+    /// The deck-flight jump arc (see <see cref="SpawnCardToDeck"/>/<see cref="AddCardToDeck"/>) was tuned in world
+    /// units back when the hand canvas was Screen Space - Overlay, where 1 world unit == 1 pixel. It's now Screen
+    /// Space - Camera, whose world footprint is scaled down by the canvas's lossy scale, so those tuned offsets are
+    /// converted through this factor to keep the same on-screen arc height instead of flinging the card off-canvas.
+    /// </summary>
+    private float DeckFlightWorldScale => cardHandLayout != null && cardHandLayout.GetComponentInParent<Canvas>() != null
+        ? cardHandLayout.GetComponentInParent<Canvas>().transform.lossyScale.y
+        : 1f;
+
     [Header("Passive UI")]
     [Tooltip("Canvas holding this agent's hero-passive indicator (Assets/Prefabs/UI/PassiveUICanvas). Spawned under passiveUIPos at startup rather than authored on the hero, so the row sits at a fixed board position instead of riding the hero's transform.")]
     public GameObject passiveUICanvasPrefab;
@@ -510,7 +520,7 @@ public class Agent : MonoBehaviour
         sequence.Append(cardObj.transform.DOScale(Vector3.one * PlayArea.ForgedCardPopScale, PlayArea.ForgedCardPopDuration));
         sequence.Append(DOVirtual.DelayedCall(PlayArea.ForgedCardHoldDuration, () => { }));
 
-        sequence.Append(cardObj.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f, 50f, 1, 0.5f));
+        sequence.Append(cardObj.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f * DeckFlightWorldScale, 50f * DeckFlightWorldScale, 1, 0.5f));
         sequence.Join(cardObj.transform.DOScale(cardHandLayout.cardDeckScale, 0.5f));
         sequence.Join(cardObj.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
         {
@@ -564,7 +574,7 @@ public class Agent : MonoBehaviour
         card.transform.SetSiblingIndex(0);
 
         Sequence sequence = DOTween.Sequence();
-        sequence.Append(card.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f, 50f, 1, 0.5f));
+        sequence.Append(card.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f * DeckFlightWorldScale, 50f * DeckFlightWorldScale, 1, 0.5f));
         sequence.Join(card.transform.DOScale(cardHandLayout.cardDeckScale, 0.5f));
         sequence.Join(card.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
         {

@@ -12,6 +12,9 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
     public bool Interactable = true;
     public bool isdragging = false;
 
+    private Canvas canvas;
+    private RectTransform rectTransform;
+
     // Set by PlayArea.OnDrop when the card is released over the play area. If it's
     // still false when OnEndDrag runs, the card was dropped somewhere invalid and
     // the play is cancelled (card returns to its slot in hand).
@@ -25,6 +28,11 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
     public static event Action<Transform> DragEnded;
     public static event Action<Transform> DragCancelled;
 
+    private void Awake()
+    {
+        rectTransform = transform as RectTransform;
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (!Interactable) return;
@@ -35,6 +43,11 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
         // real hand cards; selection-panel previews use a prefab without it).
         if (GameManager.Instance != null &&
             (GameManager.Instance.isPlayingCard || !GameManager.Instance.CanPlayerPlayCards)) return;
+
+        // Resolved here rather than in Awake: cards are instantiated and then
+        // reparented under the hand canvas by HandManager, so the canvas ancestor
+        // isn't in place yet when Awake runs.
+        canvas = GetComponentInParent<Canvas>();
 
         isdragging = true;
         AnyCardDragging = true;
@@ -58,7 +71,8 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
     {
         if (!Interactable || !isdragging) return;
 
-        transform.position = eventData.position;
+        if (RectTransformUtility.ScreenPointToWorldPointInRectangle(rectTransform, eventData.position, canvas.worldCamera, out Vector3 worldPoint))
+            transform.position = worldPoint;
     }
 
     private void CancelDrag()
