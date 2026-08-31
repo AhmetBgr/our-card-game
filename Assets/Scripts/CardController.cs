@@ -106,6 +106,16 @@ public class CardController : MonoBehaviour
     // Kept for the UnityEvent binding on Card.prefab; play-on-click is handled via drag.
     public void OnPointerDown() { }
 
+    /// <summary>
+    /// Fired when a hand card lifts out of the fan to be read. Purely additive: consumed by the audio
+    /// system, no core logic depends on it.
+    ///
+    /// Deliberately the peek rather than the raw pointer-enter: the outline follows the pointer even
+    /// when the card cannot peek (mid-drag, no room in the fan), and sweeping the mouse along the hand
+    /// would then rattle off a click per card.
+    /// </summary>
+    public static event System.Action<CardController> Peeked;
+
     public void OnPointerEnter()
     {
         if (!modal.isPlayerMinion) return;
@@ -124,6 +134,8 @@ public class CardController : MonoBehaviour
 
         canPeek = false;
         isPeeking = true;
+
+        Peeked?.Invoke(this);
 
         // Only playable cards get a mana preview — show where the bar would land after playing this.
         if (ManaBarSlider.Instance != null && modal.cost <= GameManager.Instance.player.availibleMana)

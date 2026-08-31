@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
+  m_Name: Minion_Select
+  m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
+  clips:
+  - {fileID: 8300000, guid: dab705d82e3462440b45c799306d484f, type: 3}
+  - {fileID: 8300000, guid: abe12c722afcb6342b339d90392bc56e, type: 3}
+  - {fileID: 8300000, guid: ad6df9e1e8ec20f438436e2f3e13f098, type: 3}
+  bus: 1
+  playOrder: 1
+  volume: 0.45
+  useRandomVolume: 0
+  volumeRandom: {x: 0.9, y: 1}
+  pitch: 1
+  useRandomPitch: 1
+  pitchRandom: {x: 0.97, y: 1.03}
+  loop: 0
+  spatialBlend: 0
+  priority: 150
+  minRetriggerInterval: 0.05
+  maxConcurrent: 2
+  stackVolumeFalloff: 0.75

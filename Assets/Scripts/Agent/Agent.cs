@@ -330,7 +330,16 @@ public class Agent : MonoBehaviour
 
         GameManager.Instance.TriggerCardDrawActions(this);
         deckViewHandler.UpdateView(deck.Count, deck.Count == 0 ? false : deck[deck.Count - 1].isUpgraded);
+
+        CardDrawn?.Invoke(this, cardSO);
     }
+
+    /// <summary>
+    /// Fired once per card that actually reaches a hand, for either side. Purely additive: consumed by
+    /// the audio system, no core logic depends on it. Deliberately not fired for a burned overdraw or
+    /// an empty-deck pick, neither of which is a card arriving from the deck.
+    /// </summary>
+    public static event System.Action<Agent, CardSO> CardDrawn;
 
     /// <summary>
     /// The empty-deck draw: with nothing left to draw, the agent is offered a handful of upgraded cards

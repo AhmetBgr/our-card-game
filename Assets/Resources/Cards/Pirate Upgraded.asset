@@ -18,7 +18,7 @@ MonoBehaviour:
   cardName: Twin-Tailed Fox
   desc: Overdrive, Can Attack Twice per turn.
   attack: 4
-  health: 4
+  health: 5
   cost: 4
   range: 1
   armor: 0

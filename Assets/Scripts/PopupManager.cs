@@ -59,8 +59,20 @@ public class PopupManager : Singleton<PopupManager>
         if (victoryTitle != null) victoryTitle.gameObject.SetActive(won);
         if (defeatTitle != null) defeatTitle.gameObject.SetActive(!won);
 
+        GameOver?.Invoke(won);
+
         OpenPopup(gameOverPopup, won, delay);
     }
+
+    /// <summary>
+    /// Fired when the end-game panel opens, with the outcome. Purely additive: consumed by the audio
+    /// system, no core logic depends on it. This is the single funnel every ending goes through -- the
+    /// real win check and both editor debug triggers -- which is why the hook lives here rather than in
+    /// GameManager.CheckWinCondition.
+    ///
+    /// Note the panel is opened with a delay, so the stinger deliberately leads the visual.
+    /// </summary>
+    public static event System.Action<bool> GameOver;
 
     public void OpenPopup(Transform popup, bool won = false, float delay = 0f)
     {

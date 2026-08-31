@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
+  m_Name: Card_Play
+  m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
+  clips:
+  - {fileID: 8300000, guid: 7dcd4123c78f0f743a4644fd46a6a0aa, type: 3}
+  - {fileID: 8300000, guid: a17cb4ff8954e0e46a1c49fd0cb9c99d, type: 3}
+  - {fileID: 8300000, guid: 764ad2e0a1535114c82871fe568b2d32, type: 3}
+  bus: 0
+  playOrder: 1
+  volume: 0.5
+  useRandomVolume: 0
+  volumeRandom: {x: 0.9, y: 1}
+  pitch: 1
+  useRandomPitch: 1
+  pitchRandom: {x: 0.95, y: 1.08}
+  loop: 0
+  spatialBlend: 0
+  priority: 90
+  minRetriggerInterval: 0.06
+  maxConcurrent: 3
+  stackVolumeFalloff: 0.75
