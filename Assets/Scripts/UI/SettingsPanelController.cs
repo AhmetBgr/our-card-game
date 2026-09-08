@@ -65,6 +65,21 @@ public class SettingsPanelController : MonoBehaviour
              "has to keep running while the panel is away (reading a key, say).")]
     [SerializeField] private GameObject panel;
 
+    [Header("Layout")]
+    [Tooltip("Canvas height, in canvas units, this panel's sizes were laid out against. It scales itself " +
+             "by the host canvas's height over this, so it takes up the same share of the screen under a " +
+             "canvas that was set up for a different size. Zero turns the scaling off.")]
+    [SerializeField] private float designCanvasHeight = 1200f;
+
+    [Tooltip("What the scaling applies to: the framed window, and the confirm dialog's box. NOT the " +
+             "backdrop or the dialog's shade -- those cover the screen whatever size the panel is.")]
+    [SerializeField] private RectTransform[] scaledParts = new RectTransform[0];
+
+    [Tooltip("Pixels per unit the panel's art is read at -- 32, the sheet's own import setting. Written " +
+             "to the panel's own Canvas so a host canvas set up for a different value cannot change how " +
+             "thick the sliced frames and switches draw. Zero leaves the host's value alone.")]
+    [SerializeField] private float referencePixelsPerUnit = 32f;
+
     [Header("Interface")]
     [Tooltip("Whether the in-match action log is expanded. The same setting the log's own Log button flips.")]
     [SerializeField] private ToggleRow actionLogRow = new ToggleRow();
@@ -125,6 +140,9 @@ public class SettingsPanelController : MonoBehaviour
         if (resetButton != null) resetButton.onClick.AddListener(ResetToDefaults);
         if (closeButton != null) closeButton.onClick.AddListener(Close);
 
+        // Before anything draws, so the panel's first frame is already read at its own scale.
+        ApplyReferencePixelsPerUnit();
+
         if (displaySection != null) displaySection.SetActive(GameSettings.SupportsResolution);
 
         // Authored on so the panel can be laid out in the editor; never on screen at kickoff.
@@ -174,6 +192,9 @@ public class SettingsPanelController : MonoBehaviour
         GameSettings.BeginEditing();
 
         Body.SetActive(true);
+
+        ApplyReferencePixelsPerUnit();
+        ApplyHostScale();
 
         // Refreshed on open rather than only on enable: when the panel IS this object's child, this
         // component never disabled, so OnEnable does not run again.
@@ -259,6 +280,66 @@ public class SettingsPanelController : MonoBehaviour
 
     private static string Describe(Vector2Int size, bool fullscreen) =>
         $"{size.x} × {size.y}, {(fullscreen ? "fullscreen" : "windowed")}";
+
+    /// <summary>
+    /// Sizes the panel for the canvas it finds itself under.
+    ///
+    /// The two places it appears sit on canvases set up for different reference sizes -- the title
+    /// screen's is 1024 tall, the match's 1200 -- so the same 880-unit window came out a sixth larger
+    /// on one than the other. The panel is ONE asset and should read as one panel, so it measures the
+    /// canvas it is in and scales to cover the same share of the screen either way.
+    ///
+    /// Done here rather than by nudging one of the two instances: an override on an instance is a
+    /// number nobody can explain a year later, and a third host would arrive wrong all over again.
+    /// </summary>
+    /// <summary>
+    /// Pins how the panel's art is read, on its own canvas.
+    ///
+    /// A SLICED sprite's border comes out at
+    /// <c>borderPixels * canvasReferencePixelsPerUnit / (spritePixelsPerUnit * multiplier)</c>, so the
+    /// canvas the panel happens to sit under decides how thick its frames draw. The two hosts disagree
+    /// -- the match's canvas says 32, the title screen's 100 -- which drew every frame edge three times
+    /// too thick on the title screen and pushed the switch sprites past the point where their borders
+    /// fit inside the button at all, leaving them as hollow rings.
+    ///
+    /// Set here rather than on the prefab because Canvas does not serialise this: it is written by the
+    /// CanvasScaler at runtime, and a nested canvas that nobody writes to just reports its root's value.
+    /// </summary>
+    private void ApplyReferencePixelsPerUnit()
+    {
+        if (referencePixelsPerUnit <= 0f) return;
+
+        var own = GetComponent<Canvas>();
+        if (own == null) return;
+
+        if (Mathf.Approximately(own.referencePixelsPerUnit, referencePixelsPerUnit)) return;
+
+        own.referencePixelsPerUnit = referencePixelsPerUnit;
+    }
+
+    private void ApplyHostScale()
+    {
+        if (designCanvasHeight <= 0f || scaledParts == null || scaledParts.Length == 0) return;
+
+        Canvas canvas = GetComponentInParent<Canvas>(true);
+        if (canvas == null) return;
+
+        var canvasRect = canvas.rootCanvas.transform as RectTransform;
+        if (canvasRect == null) return;
+
+        // The canvas's own height in canvas units, which is what the scaler has already worked out
+        // from the reference resolution and the screen. Measured rather than read off the scaler, so
+        // the match mode and the screen's shape are accounted for.
+        float height = canvasRect.rect.height;
+        if (height <= 0f) return;
+
+        float scale = height / designCanvasHeight;
+
+        foreach (RectTransform part in scaledParts)
+        {
+            if (part != null) part.localScale = new Vector3(scale, scale, 1f);
+        }
+    }
 
     private void OnActionLogChanged(bool value) => GameSettings.ShowActionLog = value;
 

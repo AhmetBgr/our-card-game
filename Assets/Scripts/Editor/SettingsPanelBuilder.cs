@@ -60,6 +60,21 @@ public static class SettingsPanelBuilder
     /// <summary>Name of the object the tool owns in each host. Anything else called this is replaced.</summary>
     private const string PanelName = "SettingsPanel";
 
+    /// <summary>
+    /// Pixels per unit the panel's art is read at, matching the 32 the sprite sheet is imported with.
+    ///
+    /// This is the number that decides how thick a SLICED sprite's borders come out: a border is
+    /// spriteBorderPixels * canvasReferencePixelsPerUnit / (spritePixelsPerUnit * multiplier). The two
+    /// canvases the panel is instanced under disagree about it -- the match's is 32, the title
+    /// screen's 100 -- which made every frame edge three times thicker on one of them, and pushed the
+    /// switch sprites past the point where their borders fit inside the button at all, so they drew as
+    /// hollow rings. Pinning it on the panel's own canvas settles the argument in the panel's favour.
+    ///
+    /// The tool only puts the Canvas there; the value is written at runtime by
+    /// <see cref="SettingsPanelController"/>, because Canvas does not serialise it.
+    /// </summary>
+    private const float PanelReferencePixelsPerUnit = 32f;
+
     private const string SettingsButtonName = "SettingsButton";
 
     /// <summary>The Display heading and its rows, as one object so the web build can hide them together.</summary>
@@ -196,6 +211,15 @@ public static class SettingsPanelBuilder
                 AddDisplaySectionInPlace(window, serialized);
                 changed = true;
             }
+
+            // A panel built before it started sizing itself to its host canvas gets the two parts that
+            // scale named. Everything else on the panel is a child of one of them.
+            SerializedProperty scaled = serialized.FindProperty("scaledParts");
+            if (scaled.arraySize == 0 && WireScaledParts(root.transform, scaled)) changed = true;
+
+            // A panel built before it carried its own canvas gets one, so its sprites stop being read
+            // at whatever pixels-per-unit the host happens to use.
+            if (EnsurePanelCanvas(root)) changed = true;
 
             Transform display = window.Find(DisplaySectionName);
             if (display != null && display.Find(FullscreenRowName) == null)
@@ -489,6 +513,68 @@ public static class SettingsPanelBuilder
         label.gameObject.SetActive(false);
 
         return label;
+    }
+
+    /// <summary>
+    /// Names the parts that scale with the host canvas: the framed window, and the confirm dialog's
+    /// box. Deliberately NOT the backdrop or the dialog's shade -- those have to cover the screen at
+    /// any size. Returns whether anything was written.
+    /// </summary>
+    /// <summary>
+    /// Gives the panel a canvas of its own, so its sprites are read at the size they were drawn at
+    /// whatever the host canvas says. See <see cref="PanelReferencePixelsPerUnit"/>.
+    ///
+    /// The raycaster comes with it: graphics register for input with their nearest canvas, so a nested
+    /// canvas without one is a panel nothing can be clicked on. Sorting is deliberately NOT overridden
+    /// -- the panel keeps drawing where its place in the hierarchy puts it.
+    ///
+    /// Returns whether anything changed.
+    /// </summary>
+    private static bool EnsurePanelCanvas(GameObject panelRoot)
+    {
+        bool changed = false;
+
+        var canvas = panelRoot.GetComponent<Canvas>();
+        if (canvas == null)
+        {
+            canvas = panelRoot.AddComponent<Canvas>();
+            changed = true;
+        }
+
+        // The pixels-per-unit itself is NOT set here: Canvas does not serialise it, so a value written
+        // into the prefab would not survive the save. SettingsPanelController writes it on Awake.
+        if (canvas.overrideSorting)
+        {
+            canvas.overrideSorting = false;
+            changed = true;
+        }
+
+        if (panelRoot.GetComponent<GraphicRaycaster>() == null)
+        {
+            panelRoot.AddComponent<GraphicRaycaster>();
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static bool WireScaledParts(Transform panelRoot, SerializedProperty scaledParts)
+    {
+        var parts = new List<RectTransform>();
+
+        var window = panelRoot.Find("Window") as RectTransform;
+        if (window != null) parts.Add(window);
+
+        var box = panelRoot.Find(ConfirmDialogName + "/Box") as RectTransform;
+        if (box != null) parts.Add(box);
+
+        if (parts.Count == 0) return false;
+
+        scaledParts.arraySize = parts.Count;
+        for (int i = 0; i < parts.Count; i++)
+            scaledParts.GetArrayElementAtIndex(i).objectReferenceValue = parts[i];
+
+        return true;
     }
 
     private static IEnumerable<RectTransform> DirectChildren(Transform parent, string name)
@@ -924,6 +1010,7 @@ public static class SettingsPanelBuilder
     {
         GameObject rootGo = NewUI(PanelName, parent);
         Stretch((RectTransform)rootGo.transform);
+        EnsurePanelCanvas(rootGo);
         var controller = rootGo.AddComponent<SettingsPanelController>();
 
         // Authored ON, and switched off on the instance that does not want it: a backdrop is the norm for
@@ -1003,6 +1090,7 @@ public static class SettingsPanelBuilder
         serialized.FindProperty("saveButton").objectReferenceValue = saveButton;
         serialized.FindProperty("resetButton").objectReferenceValue = resetButton;
         serialized.FindProperty("closeButton").objectReferenceValue = closeButton;
+        WireScaledParts(rootGo.transform, serialized.FindProperty("scaledParts"));
         serialized.ApplyModifiedPropertiesWithoutUndo();
 
         return controller;
