@@ -12,9 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: Card_ChoiceClose
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: bc67d5475ef3db9408c911ed7becd666, type: 3}
-  - {fileID: 8300000, guid: d797fbd4ce987b54d8d2447f12d7f99c, type: 3}
+  clips: []
   bus: 1
   playOrder: 1
   volume: 0.5

@@ -111,6 +111,10 @@ public class GameManager : Singleton<GameManager>
     // Fired once when a card play successfully commits (past the cancel checks). Purely additive:
     // consumed by the stats system; no core logic depends on it.
     public static event Action<Agent, CardSO> OnCardPlayed;
+    // The mirror of OnCardPlayed: the play was backed out of and the card has just been put back in
+    // hand. Also purely additive (audio only). Fires for the AI's aborted plays too, so listeners that
+    // only care about the visible hand must check the agent.
+    public static event Action<Agent, CardSO> OnCardPlayCancelled;
 
     private readonly HeroPassiveSystem heroPassives = new HeroPassiveSystem();
 
@@ -1136,6 +1140,11 @@ public class GameManager : Singleton<GameManager>
         {
             opponent.UpdateHand();
         }
+
+        // Announced from here rather than from CancelPlayingCard, which only *requests* the cancel: the
+        // card is not actually back in hand until this method has run, and a request can still be
+        // dropped on the way (see ClearCancelledPlay).
+        OnCardPlayCancelled?.Invoke(playingAgent, playingCard != null ? playingCard.card : null);
 
         playingCard = null;
         playingAgent = null;

@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: -3386488573347511277, guid: d63582f3f629afa4a8e5bdfd0486e04a,
     type: 3}
   cardArt: {fileID: 0}
-  cardName: Pushy
+  cardName: Ram
   desc: 'Ignition: Push the minion on this tile 2 tiles forward. That minion takes
     1 damage.'
   attack: 1
@@ -99,6 +99,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnAnyMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
+  OnThisMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrewCard:

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Turn_Start
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
   clips:
-  - {fileID: 8300000, guid: 9a85c17f9a2f7064d9c7be8878de4963, type: 3}
+  - {fileID: 0}
   bus: 0
   playOrder: 2
   volume: 0.5
@@ -23,6 +23,9 @@ MonoBehaviour:
   useRandomPitch: 0
   pitchRandom: {x: 1, y: 1}
   loop: 0
+  delay: 0
+  fadeOut: 0
+  fadeOutDuration: 0.08
   spatialBlend: 0
   priority: 60
   minRetriggerInterval: 0.3

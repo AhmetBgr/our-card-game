@@ -12,11 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: UI_Click
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: eda6070676dd30a48b6433fd2b41bc90, type: 3}
-  - {fileID: 8300000, guid: d0780263b37b1eb4091322b071f988fb, type: 3}
-  - {fileID: 8300000, guid: aa2ca090a99971440a7ea60d6125ba41, type: 3}
-  - {fileID: 8300000, guid: 0d8dcc3fbb9139046bad4b12f270f7b1, type: 3}
+  clips: []
   bus: 1
   playOrder: 1
   volume: 0.55

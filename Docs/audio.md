@@ -16,7 +16,7 @@ forget — the first sound request builds the manager, which finds the library i
 | `AudioLibrary` | Maps each `GameSound` id to a `SoundEffect`. The asset a designer edits. |
 | `GameAudioBinder` | Subscribes game events to sounds. The only file that knows about both. |
 | `UISoundBinder` / `UISoundTrigger` | Hover and click sounds for every Button/Toggle in a loaded scene. |
-| `VolumeSlider` | Binds a UI Slider to the Master, SFX or Music bus. |
+| `VolumeSlider` | Binds a UI Slider to the Master, Music, SFX or Ambience bus. |
 
 ## Playing a sound
 
@@ -46,8 +46,61 @@ is how an event stays wired up before its clip exists.
 Every hook rides an event that already existed. No gameplay code plays a sound, and deleting
 `GameAudioBinder.cs` leaves the game running silently rather than broken.
 
-Three events were added for this, each one line, each marked additive in its own doc comment:
-`Agent.CardDrawn`, `CardController.Peeked`, and `PopupManager.GameOver`.
+Nine events were added for this, each marked additive in its own doc comment: `Agent.CardDrawn`,
+`CardController.Peeked`, `PopupManager.GameOver`, `GameManager.OnCardPlayCancelled`,
+`MinionController.OnAttacked`, `MinionView.DamageShown`, and `SwitchController.HoldStarted` /
+`Switched` / `HoldEnded`.
+
+### Striking and being struck
+
+An attack is two sounds from two sides, and each is picked by the attacker's reach — the same
+`modal.range >= 2` test that already chooses the arrow animation over the slash, so the sound can never
+disagree with what is on screen:
+
+| Moment | Event | Sound |
+|---|---|---|
+| The swing / the shot | `MinionController.OnAttacked` | `MinionAttackMelee` or `MinionAttackRanged`, at the **attacker** |
+| The damage number lands | `MinionView.DamageShown` | `MinionHitMelee` / `MinionHitRanged` / `MinionHitEffect`, at the **victim** |
+
+Being hit deliberately does **not** ride `MinionController.OnTookDamage`. That fires the instant health
+changes, which is `damageIndicatorVisualDelay` (0.35s) before the player sees anything — the value is
+pushed immediately so the view can tell damage from a buff, and only the *visual* is delayed. Riding the
+push would sound the hit while the strike was still swinging. `DamageShown` is raised from
+`PlayDamageIndicator`, so the number and the noise are one moment by construction rather than by two
+timers that agree today.
+
+How the hit arrived travels with it as a `DamageSource`, defaulted to `Effect` so the dozen spell call
+sites need no change: only `MinionController.Attack` knows it is an attack, and only its two
+`TakeDamage` calls say so (the counter-attack reports the *defender's* reach, since the counter is the
+defender's strike). `MinionController` latches it onto the view immediately before pushing the new
+health and the view consumes it in the same synchronous call, so nothing can slip between and mislabel
+a hit.
+
+A hero keeps its single, heavier `HeroHit` whatever dealt the damage — a hit on the hero decides the
+match, and that reading matters more than what it was hit with.
+
+### The end-turn switch
+
+Ending a turn is a *hold*, so it is a pair of sounds rather than one, and it needs three events rather
+than two:
+
+| Moment | Event | Sound |
+|---|---|---|
+| Press begins | `HoldStarted` | gears start running — **looping**, so an indefinite hold sustains |
+| Released before 0.15s | `HoldEnded` | loop fades out (0.08s). This *is* the "that did not take" feedback |
+| Hold survives 0.15s | `Switched` | loop stops, the gear-change plays, the turn flips |
+
+`Switched` cannot be the thing that stops the loop on its own: a successful hold does **not** release the
+button — the turn flips at `longPressDur` while the player is usually still pressing — so `HoldEnded` is
+the guaranteed closing bracket. Both exits stop the loop unconditionally, because stopping a sound that
+is not playing is a no-op and that is cheaper than tracking which exit got there first.
+
+The loop is stopped with a short fade rather than cut, since a sustained mechanical bed chopped
+mid-cycle clicks audibly.
+
+Note the player's turn end deliberately does **not** ride `GameManager.OnTurnEnd`. The switch is the only
+way a player ends a turn (`TurnManager` is dead code), and only the switch knows about the press — the
+half of the interaction that happens before the turn is over. Subscribing to both would sound it twice.
 
 ## What changed from the original
 
@@ -79,8 +132,9 @@ fixed and extended the rest.
   0.23, fourth copy onward rejected).
 - **Positional playback.** Voices are child GameObjects, so a sound can be heard where it happened. The
   original stacked every source on one object, which can only ever be 2D.
-- **Buses.** Separate Master/SFX/Music volumes, persisted to `PlayerPrefs`, squared so the slider tracks
-  perceived loudness rather than spending most of its travel sounding identical.
+- **Buses.** Separate Master/Music/SFX/Ambience volumes, kept in the settings file (see
+  [settings.md](settings.md)) and squared so the slider tracks perceived loudness rather than spending
+  most of its travel sounding identical.
 - **The library.** The original carried one `public SoundEffect` field per event on the controller, so
   adding a sound meant editing the controller and re-wiring every scene holding one.
 - **`RandomNoRepeat`** play order, so a variation set never plays the same clip twice running.

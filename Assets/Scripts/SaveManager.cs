@@ -131,6 +131,11 @@ public class SaveManager : PermanentSingleton<SaveManager>
             PlayerPrefs.DeleteKey(saveDataKey);
             PlayerPrefs.Save();
         }
+
+        // The action log and hover tilt preferences used to ride along in here, before settings had a
+        // file of their own. This is the only place that can still read them, so it hands them over --
+        // a no-op once a settings file exists, which is from the first launch after this one onwards.
+        GameSettings.AdoptLegacySavePreferences(saveData.ShowActionLog, saveData.HoverTiltEnabled);
     }
 
     public void SaveData() => WriteSaveFile(SerializeData());
@@ -214,29 +219,8 @@ public class SaveManager : PermanentSingleton<SaveManager>
         SaveData();
         return true;
     }
-    // Whether the in-match action log is expanded. Off by default; the panel writes back on every
-    // toggle, so the choice carries across matches and sessions.
-    public bool ShowActionLog => saveData != null && saveData.ShowActionLog;
-
-    public void SetShowActionLog(bool value)
-    {
-        if (saveData == null || saveData.ShowActionLog == value) return;
-
-        saveData.ShowActionLog = value;
-        SaveData();
-    }
-
-    // Whether hovered hand cards tilt toward the pointer. On by default; the toggle writes back
-    // immediately so the choice carries across matches and sessions.
-    public bool HoverTiltEnabled => saveData == null || saveData.HoverTiltEnabled;
-
-    public void SetHoverTiltEnabled(bool value)
-    {
-        if (saveData == null || saveData.HoverTiltEnabled == value) return;
-
-        saveData.HoverTiltEnabled = value;
-        SaveData();
-    }
+    // The action log and hover tilt preferences now live in GameSettings, with the rest of what the
+    // player can set -- see SaveData for why the fields are still carried here.
 
     // Asset names of the two heroes the tutorial match forces on each side.
     public const string TutorialPlayerHeroName = "3-Hunter_Tutorial";

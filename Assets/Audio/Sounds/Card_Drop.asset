@@ -13,19 +13,18 @@ MonoBehaviour:
   m_Name: Card_Drop
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
   clips:
-  - {fileID: 8300000, guid: 28f5f810514f96a4eac0c0b544550d60, type: 3}
-  - {fileID: 8300000, guid: 14265977045542f4799e7daea45f6f71, type: 3}
-  - {fileID: 8300000, guid: ee34d472792e8394a8a1014ffc5d622e, type: 3}
-  - {fileID: 8300000, guid: 1762511f9434e6e45b06046eeccbeb56, type: 3}
+  - {fileID: 8300000, guid: 03c922c7419a384419af1424e17dffc8, type: 3}
   bus: 0
   playOrder: 1
-  volume: 0.55
+  volume: 0.249
   useRandomVolume: 0
   volumeRandom: {x: 0.9, y: 1}
   pitch: 1
-  useRandomPitch: 1
+  useRandomPitch: 0
   pitchRandom: {x: 0.96, y: 1.05}
   loop: 0
+  fadeOut: 0
+  fadeOutDuration: 0.08
   spatialBlend: 0
   priority: 120
   minRetriggerInterval: 0.05

@@ -12,10 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: Card_Play
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: 7dcd4123c78f0f743a4644fd46a6a0aa, type: 3}
-  - {fileID: 8300000, guid: a17cb4ff8954e0e46a1c49fd0cb9c99d, type: 3}
-  - {fileID: 8300000, guid: 764ad2e0a1535114c82871fe568b2d32, type: 3}
+  clips: []
   bus: 0
   playOrder: 1
   volume: 0.5
@@ -25,6 +22,9 @@ MonoBehaviour:
   useRandomPitch: 1
   pitchRandom: {x: 0.95, y: 1.08}
   loop: 0
+  delay: 0
+  fadeOut: 0
+  fadeOutDuration: 0.08
   spatialBlend: 0
   priority: 90
   minRetriggerInterval: 0.06

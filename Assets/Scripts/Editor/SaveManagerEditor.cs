@@ -140,7 +140,7 @@ public class SaveManagerEditor : Editor
 
             data.IsTutorial = false;
             File.WriteAllText(path, JsonUtility.ToJson(data, true));
-            Debug.Log("Tutorial re-armed. Decks, high score and settings untouched.");
+            Debug.Log("Tutorial re-armed. Decks and high score untouched.");
         }
         catch (System.Exception e)
         {
@@ -177,8 +177,7 @@ public class SaveManagerEditor : Editor
 
         if (!EditorUtility.DisplayDialog(
                 markTutorialCompleted ? "Clear save data (tutorial completed)?" : "Clear save data?",
-                "This wipes both sides' decks, the high score, the selected hero and deck, and the action " +
-                "log setting — " +
+                "This wipes both sides' decks, the high score, and the selected hero and deck — " +
                 (markTutorialCompleted
                     ? "and marks the tutorial as already played, so the next launch opens the title screen."
                     : "and re-arms the tutorial, so the next launch plays it again.") + "\n\n" +

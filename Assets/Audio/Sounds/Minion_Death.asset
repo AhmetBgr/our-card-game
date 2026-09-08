@@ -13,17 +13,21 @@ MonoBehaviour:
   m_Name: Minion_Death
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
   clips:
-  - {fileID: 8300000, guid: 48d7339df6d50424f884201a3e8c3048, type: 3}
-  - {fileID: 8300000, guid: 37017d2a7fa0e5946a4b4e3909e084e4, type: 3}
+  - {fileID: 8300000, guid: 9219ea130e7ba4742a8bba22ddf82bf2, type: 3}
+  - {fileID: 8300000, guid: e0d7b86e21c76284ca34c205e3698800, type: 3}
+  - {fileID: 8300000, guid: 94dea556ee7ad2546a373351e746e636, type: 3}
   bus: 0
   playOrder: 1
-  volume: 0.55
+  volume: 0.5
   useRandomVolume: 0
   volumeRandom: {x: 0.9, y: 1}
   pitch: 1
-  useRandomPitch: 1
-  pitchRandom: {x: 0.95, y: 1.05}
+  useRandomPitch: 0
+  pitchRandom: {x: 1.279, y: 1.417}
   loop: 0
+  delay: 0.5
+  fadeOut: 0
+  fadeOutDuration: 0.08
   spatialBlend: 0.5
   priority: 90
   minRetriggerInterval: 0.06

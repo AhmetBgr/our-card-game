@@ -30,9 +30,25 @@ public class ActionLogPanel : Singleton<ActionLogPanel>
         {
             toggleButton.onClick.AddListener(ToggleVisibility);
         }
-        // Restored from the save so the player's last choice survives the match; defaults to collapsed.
-        var saveManager = SaveManager.Instance;
-        SetShown(saveManager != null && saveManager.ShowActionLog, persist: false);
+
+        // Restored from the settings so the player's last choice survives the match; defaults to
+        // collapsed.
+        SetShown(GameSettings.ShowActionLog, persist: false);
+    }
+
+    private void OnEnable() => GameSettings.Changed += FollowSettings;
+
+    private void OnDisable() => GameSettings.Changed -= FollowSettings;
+
+    /// <summary>
+    /// The settings panel owns the same switch this panel's own button does, so whichever one the player
+    /// used, the other has to agree. Writing back is skipped: the value already came from the settings.
+    /// </summary>
+    private void FollowSettings()
+    {
+        if (isShown == GameSettings.ShowActionLog) return;
+
+        SetShown(GameSettings.ShowActionLog, persist: false);
     }
 
     public void ToggleVisibility()
@@ -44,12 +60,7 @@ public class ActionLogPanel : Singleton<ActionLogPanel>
     {
         isShown = shown;
 
-        if (persist)
-        {
-            var saveManager = SaveManager.Instance;
-            if (saveManager != null)
-                saveManager.SetShowActionLog(shown);
-        }
+        if (persist) GameSettings.ShowActionLog = shown;
 
         if (collapsibleBody != null)
         {

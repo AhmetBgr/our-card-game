@@ -12,11 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: UI_Toggle
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: d2d5d868f1a00964cbe2d7bbaf5824ef, type: 3}
-  - {fileID: 8300000, guid: 0e24edbe202d74d4ead68357d339edfa, type: 3}
-  - {fileID: 8300000, guid: 1eea36bb9f90b3440bb8bd5356719abb, type: 3}
-  - {fileID: 8300000, guid: d15daf2fb5781764ab33fbea5a6c98c7, type: 3}
+  clips: []
   bus: 1
   playOrder: 1
   volume: 0.5

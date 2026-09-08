@@ -12,9 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: Outcome_Victory
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: 11c8966fe5826f64a81d7192b057b5f5, type: 3}
-  - {fileID: 8300000, guid: 4bc60d4c7cd2ae34eb96579d58a6ad35, type: 3}
+  clips: []
   bus: 0
   playOrder: 1
   volume: 0.7

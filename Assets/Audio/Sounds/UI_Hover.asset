@@ -12,11 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: UI_Hover
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: dd58032c3bf467e4c9141c9f65380a51, type: 3}
-  - {fileID: 8300000, guid: 9a43b670664dd2e45921e495363fdf4c, type: 3}
-  - {fileID: 8300000, guid: c3759d63b28519e4eb07e711a2b1a1fe, type: 3}
-  - {fileID: 8300000, guid: f94c7c5b2f8b7384a913b574900acdf3, type: 3}
+  clips: []
   bus: 1
   playOrder: 1
   volume: 0.35

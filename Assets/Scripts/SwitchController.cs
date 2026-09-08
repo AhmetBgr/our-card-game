@@ -109,6 +109,18 @@ public class SwitchController : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Fired as a switch animation starts, with the same argument the animation was thrown with:
+    /// true = throwing back to the player, false = throwing over to the opponent. Purely additive:
+    /// consumed by the audio system, no core logic depends on it.
+    ///
+    /// Raised here rather than at the call sites so a sound cued to the throw cannot drift away from the
+    /// animation it is cueing. Note that not every throw is a turn ending — <c>SetupGame</c> throws the
+    /// switch to the player to open the match — so a listener that cares about turn changes has to check
+    /// the game state; see GameAudioBinder.
+    /// </summary>
+    public static event Action<bool> SwitchAnimStarted;
+
     public void PlaySwitchAnim(bool isPlayerTurn)
     {
         if(isPlayerTurn)
@@ -119,6 +131,8 @@ public class SwitchController : MonoBehaviour
         {
             animator.Play("OpponentSwitchAnim");
         }
+
+        SwitchAnimStarted?.Invoke(isPlayerTurn);
     }
 
     public void OnMouseEnter()
@@ -133,6 +147,31 @@ public class SwitchController : MonoBehaviour
         GameManager.Instance.HideMovePreview();
     }
 
+    /// <summary>
+    /// Fired the moment the player presses the switch, before it is known whether they will hold it long
+    /// enough. Purely additive: consumed by the audio system, no core logic depends on it.
+    ///
+    /// This is the switch straining against its detent — the beat the "OpponentFailedSwitch" animation
+    /// plays on. Release early and it is the only thing that happened, which is why it fires on press
+    /// rather than on a cancel: the feedback has to be there while the player is still deciding.
+    /// </summary>
+    public static event Action HoldStarted;
+
+    /// <summary>
+    /// Fired when the hold survives <see cref="longPressDur"/> and the turn actually changes hands.
+    /// Purely additive, and paired with <see cref="HoldStarted"/> — the snap that follows the strain.
+    /// </summary>
+    public static event Action Switched;
+
+    /// <summary>
+    /// Fired when the press is released, whether or not it lasted long enough. Purely additive.
+    ///
+    /// The closing bracket for <see cref="HoldStarted"/>: anything that started on the press needs a
+    /// guaranteed end, and a successful hold does NOT release the button — the player is still holding
+    /// it when <see cref="Switched"/> fires — so <see cref="Switched"/> cannot serve as that bracket.
+    /// </summary>
+    public static event Action HoldEnded;
+
     public void OnMouseDown() {
         if(!GameManager.Instance.isPlayerTurn) return;
 
@@ -141,10 +180,16 @@ public class SwitchController : MonoBehaviour
         // Start long press coroutine
         _isHolding = true;
         _longPressCoroutine = StartCoroutine(LongPressCheck());
+
+        HoldStarted?.Invoke();
     }
 
     public void OnMouseUp()
     {
+        // Only report the release if a press was actually registered here -- OnMouseDown returns early
+        // when it is not the player's turn, and an unmatched HoldEnded would stop a sound it never started.
+        bool wasHolding = _isHolding;
+
         // Stop long press check if released early
         _isHolding = false;
         if (_longPressCoroutine != null)
@@ -152,6 +197,8 @@ public class SwitchController : MonoBehaviour
             StopCoroutine(_longPressCoroutine);
             _longPressCoroutine = null;
         }
+
+        if (wasHolding) HoldEnded?.Invoke();
     }
     private IEnumerator LongPressCheck()
     {
@@ -159,6 +206,8 @@ public class SwitchController : MonoBehaviour
 
         if (_isHolding)
         {
+            Switched?.Invoke();
+
             StartCoroutine(GameManager.Instance.EndPlayerTurn());
 
             //PointerLongPress?.Invoke();

@@ -28,18 +28,56 @@ public enum GameSound
     MinionSummon = 20,
     MinionMove = 21,
     MinionCollide = 22,
-    MinionHit = 23,
-    MinionDeath = 24,
-    MinionSelect = 25,
-    MinionAttack = 26,
 
-    // Heroes
+    /// <summary>A hit that is not a minion's attack: a spell, a collision, the empty-deck clock. Keeps
+    /// id 23 -- it is the original MinionHit, renamed now that the attack kinds sit beside it.</summary>
+    MinionHitEffect = 23,
+
+    /// <summary>Taking a melee strike, and <see cref="MinionHitRanged"/> an arrow. Chosen by the
+    /// DamageSource the hit carried, and played when the damage NUMBER lands, not when it was dealt.</summary>
+    MinionHitMelee = 28,
+    MinionHitRanged = 29,
+    MinionDeath = 24,
+
+    /// <summary>
+    /// Picking a minion up to attack with -- the click that lights its targets. Split by reach exactly as
+    /// the strike is, because a sword coming off the shoulder and a bow being drawn are different sounds.
+    /// Melee keeps id 25, the original MinionSelect, so whatever was mapped there stays the melee one.
+    /// </summary>
+    MinionSelectMelee = 25,
+    MinionSelectRanged = 30,
+
+    /// <summary>A minion's own strike landing. Split by reach rather than by one MinionAttack, because
+    /// a sword swing and a loosed arrow are different sounds -- the binder picks by modal.range.</summary>
+    MinionAttackMelee = 26,
+    MinionAttackRanged = 27,
+
+    // Heroes.
+    //
+    // Reserved rather than used: heroes take damage through the same MinionHit* sounds their minions do,
+    // so there is nothing mapped to HeroHit. The ids stay put so mapping one later is an edit to the
+    // library asset alone.
     HeroHit = 40,
     HeroDeath = 41,
 
     // Turn flow
     TurnStart = 60,
+
+    /// <summary>
+    /// The end-turn switch straining under a press, before the hold has been held long enough. On its
+    /// own — released early — this IS the "that did not take" sound.
+    /// </summary>
+    TurnEndHoldStart = 65,
+
+    /// <summary>The switch snapping over and the turn actually changing hands.</summary>
     TurnEnd = 61,
+
+    /// <summary>
+    /// The opponent handing the turn back — cued to the switch animation throwing to the player. The
+    /// counterpart to <see cref="TurnEnd"/>, which is the player's own throw.
+    /// </summary>
+    OpponentTurnEnd = 66,
+
     OpponentTurnStart = 62,
     ManaGain = 63,
     ManaSpend = 64,

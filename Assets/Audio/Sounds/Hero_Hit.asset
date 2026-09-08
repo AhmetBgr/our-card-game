@@ -12,12 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: Hero_Hit
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: 7d815e6bdc0d7a141ac2cbc4a40a9bca, type: 3}
-  - {fileID: 8300000, guid: d76adb915d318d34cbe681e9e10b1020, type: 3}
-  - {fileID: 8300000, guid: 76f45e377c571fc46b6c45b084be85c9, type: 3}
-  - {fileID: 8300000, guid: 4e44bd1783ba65e42b8aaeca2145171a, type: 3}
-  - {fileID: 8300000, guid: 35cd58604e9e92a4eb659bbd0509e186, type: 3}
+  clips: []
   bus: 0
   playOrder: 1
   volume: 0.7

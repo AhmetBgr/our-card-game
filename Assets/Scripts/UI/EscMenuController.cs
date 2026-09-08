@@ -1,11 +1,17 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
 /// The in-match pause menu. Escape or the on-screen toggle opens it, either one (or Resume) closes it
-/// again, and the four buttons cover the only things there are to do from a paused match: carry on, start
-/// it over, leave for the title screen, or quit the game.
+/// again, and the buttons cover the only things there are to do from a paused match: carry on, start it
+/// over, leave for the title screen, quit the game, or read up on how to play.
+///
+/// The rules and how-to-play panels are NOT part of the menu's resting state: they are authored on but
+/// switched off at Awake and only come back for as long as the How To Play button is latched on, so a
+/// pause is a short list of buttons rather than a wall of text. They sit in their own column left of the
+/// buttons, which is why the buttons stay up alongside them — the toggle that opened them has to remain
+/// clickable to shut them again, and it holds itself down while they are up.
 ///
 /// This component lives on an ALWAYS-ACTIVE root whose <see cref="panel"/> child is the thing shown and
 /// hidden. The panel has to be authored inactive — nothing should be on screen at kickoff — and Update
@@ -36,6 +42,28 @@ public class EscMenuController : MonoBehaviour
     [SerializeField] private Button restartButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private Button quitButton;
+
+    [Tooltip("Sits under the other buttons and shows the rules alongside them. Not a scene change and " +
+             "not a modal — it only switches the two reading panels on and off. Carries a " +
+             "ToggleButton so it stays visibly held down for as long as they are up.")]
+    [SerializeField] private Button howToPlayButton;
+
+    [Tooltip("Opens the settings in the same column the rules use, and on the same terms: a latched " +
+             "toggle, not a scene change and not a modal.")]
+    [SerializeField] private Button settingsButton;
+
+    [Header("Reading panels")]
+    [Tooltip("Built from Docs/rules-panel.md by Tools ▸ Esc Menu ▸ Sync Rules Panel.")]
+    [SerializeField] private GameObject rulesPanel;
+
+    [Tooltip("Built from Docs/how-to-play-panel.md by Tools ▸ Esc Menu ▸ Sync How To Play Panel.")]
+    [SerializeField] private GameObject howToPlayPanel;
+
+    [Header("Settings")]
+    [Tooltip("Shares the left column with the reading panels — only ever one of the two is up. Built by " +
+             "Tools ▸ Settings ▸ Rebuild Settings Panel.")]
+    [SerializeField] private SettingsPanelController settingsPanel;
+
 
     [Header("On-screen toggle")]
     [Tooltip("Corner button that opens and closes the menu, for players who don't reach for Escape. It is " +
@@ -68,6 +96,19 @@ public class EscMenuController : MonoBehaviour
     /// </summary>
     private TMPro.TextMeshProUGUI _toggleLabel;
 
+    /// <summary>
+    /// The latch on the How To Play button, when it is the authored toggle rather than a plain Button.
+    /// Same arrangement as <see cref="CardSelectionPanel"/>'s See Board button: the toggle owns the click
+    /// and reports the state it moved to, so nothing here has to invert anything.
+    /// </summary>
+    private ToggleButton _howToPlayToggle;
+
+    /// <summary>The latch on the Settings button, on the same terms as <see cref="_howToPlayToggle"/>.</summary>
+    private ToggleButton _settingsToggle;
+
+    /// <summary>Whether the rules and how-to-play panels are currently showing.</summary>
+    private bool _infoOpen;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void ResetState()
     {
@@ -84,15 +125,40 @@ public class EscMenuController : MonoBehaviour
         if (mainMenuButton != null) mainMenuButton.onClick.AddListener(ExitToMenu);
         if (quitButton != null) quitButton.onClick.AddListener(Quit);
 
+        if (howToPlayButton != null)
+        {
+            _howToPlayToggle = howToPlayButton.GetComponent<ToggleButton>();
+
+            // The toggle has already flipped itself by the time it reports in, so take the state it hands
+            // over — routing that through ToggleHowToPlay would flip a second time and cancel it out.
+            if (_howToPlayToggle != null) _howToPlayToggle.onValueChanged.AddListener(ShowInfo);
+            else howToPlayButton.onClick.AddListener(ToggleHowToPlay);
+        }
+
+        if (settingsButton != null)
+        {
+            _settingsToggle = settingsButton.GetComponent<ToggleButton>();
+
+            if (_settingsToggle != null) _settingsToggle.onValueChanged.AddListener(ShowSettings);
+            else settingsButton.onClick.AddListener(ToggleSettings);
+        }
+
+        // The panel can also close itself — its own Close button — and the latch has to come back up
+        // when it does.
+        if (settingsPanel != null) settingsPanel.Closed += OnSettingsClosed;
+
         if (toggleButton != null)
         {
             toggleButton.onClick.AddListener(Toggle);
             _toggleLabel = toggleButton.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
         }
 
-        // Always start the match unpaused, however the panel was left in the editor.
+        // Always start the match unpaused, however the panel was left in the editor. The reading panels
+        // are authored ON so they can be laid out in the prefab; this is where they get put away.
         if (panel != null) panel.SetActive(false);
         IsOpen = false;
+        ShowInfo(false);
+        ShowSettings(false);
 
         RefreshToggle();
     }
@@ -102,6 +168,11 @@ public class EscMenuController : MonoBehaviour
         // Never leave the game frozen behind us. This runs on scene unload and on leaving play mode, both
         // of which can happen with the menu still open.
         if (IsOpen) Resume();
+    }
+
+    private void OnDestroy()
+    {
+        if (settingsPanel != null) settingsPanel.Closed -= OnSettingsClosed;
     }
 
     private void Update()
@@ -117,7 +188,14 @@ public class EscMenuController : MonoBehaviour
             if (toggleButton.gameObject.activeSelf != show) toggleButton.gameObject.SetActive(show);
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape)) Toggle();
+        if (!Input.GetKeyDown(KeyCode.Escape)) return;
+
+        // Escape backs out one layer at a time: it closes whatever is up in the left column first and the
+        // menu second, so reading the rules — or setting the volume — is never a one-way trip into
+        // leaving the match by accident.
+        if (IsOpen && _infoOpen) ShowInfo(false);
+        else if (IsOpen && settingsPanel != null && settingsPanel.IsOpen) ShowSettings(false);
+        else Toggle();
     }
 
     /// <summary>Open the menu if it is shut, shut it if it is open. What both Escape and the corner button do.</summary>
@@ -137,6 +215,10 @@ public class EscMenuController : MonoBehaviour
 
         panel.SetActive(true);
 
+        // Every pause starts on the buttons, whatever was left open last time.
+        ShowInfo(false);
+        ShowSettings(false);
+
         // Above everything else on the canvas, including a card selection panel left open mid-card. Done
         // on open rather than authored, because sibling order is a property of whatever else the scene has
         // added to the canvas since.
@@ -149,6 +231,8 @@ public class EscMenuController : MonoBehaviour
     public void Resume()
     {
         if (panel != null) panel.SetActive(false);
+        ShowInfo(false);
+        ShowSettings(false);
 
         // Guarded, so a Resume that closes nothing — OnDisable firing on an already-closed menu — cannot
         // overwrite a timeScale somebody else owns.
@@ -161,6 +245,42 @@ public class EscMenuController : MonoBehaviour
     private void RefreshToggle()
     {
         if (_toggleLabel != null) _toggleLabel.text = IsOpen ? closeLabel : openLabel;
+    }
+
+    /// <summary>Show the rules next to the buttons, or put them away again. What the How To Play button does.</summary>
+    public void ToggleHowToPlay() => ShowInfo(!_infoOpen);
+
+    private void ShowInfo(bool show)
+    {
+        _infoOpen = show;
+        if (rulesPanel != null) rulesPanel.SetActive(show);
+        if (howToPlayPanel != null) howToPlayPanel.SetActive(show);
+
+        // Silent, because every other way of closing the panels — Escape, Resume, a fresh pause — has to
+        // put the latch back up without being reported straight back in here.
+        if (_howToPlayToggle != null) _howToPlayToggle.SetIsOn(show, notify: false);
+
+        // The rules and the settings share the left column, so opening one puts the other away rather
+        // than drawing both into the same space.
+        if (show) ShowSettings(false);
+    }
+
+    /// <summary>Show the settings next to the buttons, or put them away again. What the Settings button does.</summary>
+    public void ToggleSettings() => ShowSettings(settingsPanel != null && !settingsPanel.IsOpen);
+
+    private void ShowSettings(bool show)
+    {
+        if (settingsPanel != null) settingsPanel.SetOpen(show);
+
+        if (_settingsToggle != null) _settingsToggle.SetIsOn(show, notify: false);
+
+        if (show) ShowInfo(false);
+    }
+
+    /// <summary>The panel closed itself (its own Close button). Nothing to shut, just the latch to raise.</summary>
+    private void OnSettingsClosed()
+    {
+        if (_settingsToggle != null) _settingsToggle.SetIsOn(false, notify: false);
     }
 
     /// <summary>Rerun the match with the decks and heroes already chosen, exactly as Play Again does.</summary>

@@ -14,10 +14,19 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Button creditsButton;
     [SerializeField] private Button quitButton;
 
+    [Tooltip("Corner button that opens the settings. A button of its own rather than a fifth entry in " +
+             "the column, which the frame around it has no room for.")]
+    [SerializeField] private Button settingsButton;
+
     [Header("Credits")]
     [Tooltip("Overlay shown by the Credits button. Its backdrop blocks the menu underneath.")]
     [SerializeField] private GameObject creditsPanel;
     [SerializeField] private Button closeCreditsButton;
+
+    [Header("Settings")]
+    [Tooltip("The same panel the pause menu opens, over its own backdrop. Built by " +
+             "Tools ▸ Settings ▸ Rebuild Settings Panels.")]
+    [SerializeField] private SettingsPanelController settingsPanel;
 
     [Header("Scenes")]
     [SerializeField] private string gameSceneName = "Game";
@@ -44,8 +53,12 @@ public class MainMenuManager : MonoBehaviour
         if (quitButton != null)
             quitButton.onClick.AddListener(Quit);
 
-        // Always open on the menu itself, however the panel was left in the editor.
+        if (settingsButton != null)
+            settingsButton.onClick.AddListener(ToggleSettings);
+
+        // Always open on the menu itself, however the panels were left in the editor.
         ShowCredits(false);
+        if (settingsPanel != null) settingsPanel.Close();
     }
 
     /// <summary>
@@ -74,8 +87,25 @@ public class MainMenuManager : MonoBehaviour
 
     void Update()
     {
-        if (creditsPanel != null && creditsPanel.activeSelf && Input.GetKeyDown(KeyCode.Escape))
+        if (!Input.GetKeyDown(KeyCode.Escape)) return;
+
+        // One layer at a time, and the settings first: they are the panel that can be opened from on top
+        // of the credits, so they are the one Escape has to reach first.
+        if (settingsPanel != null && settingsPanel.IsOpen)
+            settingsPanel.Close();
+        else if (creditsPanel != null && creditsPanel.activeSelf)
             ShowCredits(false);
+    }
+
+    /// <summary>Open the settings over the menu, or put them away. What the corner button does.</summary>
+    public void ToggleSettings()
+    {
+        if (settingsPanel == null) return;
+
+        // The credits are a modal of their own; never leave the two stacked.
+        if (!settingsPanel.IsOpen) ShowCredits(false);
+
+        settingsPanel.Toggle();
     }
 
     void ShowCredits(bool show)

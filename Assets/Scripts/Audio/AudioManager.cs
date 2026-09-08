@@ -34,11 +34,6 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     private const int MaxVoices = 32;
 
-    private const string MasterVolumeKey = "audio.master";
-    private const string SfxVolumeKey = "audio.sfx";
-    private const string MusicVolumeKey = "audio.music";
-    private const string MutedKey = "audio.muted";
-
     [Tooltip("Sound map to use. Empty = loaded from Resources/AudioLibrary.asset.")]
     [SerializeField] private AudioLibrary library;
 
@@ -71,11 +66,12 @@ public class AudioManager : MonoBehaviour
     private SoundEffect _musicSound;
     private Coroutine _musicFade;
 
-    private float _masterVolume = 1f;
-    private float _sfxVolume = 1f;
-    private float _musicVolume = 0.6f;
-    private bool _muted;
-    private bool _settingsLoaded;
+    /// <summary>
+    /// Whether the game was muted the last time <see cref="OnSettingsChanged"/> looked. A mute has to
+    /// cut every voice, and unmuting has to re-level the music, so the transition matters rather than
+    /// the value -- and the settings raise one undifferentiated "something changed".
+    /// </summary>
+    private bool _wasMuted;
 
     private static AudioManager _instance;
     private static bool _quitting;
@@ -130,73 +126,64 @@ public class AudioManager : MonoBehaviour
 
     // ---------------------------------------------------------------------------------------------
     // Volume settings. 0..1 throughout; the curve to perceived loudness is applied at the voice.
+    //
+    // The values themselves belong to GameSettings, which owns loading, persisting and telling anyone
+    // who is showing them that they moved. These properties are the audio-side face of that, kept so a
+    // call site levelling a bus does not have to know where the number is stored.
     // ---------------------------------------------------------------------------------------------
 
     public float MasterVolume
     {
-        get { EnsureSettingsLoaded(); return _masterVolume; }
-        set => SetVolume(ref _masterVolume, value, MasterVolumeKey);
+        get => GameSettings.MasterVolume;
+        set => GameSettings.MasterVolume = value;
     }
 
     public float SfxVolume
     {
-        get { EnsureSettingsLoaded(); return _sfxVolume; }
-        set => SetVolume(ref _sfxVolume, value, SfxVolumeKey);
+        get => GameSettings.SfxVolume;
+        set => GameSettings.SfxVolume = value;
     }
 
     public float MusicVolume
     {
-        get { EnsureSettingsLoaded(); return _musicVolume; }
-        set => SetVolume(ref _musicVolume, value, MusicVolumeKey);
+        get => GameSettings.MusicVolume;
+        set => GameSettings.MusicVolume = value;
+    }
+
+    /// <summary>
+    /// Room tone and other beds. Nothing is authored on this bus yet -- it is wired through so the
+    /// slider the player sets today still means the same thing on the day ambience ships.
+    /// </summary>
+    public float AmbientVolume
+    {
+        get => GameSettings.AmbientVolume;
+        set => GameSettings.AmbientVolume = value;
     }
 
     public bool Muted
     {
-        get { EnsureSettingsLoaded(); return _muted; }
-        set
-        {
-            EnsureSettingsLoaded();
-            if (_muted == value) return;
-
-            _muted = value;
-            PlayerPrefs.SetInt(MutedKey, value ? 1 : 0);
-            PlayerPrefs.Save();
-
-            if (_muted) StopAll();
-            else ApplyMusicVolume();
-        }
-    }
-
-    private void SetVolume(ref float field, float value, string key)
-    {
-        EnsureSettingsLoaded();
-
-        value = Mathf.Clamp01(value);
-        if (Mathf.Approximately(field, value)) return;
-
-        field = value;
-        PlayerPrefs.SetFloat(key, value);
-        PlayerPrefs.Save();
-
-        // Music is the one bus that is usually already sounding when the slider moves, so it has to
-        // follow live. One-shots pick the new level up on their next play, which is soon enough.
-        ApplyMusicVolume();
+        get => GameSettings.Muted;
+        set => GameSettings.Muted = value;
     }
 
     /// <summary>
-    /// Settings live in PlayerPrefs rather than the JSON save. They have to be readable before
-    /// SaveManager exists (the very first UI hover in the menu can beat it), they are per-device rather
-    /// than per-profile, and a corrupt save must never cost the player their volume.
+    /// Any setting moved. Music is the one bus that is usually already sounding when a slider does, so
+    /// it has to follow live; one-shots pick the new level up on their next play, which is soon enough.
     /// </summary>
-    private void EnsureSettingsLoaded()
+    private void OnSettingsChanged()
     {
-        if (_settingsLoaded) return;
-        _settingsLoaded = true;
+        bool muted = GameSettings.Muted;
 
-        _masterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, 1f);
-        _sfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey, 1f);
-        _musicVolume = PlayerPrefs.GetFloat(MusicVolumeKey, 0.6f);
-        _muted = PlayerPrefs.GetInt(MutedKey, 0) == 1;
+        if (muted != _wasMuted)
+        {
+            _wasMuted = muted;
+
+            // A mute that takes a moment to arrive is a broken mute, so the voices are cut rather than
+            // left to finish quietly.
+            if (muted) StopAll();
+        }
+
+        ApplyMusicVolume();
     }
 
     /// <summary>
@@ -206,12 +193,25 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     private float BusGain(AudioBus bus)
     {
-        EnsureSettingsLoaded();
+        if (GameSettings.Muted) return 0f;
 
-        if (_muted) return 0f;
+        float busVolume;
+        switch (bus)
+        {
+            case AudioBus.Music:
+                busVolume = GameSettings.MusicVolume;
+                break;
+            case AudioBus.Ambient:
+                busVolume = GameSettings.AmbientVolume;
+                break;
+            // Interface sounds ride the SFX bus. They are feedback on the player's own clicks, and a
+            // separate slider for them is a setting nobody has ever wanted to move on its own.
+            default:
+                busVolume = GameSettings.SfxVolume;
+                break;
+        }
 
-        float busVolume = bus == AudioBus.Music ? _musicVolume : _sfxVolume;
-        float linear = _masterVolume * busVolume;
+        float linear = GameSettings.MasterVolume * busVolume;
 
         return linear * linear;
     }
@@ -234,13 +234,16 @@ public class AudioManager : MonoBehaviour
         // music and re-allocate every voice.
         if (transform.parent == null) DontDestroyOnLoad(gameObject);
 
-        EnsureSettingsLoaded();
+        _wasMuted = GameSettings.Muted;
+        GameSettings.Changed += OnSettingsChanged;
 
         for (int i = 0; i < InitialVoices; i++) CreateVoice();
     }
 
     private void OnDestroy()
     {
+        GameSettings.Changed -= OnSettingsChanged;
+
         if (_instance == this) _instance = null;
     }
 
@@ -287,7 +290,7 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public AudioSource PlayClip(AudioClip clip, AudioBus bus = AudioBus.Sfx, float volume = 1f, float pitch = 1f)
     {
-        if (clip == null || _muted) return null;
+        if (clip == null || GameSettings.Muted) return null;
 
         Voice voice = AcquireVoice(128);
         if (voice == null) return null;
@@ -312,12 +315,14 @@ public class AudioManager : MonoBehaviour
     {
         if (sound == null || !sound.HasClips) return null;
 
-        EnsureSettingsLoaded();
-        if (_muted) return null;
+        if (GameSettings.Muted) return null;
 
         // Throttle before spending a voice, and before the delay: a burst of requests in one frame must
         // be rejected on the spot, not queued up to all fire together a moment later.
         if (!sound.CanPlayNow()) return null;
+
+        // The asset's own delay rides on top of whatever the call site asked for.
+        delay = sound.ResolveDelay(delay);
 
         Voice voice = AcquireVoice(sound.priority);
         if (voice == null) return null;
@@ -354,7 +359,7 @@ public class AudioManager : MonoBehaviour
             yield break;
         }
 
-        if (_muted)
+        if (GameSettings.Muted)
         {
             sound.NotifyVoiceStopped();
             voice.sound = null;
@@ -394,39 +399,56 @@ public class AudioManager : MonoBehaviour
     // Stopping
     // ---------------------------------------------------------------------------------------------
 
-    /// <summary>Stops every voice currently playing <paramref name="sound"/>, optionally fading them out.</summary>
-    public void StopSound(SoundEffect sound, float fadeOut = 0f)
+    /// <summary>
+    /// Stops every voice currently playing <paramref name="sound"/>, fading out by however long the asset
+    /// is set to. Pass a duration to override that, or 0 to force a hard cut.
+    /// </summary>
+    public void StopSound(SoundEffect sound, float fadeOverride = SoundEffect.UseAssetFade)
     {
         if (sound == null) return;
+
+        float fade = sound.ResolveFadeOut(fadeOverride);
 
         for (int i = 0; i < _voices.Count; i++)
         {
             if (_voices[i].sound != sound) continue;
-            ReleaseVoice(_voices[i], fadeOut);
+            ReleaseVoice(_voices[i], fade);
         }
     }
 
     /// <summary>Stops one voice handed back by a Play call. Safe if the voice has already been recycled.</summary>
-    public void Stop(AudioSource source, float fadeOut = 0f)
+    public void Stop(AudioSource source, float fadeOverride = SoundEffect.UseAssetFade)
     {
         if (source == null) return;
 
         for (int i = 0; i < _voices.Count; i++)
         {
             if (_voices[i].source != source) continue;
-            ReleaseVoice(_voices[i], fadeOut);
+
+            // The voice knows which sound it is carrying, so a caller holding only an AudioSource still
+            // gets that sound's authored fade without having to know what it is playing.
+            Voice voice = _voices[i];
+            float fade = voice.sound != null ? voice.sound.ResolveFadeOut(fadeOverride)
+                                             : Mathf.Max(0f, fadeOverride);
+            ReleaseVoice(voice, fade);
             return;
         }
 
         source.Stop();
     }
 
-    /// <summary>Stops every sound effect. Leaves the music alone -- see <see cref="StopMusic"/>.</summary>
+    /// <summary>
+    /// Stops every sound effect. Leaves the music alone -- see <see cref="StopMusic"/>.
+    ///
+    /// Hard cut, ignoring per-sound fades: the one caller is muting, and a mute that takes a moment to
+    /// arrive is a broken mute.
+    /// </summary>
     public void StopAll()
     {
         for (int i = 0; i < _voices.Count; i++) ReleaseVoice(_voices[i], 0f);
     }
 
+    /// <summary><paramref name="fadeOut"/> is an already-resolved duration in seconds; 0 cuts.</summary>
     private void ReleaseVoice(Voice voice, float fadeOut)
     {
         if (voice.sound != null)

@@ -78,6 +78,25 @@ public class MinionView : MonoBehaviour
     // Whether the bow icon is showing, which also selects the ranged attack-flash overlay.
     private bool _isRanged;
 
+    /// <summary>
+    /// The damage number landing, which is the moment a hit reads as having happened -- the value is
+    /// pushed immediately but shown <see cref="damageIndicatorVisualDelay"/> later, and feedback tied to
+    /// the push instead would fire while the strike is still swinging. Purely additive (audio).
+    /// </summary>
+    public static event Action<MinionController, int, DamageSource> DamageShown;
+
+    /// <summary>
+    /// The kind of hit the next health loss belongs to. Set by MinionController.TakeDamage right before
+    /// it pushes the new value, and consumed by that same push -- a loss arriving through any other
+    /// UpdateView (a spell writing health directly) correctly reads Effect.
+    /// </summary>
+    [NonSerialized] public DamageSource nextDamageSource = DamageSource.Effect;
+
+    // Resolved once: MinionView shares the root GameObject with MinionController (see
+    // PlayAbsorbAnimation), so this is the minion the number belongs to.
+    private MinionController _owner;
+    private bool _ownerResolved;
+
     public void UpdateView(CardModal modal)
     {
         if (modal == null) return;
@@ -214,13 +233,18 @@ public class MinionView : MonoBehaviour
         // the damage delay and a gain (or a no-op re-push) follows the stat-change one.
         float delay = delta < 0 ? damageIndicatorVisualDelay : statChangeVisualDelay;
 
+        // Read (and cleared) now rather than inside the delayed callback: by the time that runs, a later
+        // hit may have re-latched the field.
+        DamageSource source = nextDamageSource;
+        nextDamageSource = DamageSource.Effect;
+
         DeferVisual(delay, () =>
         {
             healthtext.text = value.ToString();
             if (delta > 0)
                 PlayHealthStatChange(delta);
             else if (delta < 0)
-                PlayDamageIndicator(-delta);
+                PlayDamageIndicator(-delta, source);
         });
     }
 
@@ -312,8 +336,16 @@ public class MinionView : MonoBehaviour
 
     // Fast pop-in of the damage number, held briefly, then faded out (via CanvasGroup, with the
     // world-space background synced to the same alpha) and hidden.
-    public void PlayDamageIndicator(int damage)
+    public void PlayDamageIndicator(int damage, DamageSource source = DamageSource.Effect)
     {
+        if (!_ownerResolved)
+        {
+            _owner = GetComponent<MinionController>();
+            _ownerResolved = true;
+        }
+
+        DamageShown?.Invoke(_owner, damage, source);
+
         damageIndicator.DOKill();
         damageIndicatorGroup.DOKill();
 

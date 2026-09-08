@@ -23,7 +23,7 @@ using UnityEngine;
 /// (re-fan on peek end) take over cleanly, and leaving draw/turn-into DOTween animations (which drive Y
 /// on non-peeking cards) completely alone.
 ///
-/// Gated on SaveManager.Instance.HoverTiltEnabled, the persisted player preference (same pattern as
+/// Gated on GameSettings.HoverTiltEnabled, the persisted player preference (same pattern as
 /// ActionLogPanel/ShowActionLog) — on by default, off if the player disables it.
 /// </summary>
 [RequireComponent(typeof(CardController))]
@@ -56,7 +56,7 @@ public class CardHoverTilt : MonoBehaviour
 
     private void LateUpdate()
     {
-        bool active = _controller.isPeeking && SaveManager.Instance != null && SaveManager.Instance.HoverTiltEnabled;
+        bool active = _controller.isPeeking && GameSettings.HoverTiltEnabled;
 
         if (!active)
         {

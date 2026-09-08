@@ -6,6 +6,23 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// How a hit arrived, so the feedback for it can differ. Carried from the caller of
+/// <see cref="MinionController.TakeDamage"/> to the moment the damage number appears, which is where
+/// the audio rides -- see MinionView.DamageShown.
+/// </summary>
+public enum DamageSource
+{
+    /// <summary>Anything that is not a minion's attack: spells, collisions, the empty-deck clock.</summary>
+    Effect = 0,
+
+    /// <summary>A range 1 attacker's strike (its slash animation), including a melee counter-attack.</summary>
+    Melee = 1,
+
+    /// <summary>A range 2+ attacker's shot (its arrow animation), including a ranged counter-attack.</summary>
+    Ranged = 2
+}
+
 public class MinionController : MonoBehaviour
 {
     public SelectableEntity selectable;
@@ -104,6 +121,21 @@ public class MinionController : MonoBehaviour
     public static event Action<MinionController> OnDied;
     public static event Action<MinionController, MinionController> OnCollided;
     public static event Action<MinionController, int> OnTookDamage;
+
+    /// <summary>
+    /// This minion's strike landing on <c>target</c>, raised once per attack after the damage is dealt
+    /// and alongside the attacker's own swing/shot animation, so a listener lands with the visual.
+    /// Purely additive (audio); the counter-attack is the defender's own strike and is NOT reported here,
+    /// since it plays its animation through the defender rather than going back through Attack().
+    /// </summary>
+    public static event Action<MinionController, MinionController> OnAttacked;
+
+    /// <summary>
+    /// This minion changing cell, raised as the move tween starts. One event for every kind of move,
+    /// because they all funnel through <see cref="Move"/>: walking under its own steam, and being shoved
+    /// aside by a summon or a push card. Purely additive (audio).
+    /// </summary>
+    public static event Action<MinionController> OnMoved;
 
 
     private void OnEnable()
@@ -783,7 +815,7 @@ public class MinionController : MonoBehaviour
         int counterAttack = chosen.modal.attack;
         // Lunge plays 20% faster (duration / 1.2).
         transform.DOPunchPosition(dir*0.2f, 0.5f / 1.2f, vibrato: 1).SetEase(Ease.InOutBack).SetDelay(0.5f);
-        chosen.TakeDamage(modal.attack);
+        chosen.TakeDamage(modal.attack, modal.range >= 2 ? DamageSource.Ranged : DamageSource.Melee);
         chosen.transform.DOPunchPosition(dir * 0.03f, 0.15f, vibrato: 5).SetDelay(0.75f);
 
         // A struck hero may carry a passive that cancels its counter-attack (e.g. the defensive summoner).
@@ -794,7 +826,8 @@ public class MinionController : MonoBehaviour
 
         if (RangeUtility.IsInRange(chosen, this) && !suppressCounter) // target retaliates if attacker is in ITS range
         {
-            TakeDamage(counterAttack);
+            // The counter is the DEFENDER's strike, so its reach decides the sound, not this minion's.
+            TakeDamage(counterAttack, chosen.modal.range >= 2 ? DamageSource.Ranged : DamageSource.Melee);
             // Counter-attack is delayed an extra 0.25s so it reads as a response to the strike
             // rather than overlapping it.
             if (chosen.modal.range < 2)
@@ -821,6 +854,8 @@ public class MinionController : MonoBehaviour
         {
             StartCoroutine(animationController.PlayArrowAnimation(dir, chosen.transform.position, 0.65f, chosen.animationController.PlayArrowHitAnimation));
         }
+
+        OnAttacked?.Invoke(this, chosen);
         LastTarget = chosen;
         attacksMadeThisTurn++;
         canAttack = false;
@@ -833,7 +868,12 @@ public class MinionController : MonoBehaviour
 
         yield break;
     }
-    public bool TakeDamage(int damage)
+    /// <param name="source">
+    /// What kind of hit this is. Defaults to <see cref="DamageSource.Effect"/> so the many spell and
+    /// effect call sites need no change -- only an attack knows it is one, and only the two call sites
+    /// inside <see cref="Attack"/> say so.
+    /// </param>
+    public bool TakeDamage(int damage, DamageSource source = DamageSource.Effect)
     {
         int effectiveDamage = Mathf.Max(damage - modal.armor, 0);
         modal.health -= effectiveDamage;
@@ -844,6 +884,11 @@ public class MinionController : MonoBehaviour
         // calls to tell damage from a buff, so deferring the call itself would let a heal landing in the
         // gap be misread as a loss (and would merge two quick hits into one number). The visual lag that
         // syncs the number with the strike lives in MinionView.damageIndicatorVisualDelay instead.
+        //
+        // The source is latched immediately before the push and consumed by the loss it describes, both
+        // inside this one synchronous call -- so no other UpdateView can slip between and pick up the
+        // wrong kind of hit.
+        view.nextDamageSource = source;
         view.UpdateView(modal);
         Debug.Log("minion take damage: " + modal.name);
 
@@ -1009,6 +1054,8 @@ public class MinionController : MonoBehaviour
         });
         plannedMoveDir = Vector3Int.zero;
         isMovementValidated = false;
+
+        OnMoved?.Invoke(this);
 
         GridManager.Instance.InvokeGridChanged();
     }

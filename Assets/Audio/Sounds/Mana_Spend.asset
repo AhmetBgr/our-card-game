@@ -12,11 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: Mana_Spend
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: 5f19d39ed6a7e614cbe8051dadb7ed0d, type: 3}
-  - {fileID: 8300000, guid: 10519c9ab6a03db4a8b9134e3bc47999, type: 3}
-  - {fileID: 8300000, guid: 4745859fd73a54d4b93bc059793b6d1f, type: 3}
-  - {fileID: 8300000, guid: 1429fb8f35149704a84eb82b8b28d506, type: 3}
+  clips: []
   bus: 1
   playOrder: 1
   volume: 0.4

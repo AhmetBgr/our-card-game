@@ -8,7 +8,16 @@ public enum AudioBus
 {
     Sfx,
     Ui,
-    Music
+    Music,
+
+    /// <summary>
+    /// Room tone and other beds: sounds that are always there rather than reactions to anything. Its own
+    /// bus because it is the first thing a player turns down, and nothing else should go down with it.
+    ///
+    /// Added at the END -- the values are serialized by number in every SoundEffect asset, so inserting
+    /// it anywhere else would silently re-bus every authored sound.
+    /// </summary>
+    Ambient
 }
 
 /// <summary>How a multi-clip sound picks its next clip.</summary>
@@ -63,6 +72,17 @@ public class SoundEffect : ScriptableObject
     public Vector2 pitchRandom = new Vector2(0.95f, 1.05f);
 
     public bool loop;
+
+    [Tooltip("Seconds to wait before this sound is heard, added on top of any delay the call site asks for. For a sound that has to land with a beat in an animation rather than on the frame the code fired.")]
+    [Min(0f)]
+    public float delay;
+
+    [Tooltip("Fade this out when something stops it, instead of cutting. A sustained sound chopped mid-cycle is an audible click; a short one-shot is usually better cut. Has no effect on a sound left to finish on its own.")]
+    public bool fadeOut;
+
+    [Tooltip("Seconds the fade takes. Long enough to hide the cut, short enough that a stop still feels immediate.")]
+    [Min(0.01f)]
+    public float fadeOutDuration = 0.08f;
 
     [Range(0f, 1f)]
     [Tooltip("0 = flat 2D (everything the UI does). 1 = positioned in the world, so board sounds pan with the cell they came from.")]
@@ -119,8 +139,32 @@ public class SoundEffect : ScriptableObject
     public AudioSource PlayAt(Vector3 worldPosition, float delay = 0f) =>
         AudioManager.Instance.PlayAt(this, worldPosition, delay);
 
-    /// <summary>Stops every copy of this sound that is currently playing.</summary>
-    public void Stop(float fadeOut = 0f) => AudioManager.Instance.StopSound(this, fadeOut);
+    /// <summary>
+    /// Stops every copy of this sound that is currently playing, fading it out if the asset says to.
+    /// Pass a duration to override that, or 0 to force a hard cut.
+    /// </summary>
+    public void Stop(float fadeOverride = UseAssetFade) => AudioManager.Instance.StopSound(this, fadeOverride);
+
+    /// <summary>
+    /// Passed as a fade duration to mean "whatever the asset is set to". A real duration (0 included)
+    /// overrides it, so a caller that genuinely needs a hard cut can still ask for one.
+    /// </summary>
+    public const float UseAssetFade = -1f;
+
+    /// <summary>
+    /// The seconds to wait before this sound starts: the asset's own <see cref="delay"/> plus whatever the
+    /// call site asked for. Added rather than overridden, so a call site that needs to line a sound up with
+    /// its own animation still keeps the offset the asset was authored with.
+    /// </summary>
+    public float ResolveDelay(float requested = 0f) => Mathf.Max(0f, delay) + Mathf.Max(0f, requested);
+
+    /// <summary>Turns a requested fade duration into the seconds to actually fade for.</summary>
+    public float ResolveFadeOut(float requested = UseAssetFade)
+    {
+        if (requested >= 0f) return requested;
+
+        return fadeOut ? Mathf.Max(0.01f, fadeOutDuration) : 0f;
+    }
 
     // ---------------------------------------------------------------------------------------------
     // Throttling -- asked by AudioManager before it spends a voice.
@@ -240,7 +284,12 @@ public class SoundEffect : ScriptableObject
     /// </summary>
     /// <param name="volumeScale">Bus and stack scaling the manager has already worked out.</param>
     /// <param name="playReverse">Plays the clip backwards (negative pitch, cursor started at the end).</param>
-    public void ApplyTo(AudioSource source, float volumeScale = 1f, bool playReverse = false)
+    /// <param name="startDelay">
+    /// Seconds to hold the voice before it sounds. The manager leaves this at 0 and does its own waiting so
+    /// it can keep the voice reserved; the editor preview passes the resolved delay so a designer hears the
+    /// sound with the timing it was authored with.
+    /// </param>
+    public void ApplyTo(AudioSource source, float volumeScale = 1f, bool playReverse = false, float startDelay = 0f)
     {
         if (source == null) return;
 
@@ -260,7 +309,8 @@ public class SoundEffect : ScriptableObject
         // clip.length is out of range.
         source.time = source.pitch < 0f ? Mathf.Max(0f, clip.length - 0.01f) : 0f;
 
-        source.Play();
+        if (startDelay > 0f) source.PlayDelayed(startDelay);
+        else source.Play();
     }
 
 #if UNITY_EDITOR
@@ -289,7 +339,7 @@ public class SoundEffect : ScriptableObject
         }
     }
 
-    public void PlayPreview(bool playReverse = false) => ApplyTo(Previewer, 1f, playReverse);
+    public void PlayPreview(bool playReverse = false) => ApplyTo(Previewer, 1f, playReverse, ResolveDelay());
 
     public void StopPreview()
     {
