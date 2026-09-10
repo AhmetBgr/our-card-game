@@ -93,7 +93,8 @@ opened from, so a row added to it appears in both at once and there is no second
 - **Pause menu** (`Assets/Prefabs/UI/EscMenu.prefab`) — the Settings button latches like How To Play and
   shares the left column with the rules, so only one of the two is ever up. Escape backs out of the
   settings before it closes the menu.
-- **Title screen** (`Assets/Scenes/MainMenu.unity`) — a corner button opens it centred on the canvas.
+- **Title screen** (`Assets/Scenes/MainMenu.unity`) — the Settings button in the menu column, under
+  Play, opens it centred on the canvas.
 
 Each host overrides exactly two things on its instance, and nothing else:
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -75,10 +76,12 @@ public class SettingsPanelController : MonoBehaviour
              "backdrop or the dialog's shade -- those cover the screen whatever size the panel is.")]
     [SerializeField] private RectTransform[] scaledParts = new RectTransform[0];
 
-    [Tooltip("Pixels per unit the panel's art is read at -- 32, the sheet's own import setting. Written " +
-             "to the panel's own Canvas so a host canvas set up for a different value cannot change how " +
-             "thick the sliced frames and switches draw. Zero leaves the host's value alone.")]
-    [SerializeField] private float referencePixelsPerUnit = 32f;
+    [Tooltip("Pixels per unit the panel's sliced art was authored for -- 32, the sprite sheet's own import " +
+             "setting. Under a host canvas that uses a different value, each sliced image's multiplier is " +
+             "scaled by the difference, so frames and switches draw at the same thickness anywhere. " +
+             "Zero turns the compensation off.")]
+    [FormerlySerializedAs("referencePixelsPerUnit")]
+    [SerializeField] private float authoredPixelsPerUnit = 32f;
 
     [Header("Interface")]
     [Tooltip("Whether the in-match action log is expanded. The same setting the log's own Log button flips.")]
@@ -129,6 +132,11 @@ public class SettingsPanelController : MonoBehaviour
     // for the player picking something.
     private bool _seedingResolution;
 
+    // The panel's sliced and tiled images, and the multiplier each was authored with. Captured on the
+    // first open and worked from on every open after, so the compensation never compounds.
+    private Image[] _slicedImages;
+    private float[] _authoredMultipliers;
+
     private void Awake()
     {
         actionLogRow.Bind(OnActionLogChanged);
@@ -139,9 +147,6 @@ public class SettingsPanelController : MonoBehaviour
         if (saveButton != null) saveButton.onClick.AddListener(Save);
         if (resetButton != null) resetButton.onClick.AddListener(ResetToDefaults);
         if (closeButton != null) closeButton.onClick.AddListener(Close);
-
-        // Before anything draws, so the panel's first frame is already read at its own scale.
-        ApplyReferencePixelsPerUnit();
 
         if (displaySection != null) displaySection.SetActive(GameSettings.SupportsResolution);
 
@@ -193,7 +198,7 @@ public class SettingsPanelController : MonoBehaviour
 
         Body.SetActive(true);
 
-        ApplyReferencePixelsPerUnit();
+        CompensateForHostPixelsPerUnit();
         ApplyHostScale();
 
         // Refreshed on open rather than only on enable: when the panel IS this object's child, this
@@ -292,31 +297,6 @@ public class SettingsPanelController : MonoBehaviour
     /// Done here rather than by nudging one of the two instances: an override on an instance is a
     /// number nobody can explain a year later, and a third host would arrive wrong all over again.
     /// </summary>
-    /// <summary>
-    /// Pins how the panel's art is read, on its own canvas.
-    ///
-    /// A SLICED sprite's border comes out at
-    /// <c>borderPixels * canvasReferencePixelsPerUnit / (spritePixelsPerUnit * multiplier)</c>, so the
-    /// canvas the panel happens to sit under decides how thick its frames draw. The two hosts disagree
-    /// -- the match's canvas says 32, the title screen's 100 -- which drew every frame edge three times
-    /// too thick on the title screen and pushed the switch sprites past the point where their borders
-    /// fit inside the button at all, leaving them as hollow rings.
-    ///
-    /// Set here rather than on the prefab because Canvas does not serialise this: it is written by the
-    /// CanvasScaler at runtime, and a nested canvas that nobody writes to just reports its root's value.
-    /// </summary>
-    private void ApplyReferencePixelsPerUnit()
-    {
-        if (referencePixelsPerUnit <= 0f) return;
-
-        var own = GetComponent<Canvas>();
-        if (own == null) return;
-
-        if (Mathf.Approximately(own.referencePixelsPerUnit, referencePixelsPerUnit)) return;
-
-        own.referencePixelsPerUnit = referencePixelsPerUnit;
-    }
-
     private void ApplyHostScale()
     {
         if (designCanvasHeight <= 0f || scaledParts == null || scaledParts.Length == 0) return;
@@ -339,6 +319,64 @@ public class SettingsPanelController : MonoBehaviour
         {
             if (part != null) part.localScale = new Vector3(scale, scale, 1f);
         }
+    }
+
+    /// <summary>
+    /// Keeps the panel's sliced frames and switches drawing at the thickness they were authored at,
+    /// whatever pixels-per-unit the host canvas uses.
+    ///
+    /// A sliced sprite's border comes out at
+    /// <c>borderPixels * canvasReferencePixelsPerUnit / (spritePixelsPerUnit * multiplier)</c>, so the
+    /// canvas decides how thick every frame draws. The match's canvas says 32 and the title screen's
+    /// 100, which drew every edge three times too thick on the title screen and squeezed the switch
+    /// sprites into hollow rings. Scaling each image's own multiplier by that same ratio cancels it out
+    /// exactly, and touches nothing outside this panel.
+    ///
+    /// It deliberately does NOT write <see cref="Canvas.referencePixelsPerUnit"/>. That looks like a
+    /// per-canvas setting and is not: a nested canvas hands the write straight to its ROOT canvas, which
+    /// re-reads every image on it -- and the root's CanvasScaler only pushes its own value when that
+    /// value changes, so nothing ever puts it back. An earlier version did exactly that, and opening
+    /// this panel thinned the borders of every other panel on the title screen for the rest of the
+    /// session.
+    ///
+    /// The dropdown's list is cloned from its template each time it opens; the template is compensated
+    /// here, so every clone inherits the right value.
+    /// </summary>
+    private void CompensateForHostPixelsPerUnit()
+    {
+        if (authoredPixelsPerUnit <= 0f) return;
+
+        Canvas canvas = GetComponentInParent<Canvas>(true);
+        if (canvas == null) return;
+
+        float hostPixelsPerUnit = canvas.rootCanvas.referencePixelsPerUnit;
+        if (hostPixelsPerUnit <= 0f) return;
+
+        if (_slicedImages == null) CaptureAuthoredMultipliers();
+
+        float ratio = hostPixelsPerUnit / authoredPixelsPerUnit;
+
+        for (int i = 0; i < _slicedImages.Length; i++)
+        {
+            Image image = _slicedImages[i];
+            if (image != null) image.pixelsPerUnitMultiplier = _authoredMultipliers[i] * ratio;
+        }
+    }
+
+    /// <summary>Records every sliced or tiled image under the panel, and the multiplier it was authored with.</summary>
+    private void CaptureAuthoredMultipliers()
+    {
+        var images = new List<Image>();
+        foreach (Image image in GetComponentsInChildren<Image>(true))
+        {
+            if (image.type == Image.Type.Sliced || image.type == Image.Type.Tiled) images.Add(image);
+        }
+
+        _slicedImages = images.ToArray();
+        _authoredMultipliers = new float[_slicedImages.Length];
+
+        for (int i = 0; i < _slicedImages.Length; i++)
+            _authoredMultipliers[i] = _slicedImages[i].pixelsPerUnitMultiplier;
     }
 
     private void OnActionLogChanged(bool value) => GameSettings.ShowActionLog = value;

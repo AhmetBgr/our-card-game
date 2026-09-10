@@ -60,21 +60,6 @@ public static class SettingsPanelBuilder
     /// <summary>Name of the object the tool owns in each host. Anything else called this is replaced.</summary>
     private const string PanelName = "SettingsPanel";
 
-    /// <summary>
-    /// Pixels per unit the panel's art is read at, matching the 32 the sprite sheet is imported with.
-    ///
-    /// This is the number that decides how thick a SLICED sprite's borders come out: a border is
-    /// spriteBorderPixels * canvasReferencePixelsPerUnit / (spritePixelsPerUnit * multiplier). The two
-    /// canvases the panel is instanced under disagree about it -- the match's is 32, the title
-    /// screen's 100 -- which made every frame edge three times thicker on one of them, and pushed the
-    /// switch sprites past the point where their borders fit inside the button at all, so they drew as
-    /// hollow rings. Pinning it on the panel's own canvas settles the argument in the panel's favour.
-    ///
-    /// The tool only puts the Canvas there; the value is written at runtime by
-    /// <see cref="SettingsPanelController"/>, because Canvas does not serialise it.
-    /// </summary>
-    private const float PanelReferencePixelsPerUnit = 32f;
-
     private const string SettingsButtonName = "SettingsButton";
 
     /// <summary>The Display heading and its rows, as one object so the web build can hide them together.</summary>
@@ -217,9 +202,10 @@ public static class SettingsPanelBuilder
             SerializedProperty scaled = serialized.FindProperty("scaledParts");
             if (scaled.arraySize == 0 && WireScaledParts(root.transform, scaled)) changed = true;
 
-            // A panel built before it carried its own canvas gets one, so its sprites stop being read
-            // at whatever pixels-per-unit the host happens to use.
-            if (EnsurePanelCanvas(root)) changed = true;
+            // An earlier version put a Canvas of its own on the panel to pin its pixels-per-unit. That
+            // cannot be pinned per canvas -- the write lands on the host's root canvas -- so it comes
+            // back off. See RemovePanelCanvas.
+            if (RemovePanelCanvas(root)) changed = true;
 
             Transform display = window.Find(DisplaySectionName);
             if (display != null && display.Find(FullscreenRowName) == null)
@@ -516,48 +502,42 @@ public static class SettingsPanelBuilder
     }
 
     /// <summary>
-    /// Names the parts that scale with the host canvas: the framed window, and the confirm dialog's
-    /// box. Deliberately NOT the backdrop or the dialog's shade -- those have to cover the screen at
-    /// any size. Returns whether anything was written.
-    /// </summary>
-    /// <summary>
-    /// Gives the panel a canvas of its own, so its sprites are read at the size they were drawn at
-    /// whatever the host canvas says. See <see cref="PanelReferencePixelsPerUnit"/>.
+    /// Strips the Canvas and GraphicRaycaster an earlier version of this tool put on the panel root.
     ///
-    /// The raycaster comes with it: graphics register for input with their nearest canvas, so a nested
-    /// canvas without one is a panel nothing can be clicked on. Sorting is deliberately NOT overridden
-    /// -- the panel keeps drawing where its place in the hierarchy puts it.
+    /// That canvas was there to pin the panel's pixels-per-unit, and it could not do that job: a nested
+    /// canvas hands the write to its ROOT canvas, so opening the panel re-scaled every other sliced image
+    /// on the host -- and the root's CanvasScaler never set it back. The panel now compensates each of
+    /// its own images' multipliers instead (see SettingsPanelController), which needs no canvas of its
+    /// own, and a nested canvas nobody needs is one more batch and one more raycaster to reason about.
     ///
-    /// Returns whether anything changed.
+    /// The raycaster goes first: it requires the canvas. Returns whether anything was removed.
     /// </summary>
-    private static bool EnsurePanelCanvas(GameObject panelRoot)
+    private static bool RemovePanelCanvas(GameObject panelRoot)
     {
         bool changed = false;
 
+        var raycaster = panelRoot.GetComponent<GraphicRaycaster>();
+        if (raycaster != null)
+        {
+            Object.DestroyImmediate(raycaster);
+            changed = true;
+        }
+
         var canvas = panelRoot.GetComponent<Canvas>();
-        if (canvas == null)
+        if (canvas != null)
         {
-            canvas = panelRoot.AddComponent<Canvas>();
-            changed = true;
-        }
-
-        // The pixels-per-unit itself is NOT set here: Canvas does not serialise it, so a value written
-        // into the prefab would not survive the save. SettingsPanelController writes it on Awake.
-        if (canvas.overrideSorting)
-        {
-            canvas.overrideSorting = false;
-            changed = true;
-        }
-
-        if (panelRoot.GetComponent<GraphicRaycaster>() == null)
-        {
-            panelRoot.AddComponent<GraphicRaycaster>();
+            Object.DestroyImmediate(canvas);
             changed = true;
         }
 
         return changed;
     }
 
+    /// <summary>
+    /// Names the parts that scale with the host canvas: the framed window, and the confirm dialog's
+    /// box. Deliberately NOT the backdrop or the dialog's shade -- those have to cover the screen at
+    /// any size. Returns whether anything was written.
+    /// </summary>
     private static bool WireScaledParts(Transform panelRoot, SerializedProperty scaledParts)
     {
         var parts = new List<RectTransform>();
@@ -942,17 +922,20 @@ public static class SettingsPanelBuilder
     }
 
     /// <summary>
-    /// The title screen's way in: a button of its own in the corner rather than a fifth entry in the
-    /// column, because the frame around that column has no room left in it. Cloned from the Credits
-    /// button so it is the same button in a smaller size.
+    /// The title screen's way in: a Settings button in the menu column, directly under Play. Cloned from
+    /// the Credits button so it is the same button, in the same size, one slot up.
+    ///
+    /// It used to be a smaller button in the bottom-right corner, from when the column held Quick Play
+    /// and Custom Game and had no slot to spare; those two moved into the Play popup and freed one.
     /// </summary>
     private static Button EnsureMainMenuButton(Transform canvas, out bool created)
     {
         created = false;
 
         // Kept as found, for the same reason the pause menu's is: it may well have been moved or
-        // relabelled since, and none of that is the tool's to undo.
-        Transform existing = canvas.Find(SettingsButtonName);
+        // relabelled since, and none of that is the tool's to undo. Searched the whole canvas, not just
+        // its direct children: the button has lived in two places already.
+        Transform existing = FindDescendant(canvas, SettingsButtonName);
         if (existing != null) return existing.GetComponent<Button>();
 
         Transform model = canvas.Find("Image/Buttons/CreditsButton (1)");
@@ -962,12 +945,12 @@ public static class SettingsPanelBuilder
             return null;
         }
 
-        var clone = Object.Instantiate(model.gameObject, canvas);
+        var clone = Object.Instantiate(model.gameObject, model.parent);
         created = true;
         clone.name = SettingsButtonName;
 
-        // Anything the model carried that only made sense in the column: its tooltip, and the second,
-        // inactive caption the menu buttons keep for their "playing with" line.
+        // Anything the model carried that only made sense for its own entry: its tooltip, and the
+        // second, inactive caption the menu buttons keep for their "playing with" line.
         var tooltip = clone.GetComponent<UITooltipTrigger>();
         if (tooltip != null) Object.DestroyImmediate(tooltip);
 
@@ -978,23 +961,33 @@ public static class SettingsPanelBuilder
             else labels[i].gameObject.SetActive(false);
         }
 
+        // The slot under Play: one column step below it, where Custom Game used to be. The column is
+        // laid out by hand at a fixed step rather than by a layout group, so the step is read off the
+        // two buttons that are there.
         var rect = (RectTransform)clone.transform;
-        rect.localScale = model.localScale * 0.62f;
+        var play = model.parent.Find("PlayButton") as RectTransform;
+        var credits = (RectTransform)model;
+        float step = play != null ? (play.anchoredPosition.y - credits.anchoredPosition.y) * 0.5f : 105f;
+        float y = play != null ? play.anchoredPosition.y - step : credits.anchoredPosition.y + step;
 
-        // The game is locked to a square view (see AspectRatioLetterbox), so the canvas rect IS what the
-        // player sees and a corner of it is a corner of the screen.
-        var canvasRect = (RectTransform)canvas;
-        float halfWidth = canvasRect.rect.width * 0.5f;
-        float halfHeight = canvasRect.rect.height * 0.5f;
-        float buttonWidth = rect.rect.width * rect.localScale.x;
-        float buttonHeight = rect.rect.height * rect.localScale.y;
-
-        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = new Vector2(
-            halfWidth - buttonWidth * 0.5f - 28f,
-            -halfHeight + buttonHeight * 0.5f + 28f);
+        rect.anchoredPosition = new Vector2(credits.anchoredPosition.x, y);
+        rect.SetSiblingIndex(play != null ? play.GetSiblingIndex() + 1 : credits.GetSiblingIndex());
 
         return clone.GetComponent<Button>();
+    }
+
+    /// <summary>Depth-first search for a descendant by name, active or not. Null when there is none.</summary>
+    private static Transform FindDescendant(Transform root, string name)
+    {
+        foreach (Transform child in root)
+        {
+            if (child.name == name) return child;
+
+            Transform found = FindDescendant(child, name);
+            if (found != null) return found;
+        }
+
+        return null;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1010,7 +1003,6 @@ public static class SettingsPanelBuilder
     {
         GameObject rootGo = NewUI(PanelName, parent);
         Stretch((RectTransform)rootGo.transform);
-        EnsurePanelCanvas(rootGo);
         var controller = rootGo.AddComponent<SettingsPanelController>();
 
         // Authored ON, and switched off on the instance that does not want it: a backdrop is the norm for
