@@ -12,16 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: UI_Click
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: 9285c0fb712db384fbde400f740a24f8, type: 3}
   bus: 1
   playOrder: 1
   volume: 0.55
   useRandomVolume: 0
   volumeRandom: {x: 0.9, y: 1}
   pitch: 1
-  useRandomPitch: 1
+  useRandomPitch: 0
   pitchRandom: {x: 0.97, y: 1.03}
   loop: 0
+  delay: 0
+  fadeOut: 0
+  fadeOutDuration: 0.08
   spatialBlend: 0
   priority: 110
   minRetriggerInterval: 0.04

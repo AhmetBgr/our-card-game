@@ -126,7 +126,7 @@ public class AudioLibrary : ScriptableObject
     public List<Entry> entries = new List<Entry>();
 
     [Header("Automatic UI sounds")]
-    [Tooltip("Give every Button, Toggle and Slider in a loaded scene hover/click sounds automatically, without a component on each one. See UISoundBinder.")]
+    [Tooltip("Give every Button, Toggle and Slider -- scene UI and UI spawned at runtime alike -- hover/click sounds automatically, without a component on each one. See UISoundBinder.")]
     public bool autoBindUISounds = true;
 
     [Tooltip("Object names containing any of these (case-insensitive) are skipped by the automatic UI binding -- for controls that own their own sound, or should stay silent.")]

@@ -12,10 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
   m_Name: Minion_Death
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
-  clips:
-  - {fileID: 8300000, guid: 9219ea130e7ba4742a8bba22ddf82bf2, type: 3}
-  - {fileID: 8300000, guid: e0d7b86e21c76284ca34c205e3698800, type: 3}
-  - {fileID: 8300000, guid: 94dea556ee7ad2546a373351e746e636, type: 3}
+  clips: []
   bus: 0
   playOrder: 1
   volume: 0.5

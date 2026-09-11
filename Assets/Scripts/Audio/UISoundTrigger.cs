@@ -6,13 +6,15 @@ using UnityEngine.UI;
 /// Hover and click sounds for one interactive UI element.
 ///
 /// Usually not placed by hand -- <see cref="UISoundBinder"/> adds one to every Button, Toggle and Slider
-/// as a scene loads. Add it in the inspector only to override which sounds an element makes.
+/// as it appears. Add it in the inspector only to override which sounds an element makes.
 ///
-/// Clicks are caught through IPointerClickHandler rather than Button.onClick so the same component covers
-/// Toggles, Sliders and plain images, and so a click on a disabled-but-present control still reports.
+/// The click sound plays on the PRESS, not on the click. Several controls act on pointer-down
+/// (CardButtonHandler, HeroButtonHandler) and rebuild or destroy the list they sit in, so the release
+/// never lands on them; and a Button whose onClick closes its own panel or disables itself runs before
+/// this component, which read back as a blocked click. At press time nothing has reacted yet.
 /// </summary>
 [DisallowMultipleComponent]
-public class UISoundTrigger : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler
+public class UISoundTrigger : MonoBehaviour, IPointerEnterHandler, IPointerDownHandler
 {
     [Tooltip("Played when the pointer enters. None = silent on hover.")]
     public GameSound hoverSound = GameSound.UIHover;
@@ -55,8 +57,11 @@ public class UISoundTrigger : MonoBehaviour, IPointerEnterHandler, IPointerClick
         Play(hoverSound);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void OnPointerDown(PointerEventData eventData)
     {
+        // Buttons only fire on the left button; a right-click that does nothing should not sound like it did.
+        if (eventData != null && eventData.button != PointerEventData.InputButton.Left) return;
+
         if (IsInteractable) Play(clickSound);
         else if (soundOnBlockedClick) Play(GameSound.UIError);
     }

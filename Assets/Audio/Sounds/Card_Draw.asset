@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: Card_Draw
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
   clips:
-  - {fileID: 8300000, guid: 5ab55d5e1158b624c8c572e19e5134b6, type: 3}
+  - {fileID: 8300000, guid: b1853968286160f468f31d3c09c6cf25, type: 3}
   bus: 0
   playOrder: 1
-  volume: 0.544
+  volume: 0.75
   useRandomVolume: 0
   volumeRandom: {x: 0.9, y: 1}
   pitch: 1
   useRandomPitch: 1
-  pitchRandom: {x: 0.614, y: 0.659}
+  pitchRandom: {x: 1.143, y: 1.291}
   loop: 0
   delay: 0
   fadeOut: 0
