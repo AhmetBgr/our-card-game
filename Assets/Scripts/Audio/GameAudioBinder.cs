@@ -36,12 +36,16 @@ public static class GameAudioBinder
         SwitchController.HoldEnded += OnEndTurnHoldEnded;
         SwitchController.SwitchAnimStarted += OnSwitchAnimStarted;
         GameManager.OnCardPlayed += OnCardPlayed;
+        GameManager.OnCardEffectsStarting += OnCardEffectsStarting;
+        GameManager.OnCardTargetingStarted += OnCardTargetingStarted;
         GameManager.OnCardPlayCancelled += OnCardPlayCancelled;
         GameManager.OnMinionSummoned += OnMinionSummoned;
 
         // Board
         MinionController.OnDied += OnMinionDied;
         MinionView.DamageShown += OnDamageShown;
+        MinionView.BuffShown += OnBuffShown;
+        MinionView.DebuffShown += OnDebuffShown;
         MinionController.OnCollided += OnMinionCollided;
         MinionController.OnAttacked += OnMinionAttacked;
         MinionController.OnSelectingMinionForAttack += OnSelectingAttackTarget;
@@ -53,6 +57,7 @@ public static class GameAudioBinder
         DraggableItem.DragEnded += OnDragEnded;
         DraggableItem.DragCancelled += OnDragCancelled;
         Agent.CardDrawn += OnCardDrawn;
+        Agent.CardForged += OnCardForged;
 
         // Player resources
         Player.OnPlayerManaChanged += OnManaChanged;
@@ -125,7 +130,54 @@ public static class GameAudioBinder
         manager.StopSound(manager.Library.Get(id));
     }
 
-    private static void OnCardPlayed(Agent agent, CardSO card) => Play(GameSound.CardPlay);
+    private static void OnCardPlayed(Agent agent, CardSO card)
+    {
+        // Belt and braces: a play that somehow commits without ever announcing its effects (nothing in
+        // the queue left to run after the targeting) must not leave a held sound ringing.
+        StopLooping(GameSound.SpellPending);
+
+        Play(GameSound.CardPlay);
+    }
+
+    /// <summary>
+    /// A SPELL going off, and the only place <see cref="GameSound.SpellPlay"/> is ever made. Minion
+    /// cards are deliberately left out -- their second sound is the summon landing on the board (see
+    /// <see cref="OnMinionSummoned"/>), and stacking a third would just thicken the moment.
+    ///
+    /// Rides OnCardEffectsStarting, so it lands on the spell going off: after the player has answered
+    /// whatever the card asked them to point at, and before the first thing the card does. Neither end
+    /// of the play works -- OnCardPlayed fires only once the whole action queue has drained, which put
+    /// the opponent's spell one to two seconds late (0.35s per action), and the start of the play is
+    /// ahead of the player's own targeting.
+    ///
+    /// Spell-ness is health, the same test GameManager.PlayCard and the AI brains use: a card with no
+    /// health never becomes a minion. Read off the CardSO rather than a runtime modal because that is
+    /// what the event carries, and in-hand buffs never turn a spell into a minion.
+    /// </summary>
+    private static void OnCardEffectsStarting(Agent agent, CardSO card)
+    {
+        // Ends the wait started below, whether or not there was one to end.
+        StopLooping(GameSound.SpellPending);
+
+        if (card != null && card.health <= 0) Play(GameSound.SpellPlay);
+    }
+
+    /// <summary>
+    /// A spell in the play area with its prompt up, waiting on the player. Held until the pick is made
+    /// (<see cref="OnCardEffectsStarting"/>, which stops it and plays the cast) or the play is backed
+    /// out of (<see cref="OnCardPlayCancelled"/>) -- so <see cref="GameSound.SpellPending"/> can be a
+    /// sustained clip and the two stops are the only way it ever ends.
+    ///
+    /// The player only: nobody is waiting on the opponent. The AI answers its own prompts in the same
+    /// frame they go up (see ActionHolder.AwaitCellSelection), so this would be a sound started and
+    /// cut inside one frame -- a click, not a wait.
+    /// </summary>
+    private static void OnCardTargetingStarted(Agent agent, CardSO card)
+    {
+        if (!(agent is Player)) return;
+
+        if (card != null && card.health <= 0) Play(GameSound.SpellPending);
+    }
 
     /// <summary>
     /// Backing out of a card that was already in the play area. The card goes back to the slot it came
@@ -134,6 +186,15 @@ public static class GameAudioBinder
     /// </summary>
     private static void OnCardPlayCancelled(Agent agent, CardSO card)
     {
+        // A play backed out of AFTER its effects started has already made its spell noise (a play
+        // cancelled during targeting never got that far). Cut it -- for EITHER agent, before the
+        // player-only return sound below, since the AI aborts plays too. Stopping a sound that is not
+        // playing (a short one already finished, a minion card that never started one) is a no-op.
+        StopLooping(GameSound.SpellPlay);
+
+        // The other exit from a pending spell: the prompt was up and the card went back to hand.
+        StopLooping(GameSound.SpellPending);
+
         // The AI's aborted plays come through here too, and nothing was ever shown moving for those.
         if (!(agent is Player)) return;
 
@@ -148,6 +209,15 @@ public static class GameAudioBinder
 
         Play(GameSound.CardDraw);
     }
+
+    /// <summary>
+    /// The upgraded copy popping into the play area. BOTH sides, unlike <see cref="OnCardDrawn"/> above:
+    /// the opponent's forged card is animated on screen exactly as the player's is, so this is one of the
+    /// few opponent-side sounds with something to look at behind it.
+    ///
+    /// Flat rather than positioned -- the card pops in the play area, not on the board.
+    /// </summary>
+    private static void OnCardForged(Agent agent, CardSO card) => Play(GameSound.CardForged);
 
     private static void OnMinionSummoned(MinionController minion) => PlayAt(GameSound.MinionSummon, minion);
 
@@ -164,6 +234,19 @@ public static class GameAudioBinder
     /// </summary>
     private static void OnDamageShown(MinionController minion, int damage, DamageSource source) =>
         PlayAt(HitSoundFor(source), minion);
+
+    /// <summary>
+    /// Stats going up or down, heard as the "+n"/"-n" overlay lands -- the same rule as OnDamageShown,
+    /// and for the same reason. Heroes arrive here too (HeroController is a MinionController on the
+    /// same view), which is the point: a buff is a buff whoever it landed on.
+    ///
+    /// Played AT the unit, so a buff on the far side of the board pans there. Whether a card that
+    /// raises two stats at once, or a spell that buffs a whole row, makes one swell or several is the
+    /// asset's call (minRetriggerInterval), not this file's.
+    /// </summary>
+    private static void OnBuffShown(MinionController minion, int amount) => PlayAt(GameSound.MinionBuff, minion);
+
+    private static void OnDebuffShown(MinionController minion, int amount) => PlayAt(GameSound.MinionDebuff, minion);
 
     private static GameSound HitSoundFor(DamageSource source)
     {

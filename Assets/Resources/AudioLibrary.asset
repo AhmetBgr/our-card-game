@@ -45,6 +45,12 @@ MonoBehaviour:
     sound: {fileID: 11400000, guid: c816971168a331749ba157a3613e21f4, type: 2}
   - id: 9
     sound: {fileID: 11400000, guid: 4cb84421ebc5ee54e9f98ca1697b80d5, type: 2}
+  - id: 10
+    sound: {fileID: 11400000, guid: b38bca081dc347c98e9cf2a34dc72ad5, type: 2}
+  - id: 11
+    sound: {fileID: 11400000, guid: 3a7548d4f0a2410bb7bc87f73c253c23, type: 2}
+  - id: 12
+    sound: {fileID: 11400000, guid: 367ed230ed2e454d8e1039512c45adf4, type: 2}
   - id: 20
     sound: {fileID: 11400000, guid: 0d830d42e81a2e348840165eff0362e8, type: 2}
   - id: 21
@@ -83,5 +89,9 @@ MonoBehaviour:
     sound: {fileID: 11400000, guid: f41545579e3cecd4c8fe38518091b5cd, type: 2}
   - id: 30
     sound: {fileID: 11400000, guid: 46d3d8ef93061a041a8082bd6edb79fd, type: 2}
+  - id: 31
+    sound: {fileID: 11400000, guid: dabe70440c3c4527ad7c77669a428696, type: 2}
+  - id: 32
+    sound: {fileID: 11400000, guid: c8dd065ccfb74979a31ecbfdcabb452c, type: 2}
   autoBindUISounds: 1
   autoBindNameExclusions: []

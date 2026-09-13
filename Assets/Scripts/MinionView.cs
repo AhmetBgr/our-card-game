@@ -86,6 +86,19 @@ public class MinionView : MonoBehaviour
     public static event Action<MinionController, int, DamageSource> DamageShown;
 
     /// <summary>
+    /// A stat GAIN landing on screen -- the green overlay and its "+n", for attack or for health.
+    /// Raised with the visual rather than when the number changed, for the same reason DamageShown is:
+    /// the flash is deferred, and a sound cued to the mutation would arrive before anything is visible.
+    /// </summary>
+    public static event Action<MinionController, int> BuffShown;
+
+    /// <summary>
+    /// A stat LOSS landing on screen -- the red attack overlay and its "-n". Health losses are not this:
+    /// they show the damage indicator instead and are announced by <see cref="DamageShown"/>.
+    /// </summary>
+    public static event Action<MinionController, int> DebuffShown;
+
+    /// <summary>
     /// The kind of hit the next health loss belongs to. Set by MinionController.TakeDamage right before
     /// it pushes the new value, and consumed by that same push -- a loss arriving through any other
     /// UpdateView (a spell writing health directly) correctly reads Effect.
@@ -187,6 +200,8 @@ public class MinionView : MonoBehaviour
     // The label shows the signed delta ("+2" / "-1"), not the new total.
     private void PlayAttackStatChange(int delta)
     {
+        RaiseStatChange(delta);
+
         // Ranged heroes show the attack stat under the bow icon, which sits elsewhere on the card and
         // so needs its own overlay. Minion prefabs leave the bow trio null and always use the sword one.
         bool useBow = _isRanged && attackStatChangeBowGroup != null;
@@ -251,6 +266,8 @@ public class MinionView : MonoBehaviour
     // Heals only — there is no red variant, since losing health shows the damage indicator instead.
     private void PlayHealthStatChange(int delta)
     {
+        RaiseStatChange(delta);
+
         if (healthStatChangeGroup == null) return;
 
         healthStatChangeGroup.DOKill();
@@ -336,6 +353,23 @@ public class MinionView : MonoBehaviour
 
     // Fast pop-in of the damage number, held briefly, then faded out (via CanvasGroup, with the
     // world-space background synced to the same alpha) and hidden.
+    // Announces a stat change to whoever is listening (audio). Sits ahead of the per-stat null checks
+    // on purpose: whether a particular overlay is wired on this prefab is a question about the CARD's
+    // layout, not about whether the unit was buffed.
+    private void RaiseStatChange(int delta)
+    {
+        if (delta == 0) return;
+
+        if (!_ownerResolved)
+        {
+            _owner = GetComponent<MinionController>();
+            _ownerResolved = true;
+        }
+
+        if (delta > 0) BuffShown?.Invoke(_owner, delta);
+        else DebuffShown?.Invoke(_owner, -delta);
+    }
+
     public void PlayDamageIndicator(int damage, DamageSource source = DamageSource.Effect)
     {
         if (!_ownerResolved)

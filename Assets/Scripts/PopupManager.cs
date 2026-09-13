@@ -21,6 +21,11 @@ public class PopupManager : Singleton<PopupManager>
     [Header("Scenes")]
     [SerializeField] private string menuSceneName = "MainMenu";
 
+    [Header("Timing")]
+    [Tooltip("Seconds to wait before the end-game panel scales in, so the killing blow and the hero's " +
+             "death get to play out on a clear board first.")]
+    [SerializeField] private float gameOverDelay = 2f;
+
     private Transform curPopup = null;
 
     /// <summary>
@@ -52,7 +57,9 @@ public class PopupManager : Singleton<PopupManager>
 
     // Win and loss show the identical panel (background, stats, buttons); the only difference is
     // which title transform is enabled.
-    public void OpenGameOverPopup(bool won, float delay = 0f)
+    // Leave delay null to use the inspector's gameOverDelay; pass an explicit value to override it
+    // (the editor debug triggers pass 0 so the preview is instant).
+    public void OpenGameOverPopup(bool won, float? delay = null)
     {
         if (gameOverPopup == null) return;
 
@@ -61,7 +68,7 @@ public class PopupManager : Singleton<PopupManager>
 
         GameOver?.Invoke(won);
 
-        OpenPopup(gameOverPopup, won, delay);
+        OpenPopup(gameOverPopup, won, delay ?? gameOverDelay);
     }
 
     /// <summary>

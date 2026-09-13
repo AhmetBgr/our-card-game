@@ -19,6 +19,30 @@ public class ActionHolder : ScriptableObject
     public static Transform selectedcell = null;
     public static List<Transform> selectedCells = new List<Transform>();
     public static List<MinionController> selectedMinions = new List<MinionController>();
+
+    /// <summary>
+    /// Wrapper that marks a queued action as TARGETING: a step that puts a prompt on the board and
+    /// stops until somebody points at something. Behaves exactly like the coroutine it wraps -- it
+    /// exists only so a queue runner can tell a card's targeting apart from what the card then DOES,
+    /// without knowing any verb names.
+    ///
+    /// Only the steps that open a selection are wrapped. Effect steps that happen to spin until a
+    /// selection exists (SetCanMove, DestroyCard) are NOT targeting: they consume a pick that an
+    /// earlier step already asked for.
+    /// </summary>
+    public sealed class TargetingStep : IEnumerator
+    {
+        private readonly IEnumerator _inner;
+
+        public TargetingStep(IEnumerator inner) { _inner = inner; }
+
+        public object Current => _inner.Current;
+        public bool MoveNext() => _inner.MoveNext();
+        public void Reset() => _inner.Reset();
+    }
+
+    /// <summary>True if <paramref name="action"/> is a targeting step (see <see cref="TargetingStep"/>).</summary>
+    public static bool IsTargetingAction(IEnumerator action) => action is TargetingStep;
     public static List<MinionController> selectedTargetMinions = new List<MinionController>();
     public static List<CardController> selectedCards = new List<CardController>();
 
@@ -352,7 +376,7 @@ public class ActionHolder : ScriptableObject
 
     public void SelectCell(int rowIndex = 2)
     {
-        IEnumerator cor = _SelectCell(rowIndex);
+        IEnumerator cor = new TargetingStep(_SelectCell(rowIndex));
         //GameManager.Instance.Addtoactions(cor);
         curActionsList.Enqueue(cor);
         //Debug.LogWarning("selectcell added to actions");
@@ -431,7 +455,7 @@ public class ActionHolder : ScriptableObject
     {
         if (GameManager.Instance.isTesting) return;
 
-        curActionsList.Enqueue(_SelectCollumn());
+        curActionsList.Enqueue(new TargetingStep(_SelectCollumn()));
     }
     public IEnumerator _SelectCollumn()
     {
@@ -493,7 +517,7 @@ public class ActionHolder : ScriptableObject
     {
         if (GameManager.Instance.isTesting) return;
 
-        curActionsList.Enqueue(_SelectSmallArea());
+        curActionsList.Enqueue(new TargetingStep(_SelectSmallArea()));
     }
     public IEnumerator _SelectSmallArea()
     {
@@ -586,7 +610,7 @@ public class ActionHolder : ScriptableObject
     {
 
         //GameManager.Instance.Addtoactions( _SelectMinion());
-        curActionsList.Enqueue(_SelectMinion());
+        curActionsList.Enqueue(new TargetingStep(_SelectMinion()));
 
         //Debug.LogWarning("selecminion added to actions");
     }
@@ -656,7 +680,7 @@ public class ActionHolder : ScriptableObject
 
     public void SelectAllMinionsAsSelectedCell()
     {
-        curActionsList.Enqueue(_SelectAllMinionsAsSelectedCell());
+        curActionsList.Enqueue(new TargetingStep(_SelectAllMinionsAsSelectedCell()));
     }
     public IEnumerator _SelectAllMinionsAsSelectedCell()
     {
@@ -801,14 +825,27 @@ public class ActionHolder : ScriptableObject
     public IEnumerator _SelectAllMinionsAdjacentToThis()
     {
         selectedMinions.Clear();
+        if (thisMinion == null) yield break;
+
         var grid = GridManager.Instance.GetGrid();
+
+        // Adjacency is measured in GRID space (cell.pos vs. gridEntity.WorldPos), never from
+        // transform.position. A minion shoved aside to make room for this very summon (GameManager
+        // .SummonMinion pushes the occupant) is still mid-DOMove when this step runs one frame later:
+        // its transform is effectively still on the summoner's own cell, so a transform-distance test
+        // read it as distance 0 and the buff skipped the pushed minion entirely. Grid positions are
+        // updated synchronously by MinionController.Move, so they are already correct here.
+        Vector3Int origin = Vector3Int.RoundToInt(thisMinion.gridEntity.WorldPos);
 
         foreach (var cell in grid)
         {
-            if (cell.obj != null && (cell.obj.transform.position - thisMinion.transform.position).magnitude == 1)
-            {
-                selectedMinions.Add(cell.obj.GetComponent<MinionController>());
-            }
+            if (cell.obj == null || cell.obj == thisMinion.gameObject) continue;
+            if (!cell.obj.TryGetComponent(out MinionController minion)) continue;
+
+            Vector3Int cellPos = Vector3Int.RoundToInt(cell.pos);
+            if (Mathf.Abs(cellPos.x - origin.x) + Mathf.Abs(cellPos.y - origin.y) != 1) continue;
+
+            selectedMinions.Add(minion);
         }
         yield return null;
 
@@ -951,7 +988,7 @@ public class ActionHolder : ScriptableObject
         Agent agent = thisMinion != null ? thisMinion.owner
             : (GameManager.Instance.isPlayerTurn ? GameManager.Instance.player : GameManager.Instance.opponent);
 
-        curActionsList.Enqueue(_SelectPushableMinion(agent));
+        curActionsList.Enqueue(new TargetingStep(_SelectPushableMinion(agent)));
     }
     public IEnumerator _SelectPushableMinion(Agent agent)
     {
@@ -2557,7 +2594,7 @@ public class ActionHolder : ScriptableObject
         if (GameManager.Instance.isTesting) return;
 
         //GameManager.Instance.Addtoactions(_SelectMinion());
-        curActionsList.Enqueue(_SelectMinion());
+        curActionsList.Enqueue(new TargetingStep(_SelectMinion()));
 
         //Debug.LogWarning("selecminion added to actions");
 

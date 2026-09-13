@@ -111,6 +111,22 @@ public class GameManager : Singleton<GameManager>
     // Fired once when a card play successfully commits (past the cancel checks). Purely additive:
     // consumed by the stats system; no core logic depends on it.
     public static event Action<Agent, CardSO> OnCardPlayed;
+    // Fired once per play, the instant the card stops ASKING and starts DOING: immediately before the
+    // first queued action that is not part of the card's targeting (and before the very first action
+    // for a card that asks for nothing). OnCardPlayed is the wrong hook for anything that has to land
+    // with the effect rather than with its outcome -- it fires only once the whole queue has drained,
+    // which for the opponent is seconds later, since ExecuteActions waits 0.35s before every action.
+    // The start of the play is equally wrong: that is before the player has even picked a target.
+    // Purely additive (audio only). A play cancelled during targeting never raises it; one cancelled
+    // after its effects began does, and OnCardPlayCancelled is the counterpart for undoing that.
+    public static event Action<Agent, CardSO> OnCardEffectsStarting;
+    // The other half of that pair: fired when a play lands in the play area and has to WAIT, because
+    // the card opens with a prompt for the player to answer. Raised only for a card that actually asks
+    // for something -- its queue is fully built by OnPlay before a single action runs, so whether it
+    // will ask is known here. Every raise of this is followed by exactly one of OnCardEffectsStarting
+    // (the wait was answered) or OnCardPlayCancelled (it was backed out of), which is what lets a
+    // listener hold something for the duration. Purely additive (audio only).
+    public static event Action<Agent, CardSO> OnCardTargetingStarted;
     // The mirror of OnCardPlayed: the play was backed out of and the card has just been put back in
     // hand. Also purely additive (audio only). Fires for the AI's aborted plays too, so listeners that
     // only care about the visible hand must check the agent.
@@ -772,14 +788,14 @@ public class GameManager : Singleton<GameManager>
             Debug.Log("Player Loses!");
             currentState = GameState.EndGame;
             MarkTutorialPlayed();
-            PopupManager.Instance.OpenGameOverPopup(false, 1f);
+            PopupManager.Instance.OpenGameOverPopup(false);
         }
         else if (opponent.hero.modal.health <= 0)
         {
             Debug.Log("Player Wins!");
             currentState = GameState.EndGame;
             MarkTutorialPlayed();
-            PopupManager.Instance.OpenGameOverPopup(true, 1f);
+            PopupManager.Instance.OpenGameOverPopup(true);
 
         }
     }
@@ -806,13 +822,13 @@ public class GameManager : Singleton<GameManager>
     public void TriggerVictory()
     {
         currentState = GameState.EndGame;
-        PopupManager.Instance.OpenGameOverPopup(true);
+        PopupManager.Instance.OpenGameOverPopup(true, 0f);
     }
 
     public void TriggerDefeat()
     {
         currentState = GameState.EndGame;
-        PopupManager.Instance.OpenGameOverPopup(false);
+        PopupManager.Instance.OpenGameOverPopup(false, 0f);
     }
     public void Addtoactions(IEnumerator action)
     {
@@ -864,6 +880,10 @@ public class GameManager : Singleton<GameManager>
         card.modal.OnPlay.Invoke();
 
         Debug.LogWarning("playing card: " + card.card.cardName);
+
+        // OnPlay has filled the queue but nothing has run yet, so this is the one place that knows the
+        // card is about to stop and ask -- before the first prompt goes up, not after it is answered.
+        if (QueueHasTargeting(actionQueue)) OnCardTargetingStarted?.Invoke(agent, card.card);
 
         // Spell (non-minion) cards log their "played" entry here, before their effects resolve, so it
         // sits above the deaths/summons the spell triggers. It stays pending until the play commits so
@@ -926,6 +946,17 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    /// <summary>Whether any action still queued is a targeting step waiting to be run.</summary>
+    private static bool QueueHasTargeting(Queue<IEnumerator> queue)
+    {
+        foreach (IEnumerator queued in queue)
+        {
+            if (ActionHolder.IsTargetingAction(queued)) return true;
+        }
+
+        return false;
+    }
+
     public IEnumerator ExecuteActions(CardController card)
     {
         isTesting = false;
@@ -979,6 +1010,13 @@ public class GameManager : Singleton<GameManager>
         }
 
         Debug.Log("executeing card actions");
+
+        // Raised once, on the first action that is neither targeting itself nor still has targeting
+        // ahead of it -- i.e. the moment the card's picks are all in and it starts doing something.
+        // The look-ahead is what makes a two-pick card (Upheaval: pick, stash, pick, swap) announce on
+        // the swap instead of on the stash between its two prompts.
+        bool effectsAnnounced = false;
+
         while (actionQueue.Count > 0)
         {
             if (cancelPlayingCardRequested || ActionHolder.cancelRequested)
@@ -990,6 +1028,13 @@ public class GameManager : Singleton<GameManager>
             IEnumerator action = actionQueue.Dequeue();
 
             if (!isPlayerTurn) yield return new WaitForSeconds(0.35f);
+
+            if (!effectsAnnounced && !ActionHolder.IsTargetingAction(action) && !QueueHasTargeting(actionQueue))
+            {
+                effectsAnnounced = true;
+                OnCardEffectsStarting?.Invoke(playingAgent, card != null ? card.card : null);
+            }
+
             yield return StartCoroutine(action);
         }
         Debug.Log("execution complete");
@@ -1198,6 +1243,13 @@ public class GameManager : Singleton<GameManager>
 
         GameObject prefabToSpawn = (card.range >= 2 && rangedMinionprefab != null) ? rangedMinionprefab : minionprefab;
         MinionController minion = Instantiate(prefabToSpawn, pos, Quaternion.identity).GetComponent<MinionController>();
+
+        // Stamp the grid position NOW instead of leaving it to GridEntity.Start(). Start doesn't run
+        // until after this frame's Update, so anything that reads the fresh minion's grid position in
+        // the same frame as the summon — e.g. the Totem's own OnPlay chain, whose adjacency step
+        // resumes later in this very frame — used to read a default (0,0,0) and pick the wrong cells.
+        if (minion.gridEntity != null) minion.gridEntity.WorldPos = pos;
+
         minion.card = card;
         //minion.modal = new MinionModal(card, minion);
         minion.modal.UpdateModal(minion.card, owner, ownerIsPlayer);

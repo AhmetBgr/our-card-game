@@ -10,24 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d4fd77fda82410c4dae7ef9a5f4a0f14, type: 3}
-  m_Name: Minion_HitEffect
+  m_Name: Minion_Buff
   m_EditorClassIdentifier: Assembly-CSharp::SoundEffect
   clips:
-  - {fileID: 8300000, guid: 0499a85f52a263b408dc8efd6fa0134b, type: 3}
+  - {fileID: 8300000, guid: 3763d04d4d0c1a44f945c1888a8e6964, type: 3}
   bus: 0
   playOrder: 1
-  volume: 1
+  volume: 0.55
   useRandomVolume: 0
   volumeRandom: {x: 0.9, y: 1}
-  pitch: 0.2
-  useRandomPitch: 1
-  pitchRandom: {x: 0.777, y: 0.906}
+  pitch: 1.38
+  useRandomPitch: 0
+  pitchRandom: {x: 0.96, y: 1.06}
   loop: 0
   delay: 0
   fadeOut: 0
   fadeOutDuration: 0.08
-  spatialBlend: 0.5
-  priority: 110
-  minRetriggerInterval: 0.04
-  maxConcurrent: 4
-  stackVolumeFalloff: 0.75
+  spatialBlend: 0
+  priority: 90
+  minRetriggerInterval: 0.12
+  maxConcurrent: 3
+  stackVolumeFalloff: 0.7

@@ -24,6 +24,44 @@ public enum GameSound
     CardChoiceOpen = 8,
     CardChoiceClose = 9,
 
+    /// <summary>
+    /// A SPELL going off, alongside <see cref="CardPlay"/> (which every card makes). The pair is the
+    /// mirror of a minion card, which gets CardPlay plus <see cref="MinionSummon"/> -- a spell leaves
+    /// nothing on the board, so without this its play is the only card play that lands with no second
+    /// sound behind it. Minion cards never make this one.
+    ///
+    /// Cued to the spell GOING OFF (GameManager.OnCardEffectsStarting) -- after the player has answered
+    /// whatever it asked them to target, just before the first thing it does -- unlike CardPlay, which
+    /// rides the commit once every last action has finished.
+    /// </summary>
+    SpellPlay = 10,
+
+    /// <summary>
+    /// A spell sitting in the play area with its prompt up, waiting to be told what to point at. The
+    /// held half of the pair: it starts when the card lands and the targeting begins, and is stopped
+    /// by whichever way the wait ends -- <see cref="SpellPlay"/> when the pick is made, or the card
+    /// going back to hand when the play is backed out of. Meant for something sustained (a charge, a
+    /// hum); if the clip loops, it loops until one of those two stops it.
+    ///
+    /// Only for a spell that actually ASKS for something. A spell that just goes off never waits, so
+    /// it never makes this sound.
+    /// </summary>
+    SpellPending = 11,
+
+    /// <summary>
+    /// A card being FORGED: the upgraded copy popping into the play area after the card that made it has
+    /// been played, before it flies off to the deck. Its own sound rather than a second <see cref="CardPlay"/>
+    /// because nothing else in the game hands you a permanently better card, and the moment has a whole
+    /// animation of its own -- the pop, the hold, the flight -- that would otherwise pass in silence.
+    ///
+    /// Both agents make it. Unlike a draw, which the opponent does off-screen, the forged card is shown
+    /// popping and flying for whichever side made it, so hearing the opponent's is the point.
+    ///
+    /// Cued to the pop starting (Agent.CardForged), so a clip with several strikes in it lays them over
+    /// the pop and the hold instead of arriving after the card has already gone.
+    /// </summary>
+    CardForged = 12,
+
     // The board
     MinionSummon = 20,
     MinionMove = 21,
@@ -51,6 +89,24 @@ public enum GameSound
     /// a sword swing and a loosed arrow are different sounds -- the binder picks by modal.range.</summary>
     MinionAttackMelee = 26,
     MinionAttackRanged = 27,
+
+    /// <summary>
+    /// A unit's stats going UP -- the green "+n" overlay, attack or health. Heroes included: a hero IS
+    /// a minion as far as the board is concerned (HeroController derives from MinionController and uses
+    /// the same view), so a buff on one sounds like a buff on the other, exactly as the MinionHit*
+    /// sounds already cover both.
+    ///
+    /// Cued to the overlay appearing, not to the stat mutating -- the flash is deferred, and the sound
+    /// has to land with what the player sees.
+    /// </summary>
+    MinionBuff = 31,
+
+    /// <summary>
+    /// The mirror of <see cref="MinionBuff"/>: stats going DOWN, the red "-n" attack overlay. Heroes
+    /// included, same reasoning. Losing HEALTH is not this -- that is damage, and it already has the
+    /// MinionHit* family; this is the debuff that leaves a unit weaker rather than hurt.
+    /// </summary>
+    MinionDebuff = 32,
 
     // Heroes.
     //

@@ -342,6 +342,14 @@ public class Agent : MonoBehaviour
     public static event System.Action<Agent, CardSO> CardDrawn;
 
     /// <summary>
+    /// Fired once per upgraded copy spawned by <see cref="SpawnCardToDeck"/> -- the forge -- for either
+    /// side, as the pop begins rather than when the card lands on the deck, so anything riding this is
+    /// in step with the animation the player is watching. Purely additive, like <see cref="CardDrawn"/>:
+    /// consumed by the audio system, and no core logic depends on it.
+    /// </summary>
+    public static event System.Action<Agent, CardSO> CardForged;
+
+    /// <summary>
     /// The empty-deck draw: with nothing left to draw, the agent is offered a handful of upgraded cards
     /// instead, and pays for the privilege in hero health — 1 the first time, 2 the second, and so on,
     /// separately for each side and never reset. That escalation is what stops a match stalling once both
@@ -521,6 +529,10 @@ public class Agent : MonoBehaviour
         cardObj.modal.UpdateModal(card, this, isPlayerCard);
         cardObj.view.UpdateView(cardObj.modal);
         cardObj.transform.localScale = Vector3.zero;
+
+        // Announced here, at the top of the pop, not when the flight completes: the forge is the card
+        // appearing, and a listener cued to the landing would fire a second and a quarter late.
+        CardForged?.Invoke(this, card);
 
         // Pop size / timing live on PlayArea, not here: this runs for both agents, and the forged card
         // lands on the same spot the played card just left (cardPlayPos is PlayArea.cardPos), so the two
