@@ -23,7 +23,7 @@ public class VolumeSlider : MonoBehaviour
         Sfx,
         Music,
 
-        /// <summary>Room tone. Nothing plays on it yet -- see <see cref="AudioBus.Ambient"/>.</summary>
+        /// <summary>Room tone: one bed per scene. See <see cref="AmbienceDirector"/>.</summary>
         Ambient
     }
 

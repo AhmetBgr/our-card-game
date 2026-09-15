@@ -10603,6 +10603,14 @@ MonoBehaviour:
   forgedCardPopScale: 1.2
   forgedCardPopDuration: 0.25
   forgedCardHoldDuration: 0.5
+  forgedMorphStartDelay: 0.4
+  forgedMorphLeadIn: 0.15
+  forgedMorphElementPunch: 0.22
+  forgedMorphCardPunch: 0.1
+  forgedMorphPunchDuration: 0.3
+  forgedMorphStatStagger: 0.05
+  forgedMorphStageGap: 0.15
+  forgedMorphSettleDuration: 0.2
   dropZoneIndicator: {fileID: 139050833}
   dropZonePrompt: {fileID: 519663064}
 --- !u!114 &1620690918
@@ -11208,6 +11216,7 @@ MonoBehaviour:
   replayButton: {fileID: 1822518902}
   exitButton: {fileID: 1176276317}
   menuSceneName: MainMenu
+  gameOverDelay: 2
 --- !u!1 &1751038070
 GameObject:
   m_ObjectHideFlags: 0

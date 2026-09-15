@@ -83,6 +83,72 @@ public class PlayArea : Singleton<PlayArea>, IDropHandler
     public static float ForgedCardPopDuration => Instance != null ? Instance.forgedCardPopDuration : DefaultForgedCardPopDuration;
     public static float ForgedCardHoldDuration => Instance != null ? Instance.forgedCardHoldDuration : DefaultForgedCardHoldDuration;
 
+    [Header("Forged card morph")]
+
+    // The card the player played TURNS INTO its upgrade in place, rather than vanishing and being
+    // replaced by a second object (see Agent.ForgeCardInPlace). Three punches, each swapping what it
+    // punches at its own midpoint: the stats, then the card, then the description.
+    //
+    // The legacy pop-and-hold above is still live -- it is what the opponent always uses, and what the
+    // player gets under the Reduce Card Animations setting -- so these numbers never touch it.
+
+    [Tooltip("Seconds the played card simply sits there before the forge starts. A beat to read the " +
+             "card you actually played, before it stops being that card -- without it the first blow " +
+             "lands while the play is still registering. The deck already has the upgrade by then; " +
+             "only the animation and its sound wait.")]
+    [SerializeField] private float forgedMorphStartDelay = DefaultForgedMorphStartDelay;
+
+    [Tooltip("Seconds to settle the played card from whatever size it was played at to " +
+             "forgedCardPopScale, before the first punch. Both agents play cards at different sizes " +
+             "(the AI's sits at 1.5), so without this the same forge would read as two different sizes.")]
+    [SerializeField] private float forgedMorphLeadIn = DefaultForgedMorphLeadIn;
+
+    [Tooltip("How far the attack/health/cost numbers and the description swell at the peak of their " +
+             "punch, as a fraction of their own size. These are small objects, so they take a much " +
+             "bigger number than the whole card does.")]
+    [SerializeField] private float forgedMorphElementPunch = DefaultForgedMorphElementPunch;
+
+    [Tooltip("How far the whole card face swells when its frame, name and art change. Deliberately " +
+             "far smaller than the element punch: the face is already 1.2 scale, and the same fraction " +
+             "applied to it reads as the card lunging at the player.")]
+    [SerializeField] private float forgedMorphCardPunch = DefaultForgedMorphCardPunch;
+
+    [Tooltip("Seconds for one punch, out and back. The value it is swapping changes at the halfway " +
+             "point, at full swell.")]
+    [SerializeField] private float forgedMorphPunchDuration = DefaultForgedMorphPunchDuration;
+
+    [Tooltip("Seconds between the attack, health and cost punches. A hair of stagger reads as three " +
+             "numbers being struck; zero reads as one.")]
+    [SerializeField] private float forgedMorphStatStagger = DefaultForgedMorphStatStagger;
+
+    [Tooltip("Seconds of quiet between the three stages, so they read as three separate blows.")]
+    [SerializeField] private float forgedMorphStageGap = DefaultForgedMorphStageGap;
+
+    [Tooltip("Seconds the finished card is held before it flies to the deck. Much shorter than " +
+             "forgedCardHoldDuration, because the morph itself is already the beat that lets the " +
+             "player read what they got.")]
+    [SerializeField] private float forgedMorphSettleDuration = DefaultForgedMorphSettleDuration;
+
+    private const float DefaultForgedMorphStartDelay = 0.4f;
+    private const float DefaultForgedMorphLeadIn = 0.15f;
+    private const float DefaultForgedMorphElementPunch = 0.22f;
+    private const float DefaultForgedMorphCardPunch = 0.1f;
+    private const float DefaultForgedMorphPunchDuration = 0.3f;
+    private const float DefaultForgedMorphStatStagger = 0.05f;
+    private const float DefaultForgedMorphStageGap = 0.1f;
+    private const float DefaultForgedMorphSettleDuration = 0.2f;
+
+    // Same reasoning as the accessors above: the morph is driven from Agent and CardView, and a scene
+    // with no PlayArea must still animate rather than collapse every duration to zero.
+    public static float ForgedMorphStartDelay => Instance != null ? Instance.forgedMorphStartDelay : DefaultForgedMorphStartDelay;
+    public static float ForgedMorphLeadIn => Instance != null ? Instance.forgedMorphLeadIn : DefaultForgedMorphLeadIn;
+    public static float ForgedMorphElementPunch => Instance != null ? Instance.forgedMorphElementPunch : DefaultForgedMorphElementPunch;
+    public static float ForgedMorphCardPunch => Instance != null ? Instance.forgedMorphCardPunch : DefaultForgedMorphCardPunch;
+    public static float ForgedMorphPunchDuration => Instance != null ? Instance.forgedMorphPunchDuration : DefaultForgedMorphPunchDuration;
+    public static float ForgedMorphStatStagger => Instance != null ? Instance.forgedMorphStatStagger : DefaultForgedMorphStatStagger;
+    public static float ForgedMorphStageGap => Instance != null ? Instance.forgedMorphStageGap : DefaultForgedMorphStageGap;
+    public static float ForgedMorphSettleDuration => Instance != null ? Instance.forgedMorphSettleDuration : DefaultForgedMorphSettleDuration;
+
     [Header("Tutorial drop-zone hint")]
 
     [Tooltip("Switched on while the player drags a card, in the TUTORIAL MATCH ONLY, so a first-time " +

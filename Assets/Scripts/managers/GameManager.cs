@@ -1070,15 +1070,29 @@ public class GameManager : Singleton<GameManager>
             //player.handManager.RemoveFromHand(card);
             if (card != null) {
                 player.RemoveCardFromHand(card);
-                card.transform.DOScale(0f, 0.25f).OnComplete(() =>
+
+                CardSO upgraded = card.modal.upgradedVerdion;
+
+                // A card that forges gets to BECOME its upgrade rather than being swapped for a copy of
+                // it -- so it is neither shrunk away nor parked under the discard pile, and the object
+                // the player has been looking at is the one that flies off to the deck. Everything
+                // else, including every card that forges nothing, keeps the original path.
+                if (upgraded != null && !GameSettings.ReduceCardAnimations)
                 {
-                    if (card.modal.upgradedVerdion != null)
+                    player.ForgeCardInPlace(card, upgraded);
+                }
+                else
+                {
+                    card.transform.DOScale(0f, 0.25f).OnComplete(() =>
                     {
-                        player.SpawnCardToDeck(card.modal.upgradedVerdion, true);
-                    }
-                    card.transform.SetParent(discardPile);
-                    card.gameObject.SetActive(false);
-                });
+                        if (upgraded != null)
+                        {
+                            player.SpawnCardToDeck(upgraded, true);
+                        }
+                        card.transform.SetParent(discardPile);
+                        card.gameObject.SetActive(false);
+                    });
+                }
             }
         }
         else

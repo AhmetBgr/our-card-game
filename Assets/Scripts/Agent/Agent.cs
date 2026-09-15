@@ -342,14 +342,6 @@ public class Agent : MonoBehaviour
     public static event System.Action<Agent, CardSO> CardDrawn;
 
     /// <summary>
-    /// Fired once per upgraded copy spawned by <see cref="SpawnCardToDeck"/> -- the forge -- for either
-    /// side, as the pop begins rather than when the card lands on the deck, so anything riding this is
-    /// in step with the animation the player is watching. Purely additive, like <see cref="CardDrawn"/>:
-    /// consumed by the audio system, and no core logic depends on it.
-    /// </summary>
-    public static event System.Action<Agent, CardSO> CardForged;
-
-    /// <summary>
     /// The empty-deck draw: with nothing left to draw, the agent is offered a handful of upgraded cards
     /// instead, and pays for the privilege in hero health — 1 the first time, 2 the second, and so on,
     /// separately for each side and never reset. That escalation is what stops a match stalling once both
@@ -530,9 +522,8 @@ public class Agent : MonoBehaviour
         cardObj.view.UpdateView(cardObj.modal);
         cardObj.transform.localScale = Vector3.zero;
 
-        // Announced here, at the top of the pop, not when the flight completes: the forge is the card
-        // appearing, and a listener cued to the landing would fire a second and a quarter late.
-        CardForged?.Invoke(this, card);
+        // Silent by construction: the forge is scored per blow of the morph (CardView.ForgeStageStruck),
+        // and the plain pop has no blows. See GameSound.CardForgeStage1.
 
         // Pop size / timing live on PlayArea, not here: this runs for both agents, and the forged card
         // lands on the same spot the played card just left (cardPlayPos is PlayArea.cardPos), so the two
@@ -541,26 +532,162 @@ public class Agent : MonoBehaviour
         sequence.Append(cardObj.transform.DOScale(Vector3.one * PlayArea.ForgedCardPopScale, PlayArea.ForgedCardPopDuration));
         sequence.Append(DOVirtual.DelayedCall(PlayArea.ForgedCardHoldDuration, () => { }));
 
+        AppendDeckFlight(sequence, cardObj);
+
+        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded, deferMess: true);
+    }
+
+    /// <summary>
+    /// The forged card TURNING INTO its upgrade where it stands, instead of vanishing and being replaced
+    /// by the second object <see cref="SpawnCardToDeck"/> spawns. Same effect on the deck, entirely
+    /// different thing to watch: the card the player just played is the card that flies away improved.
+    ///
+    /// Takes the played CardController rather than a CardSO because the whole point is that this object
+    /// survives -- the caller must NOT shrink it, park it under the discard pile, or deactivate it, all
+    /// of which the legacy path does one statement after calling SpawnCardToDeck.
+    /// </summary>
+    public void ForgeCardInPlace(CardController card, CardSO upgraded)
+    {
+        if (card == null || upgraded == null) return;
+
+        // Identical to SpawnCardToDeck: the deck changes at once, well before the animation ends, and
+        // the same never-on-top insert keeps shuffle behaviour the same between the two paths. (That
+        // quirk -- the top two slots are unreachable -- is what makes the deck[Count-1] read below safe.)
+        deck.Insert(Random.Range(0, Mathf.Max(0, deck.Count - 1)), upgraded);
+
+        // The played card used to be deactivated a quarter-second after being played; it now lives for
+        // another two and a half seconds, so everything that made it a live, clickable hand card has to
+        // be switched off by hand.
+        //
+        // Raycasts first: DraggableItem.Image is a full-card alpha-0 graphic with raycastTarget back on
+        // (DraggableItem.OnEndDrag), and the root also carries a Button and an EventTrigger. Left alone,
+        // the morphing card is an invisible click-blocker sweeping the board while the player is already
+        // free to act -- GameManager clears isPlayingCard immediately after calling this.
+        card.draggableItem.Interactable = false;
+        if (card.draggableItem.Image != null) card.draggableItem.Image.raycastTarget = false;
+
+        UnityEngine.UI.Button button = card.GetComponent<UnityEngine.UI.Button>();
+        if (button != null) button.interactable = false;
+
+        UnityEngine.EventSystems.EventTrigger trigger = card.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+        if (trigger != null) trigger.enabled = false;
+
+        // canPeek belt-and-braces: OnPointerEnter is a UnityEvent binding off that EventTrigger, so it
+        // would fire even on a disabled CardController, and its peek branch yanks the card to 1.5 scale.
+        // CardController itself is deliberately LEFT ENABLED -- its Update is what keeps the playable
+        // outline off now that the card is out of hand.
+        card.canPeek = false;
+        card.isPeeking = false;
+
+        // A spell that resolves instantly leaves PlayArea.OnDrop's move/scale to cardPos still running.
+        // Complete rather than kill, so the card finishes arriving where it was headed instead of
+        // freezing wherever it had got to.
+        card.transform.DOComplete();
+        card.transform.localRotation = Quaternion.identity;
+
+        // Deliberately NOT reparented here. The card stays under PlayArea's CardParent for the morph --
+        // hoisting it to the canvas as last sibling is the exact regression called out in
+        // GameManager.ExecuteActions, drawing it over CardSelectionPanel and GameOverPanel, and a hero
+        // can die to this very card's effects while the morph is still playing. AppendDeckFlight moves
+        // it when the flight starts, which is the only part that needs the canvas.
+
+        // The played card is still the ActionHolder's "this card", and it is about to describe a
+        // different card and then be destroyed. Nothing in the straight-line path reads it again, but a
+        // re-entrant play (ActionHolder._TransformIntoAndPlay) would, and would bill the upgraded cost.
+        if (ActionHolder.thisCard == card) ActionHolder.thisCard = null;
+
+        Sequence sequence = DOTween.Sequence();
+
+        // A beat to read the card that was actually played before it stops being that card. The deck
+        // already holds the upgrade -- only what is seen and heard waits.
+        sequence.AppendInterval(PlayArea.ForgedMorphStartDelay);
+
+        // Both agents play cards at their own size (the AI's sits at 1.5), so settle to the one scale a
+        // forged card is read at before the first blow lands.
+        sequence.Append(card.transform.DOScale(Vector3.one * PlayArea.ForgedCardPopScale, PlayArea.ForgedMorphLeadIn));
+
+        card.view.AppendForgeMorph(sequence, upgraded);
+
+        // The view now SHOWS the upgrade; this is where the card BECOMES it. Needed before the flight:
+        // the flip halfway to the deck picks the card back off isUpgraded, so without this the card
+        // lands on the pile wearing the wrong back.
+        sequence.AppendCallback(() =>
+        {
+            if (card == null || card.modal == null || card.view == null) return;
+
+            card.card = upgraded;
+            card.modal.UpdateModal(upgraded, this, true);
+            card.view.UpdateViewWithoutStatPunch(card.modal);
+        });
+
+        sequence.AppendInterval(PlayArea.ForgedMorphSettleDuration);
+
+        AppendDeckFlight(sequence, card);
+
+        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded, deferMess: true);
+    }
+
+    /// <summary>
+    /// The flight onto the deck pile, shared by the two ways a forged card gets there: jump across,
+    /// shrink, flip to its back mid-air, tint to the pile, slide onto the top of the stack, and go.
+    /// Appended to whatever the caller has already built, so the pop-and-hold and the morph can each
+    /// end the same way.
+    /// </summary>
+    private void AppendDeckFlight(Sequence sequence, CardController cardObj)
+    {
+        // The pile is empty on the very first card home, and GetChild(-1) would throw. AddCardToDeck has
+        // always guarded this; SpawnCardToDeck never did, which is a crash waiting for the right deck.
+        Transform deckTarget = cardHandLayout != null && cardHandLayout.deckPosition != null && cardHandLayout.deckPosition.childCount > 0
+            ? cardHandLayout.deckPosition.GetChild(cardHandLayout.deckPosition.childCount - 1)
+            : (cardHandLayout != null ? cardHandLayout.deckPosition : null);
+
+        if (deckTarget == null)
+        {
+            sequence.AppendCallback(() =>
+            {
+                if (cardObj != null) Destroy(cardObj.gameObject);
+                if (deckViewHandler != null) deckViewHandler.SettleIncomingCards();
+            });
+            return;
+        }
+
+        // Onto the hand canvas, which is where the sibling-index handoff below expects to be working.
+        // A no-op for SpawnCardToDeck's copy, which is parented there when it is created; the moment a
+        // morphed card leaves CardParent is here, once it has stopped being something to read.
+        sequence.AppendCallback(() =>
+        {
+            if (cardObj == null || cardHandLayout == null) return;
+            if (cardObj.transform.parent == cardHandLayout.transform.parent) return;
+
+            cardObj.transform.SetParent(cardHandLayout.transform.parent, worldPositionStays: true);
+            cardObj.transform.SetAsLastSibling();
+        });
+
         sequence.Append(cardObj.transform.DOJump(cardHandLayout.deckPosition.position + Vector3.up * 50f * DeckFlightWorldScale, 50f * DeckFlightWorldScale, 1, 0.5f));
         sequence.Join(cardObj.transform.DOScale(cardHandLayout.cardDeckScale, 0.5f));
         sequence.Join(cardObj.transform.DORotate(Vector3.up * 90, 0.15f).OnComplete(() =>
         {
+            // The match can end mid-flight and take the card with it; these tweens outlive the object.
+            if (cardObj == null || cardObj.modal == null || cardObj.view == null) return;
+
             cardObj.modal.isPlayerMinion = false;
             cardObj.view.UpdateView(cardObj.modal);
             cardObj.transform.DORotate(Vector3.up * 0, 0.15f);
             // Now the card shows its back, fade it to the pile's tint so it doesn't land bright on the stack.
             if (deckViewHandler != null) deckViewHandler.TintCardToDeck(cardObj.view.CardBack);
         }));
-        sequence.AppendCallback(() => cardObj.transform.SetSiblingIndex(deck.Count > 1 ? 0 : cardHandLayout.transform.parent.childCount - 1));
-        sequence.Append(cardObj.transform.DOMove(cardHandLayout.deckPosition.GetChild(cardHandLayout.deckPosition.childCount - 1).position, 0.5f));
+        sequence.AppendCallback(() =>
+        {
+            if (cardObj == null || cardHandLayout == null) return;
+            cardObj.transform.SetSiblingIndex(deck.Count > 1 ? 0 : cardHandLayout.transform.parent.childCount - 1);
+        });
+        sequence.Append(cardObj.transform.DOMove(deckTarget.position, 0.5f));
         sequence.OnComplete(() =>
         {
-            Destroy(cardObj.gameObject);
+            if (cardObj != null) Destroy(cardObj.gameObject);
             // The card only lands here, so this is when the deck gets its new crooked card.
             if (deckViewHandler != null) deckViewHandler.SettleIncomingCards();
         });
-
-        deckViewHandler.UpdateView(deck.Count, deck[deck.Count - 1].isUpgraded, deferMess: true);
     }
 
     public void AddCardToDeck(CardController card)

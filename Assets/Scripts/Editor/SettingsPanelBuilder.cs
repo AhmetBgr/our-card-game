@@ -69,6 +69,8 @@ public static class SettingsPanelBuilder
 
     private const string FullscreenRowName = "FullscreenRow";
 
+    private const string ReduceAnimationsRowName = "ReduceAnimationsRow";
+
     private const string SaveButtonName = "Button_Save";
 
     /// <summary>The "you have unsaved changes" notice beside the Save button. Off until there are.</summary>
@@ -120,9 +122,8 @@ public static class SettingsPanelBuilder
     }
 
     // Master first because it is the one most players touch, then loudest to quietest of the rest.
-    // Ambient is here before anything plays on it on purpose: a bus that appears later reads as a
-    // setting that was taken away and given back, and this way the mix a player sets today still means
-    // the same thing when ambience ships.
+    // Ambient was added here before anything played on it, so that a bus appearing later would not read
+    // as a setting taken away and given back. AmbienceDirector now feeds it.
     private static readonly VolumeRow[] VolumeRows =
     {
         new VolumeRow { Name = "Master", Label = "Master", Bus = VolumeSlider.Bus.Master },
@@ -211,6 +212,12 @@ public static class SettingsPanelBuilder
             if (display != null && display.Find(FullscreenRowName) == null)
             {
                 AddFullscreenRowInPlace(window, display, serialized);
+                changed = true;
+            }
+
+            if (window.Find(ReduceAnimationsRowName) == null)
+            {
+                AddReduceAnimationsRowInPlace(window, serialized);
                 changed = true;
             }
 
@@ -421,6 +428,82 @@ public static class SettingsPanelBuilder
 
         controller.FindProperty("fullscreenRow.toggle").objectReferenceValue = toggle;
         controller.FindProperty("fullscreenRow.stateLabel").objectReferenceValue = StateLabelOf(toggle);
+    }
+
+    /// <summary>
+    /// Fits a second Interface switch under Show Action Log on a hand-tuned panel. Same trick as
+    /// <see cref="AddFullscreenRowInPlace"/> and for the same reason -- the frame grows SYMMETRICALLY,
+    /// half up and half down, so the buttons hanging off its bottom edge are not pushed off a short
+    /// screen -- but the split runs lower down the panel, because this row goes at the bottom of the
+    /// content rather than in the middle of it.
+    ///
+    /// It has to make room rather than use what is there: on the current panel the gap between Show
+    /// Action Log and the unsaved-changes label is six pixels.
+    /// </summary>
+    private static void AddReduceAnimationsRowInPlace(RectTransform window, SerializedObject controller)
+    {
+        var actionLogRow = window.Find("ActionLogRow") as RectTransform;
+        if (actionLogRow == null)
+        {
+            Debug.LogWarning("[Settings] No ActionLogRow to hang Reduce Card Animations under; skipped.");
+            return;
+        }
+
+        float half = DisplayRowStep * 0.5f;
+
+        var frame = window.Find("Frame") as RectTransform;
+        if (frame != null)
+        {
+            float scale = Mathf.Approximately(frame.localScale.y, 0f) ? 1f : frame.localScale.y;
+            frame.sizeDelta = new Vector2(frame.sizeDelta.x, frame.sizeDelta.y + DisplayRowStep / scale);
+        }
+
+        // Everything from the title down to the row this one sits under rises with the top edge.
+        // "GameObject" is the historical name of the container the volume rows live in.
+        foreach (string name in new[]
+                 {
+                     "Title", "Divider", DisplaySectionName, "AudioLabel", "GameObject",
+                     "InterfaceLabel", "ActionLogRow", "MuteRow"
+                 })
+        {
+            foreach (RectTransform rect in DirectChildren(window, name))
+                rect.anchoredPosition += new Vector2(0f, half);
+        }
+
+        // ...and the unsaved label and the bottom-edge buttons sink with the bottom edge. Both the
+        // current names and the ones earlier panels used, since either may be what is in the prefab.
+        foreach (string name in new[]
+                 {
+                     UnsavedLabelName, "Button_Reset", "Button_Close", SaveButtonName,
+                     "ResetButton", "CloseButton"
+                 })
+        {
+            foreach (RectTransform rect in DirectChildren(window, name))
+                rect.anchoredPosition -= new Vector2(0f, half);
+        }
+
+        // Read AFTER the shift above, so the new row lands a full row under where Show Action Log
+        // has just moved to rather than under where it used to be.
+        float y = actionLogRow.anchoredPosition.y - DisplayRowStep;
+
+        TMP_FontAsset bodyFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(BodyFontPath);
+        ToggleButton toggle = BuildToggleRow(window, ReduceAnimationsRowName, "Reduce Card Animations", bodyFont, y);
+        if (toggle == null) return;
+
+        // Lined up with the switch above it rather than with this file's constant, for the same reason
+        // the fullscreen row is: the existing rows may have been nudged since they were built.
+        RectTransform neighbour = FirstChild(actionLogRow, "Toggle");
+        if (neighbour != null)
+        {
+            var rect = (RectTransform)toggle.transform;
+            rect.anchoredPosition = new Vector2(neighbour.anchoredPosition.x, rect.anchoredPosition.y);
+        }
+
+        // Directly under Show Action Log in the hierarchy too, so the panel reads in the order it draws.
+        toggle.transform.parent.SetSiblingIndex(actionLogRow.GetSiblingIndex() + 1);
+
+        controller.FindProperty("reduceAnimationsRow.toggle").objectReferenceValue = toggle;
+        controller.FindProperty("reduceAnimationsRow.stateLabel").objectReferenceValue = StateLabelOf(toggle);
     }
 
     /// <summary>
@@ -1056,6 +1139,10 @@ public static class SettingsPanelBuilder
         y -= 56f;
 
         ToggleButton actionLogToggle = BuildToggleRow(window, "ActionLogRow", "Show Action Log", bodyFont, y);
+        y -= 56f;
+
+        ToggleButton reduceAnimationsToggle = BuildToggleRow(window, ReduceAnimationsRowName,
+            "Reduce Card Animations", bodyFont, y);
 
         // The buttons sit on the bottom edge of the frame rather than under the last row, so the
         // panel does not visibly change shape as rows are added to it.
@@ -1073,6 +1160,8 @@ public static class SettingsPanelBuilder
         var serialized = new SerializedObject(controller);
         serialized.FindProperty("actionLogRow.toggle").objectReferenceValue = actionLogToggle;
         serialized.FindProperty("actionLogRow.stateLabel").objectReferenceValue = StateLabelOf(actionLogToggle);
+        serialized.FindProperty("reduceAnimationsRow.toggle").objectReferenceValue = reduceAnimationsToggle;
+        serialized.FindProperty("reduceAnimationsRow.stateLabel").objectReferenceValue = StateLabelOf(reduceAnimationsToggle);
         serialized.FindProperty("displaySection").objectReferenceValue = displaySection;
         serialized.FindProperty("resolutionDropdown").objectReferenceValue = resolutionDropdown;
         serialized.FindProperty("fullscreenRow.toggle").objectReferenceValue = fullscreenToggle;

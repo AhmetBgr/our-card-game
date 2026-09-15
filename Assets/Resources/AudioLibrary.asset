@@ -51,6 +51,10 @@ MonoBehaviour:
     sound: {fileID: 11400000, guid: 3a7548d4f0a2410bb7bc87f73c253c23, type: 2}
   - id: 12
     sound: {fileID: 11400000, guid: 367ed230ed2e454d8e1039512c45adf4, type: 2}
+  - id: 13
+    sound: {fileID: 11400000, guid: eb76c0837ca7fa649b672f86c0b68d32, type: 2}
+  - id: 14
+    sound: {fileID: 11400000, guid: 601734c2760e64845a88dc74ca176b9f, type: 2}
   - id: 20
     sound: {fileID: 11400000, guid: 0d830d42e81a2e348840165eff0362e8, type: 2}
   - id: 21
@@ -93,5 +97,21 @@ MonoBehaviour:
     sound: {fileID: 11400000, guid: dabe70440c3c4527ad7c77669a428696, type: 2}
   - id: 32
     sound: {fileID: 11400000, guid: c8dd065ccfb74979a31ecbfdcabb452c, type: 2}
+  - id: 140
+    sound: {fileID: 11400000, guid: 006b950af31b4c417b6ddd9876d0b35d, type: 2}
+  - id: 141
+    sound: {fileID: 11400000, guid: f4d392f89a3eb63c8aa2323e0e3da812, type: 2}
+  - id: 142
+    sound: {fileID: 11400000, guid: 3c7e1a9d5b2f4e8a9c6d0b1e2f3a4b5c, type: 2}
+  - id: 143
+    sound: {fileID: 11400000, guid: 8d2f6b1c4a9e4d7b8f3c5a2e1d0b9c7a, type: 2}
+  - id: 144
+    sound: {fileID: 11400000, guid: 5a9c3e7b1d4f4a2c8e6b9d0f3a1c5e7b, type: 2}
+  - id: 145
+    sound: {fileID: 11400000, guid: e1b4d8a2c6f94b3d9a7e5c1b8f2d4a6c, type: 2}
+  - id: 146
+    sound: {fileID: 11400000, guid: 7b3e9d1a5c2f4b8e9d6a0c3f1e5b7a2d, type: 2}
+  - id: 147
+    sound: {fileID: 11400000, guid: 2f8a6c4e1b9d4e7a8c5f3b1d9e7a4c6b, type: 2}
   autoBindUISounds: 1
   autoBindNameExclusions: []

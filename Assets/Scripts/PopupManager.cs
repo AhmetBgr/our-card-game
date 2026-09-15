@@ -66,9 +66,14 @@ public class PopupManager : Singleton<PopupManager>
         if (victoryTitle != null) victoryTitle.gameObject.SetActive(won);
         if (defeatTitle != null) defeatTitle.gameObject.SetActive(!won);
 
-        GameOver?.Invoke(won);
+        float resolvedDelay = delay ?? gameOverDelay;
 
-        OpenPopup(gameOverPopup, won, delay ?? gameOverDelay);
+        // Hold the outcome hook back by the same delay the panel waits, so the stinger hits on the first
+        // frame of the scale-in rather than over the empty board. Scaled time, matching the tween below.
+        if (resolvedDelay > 0f) DOVirtual.DelayedCall(resolvedDelay, () => GameOver?.Invoke(won), false);
+        else GameOver?.Invoke(won);
+
+        OpenPopup(gameOverPopup, won, resolvedDelay);
     }
 
     /// <summary>
@@ -77,7 +82,8 @@ public class PopupManager : Singleton<PopupManager>
     /// real win check and both editor debug triggers -- which is why the hook lives here rather than in
     /// GameManager.CheckWinCondition.
     ///
-    /// Note the panel is opened with a delay, so the stinger deliberately leads the visual.
+    /// Note this fires after the panel's open delay has elapsed, not when the match ends, so the stinger
+    /// lands together with the scale-in animation.
     /// </summary>
     public static event System.Action<bool> GameOver;
 

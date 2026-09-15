@@ -61,10 +61,47 @@ public class AudioManager : MonoBehaviour
 
     private readonly List<Voice> _voices = new List<Voice>();
 
-    /// <summary>The dedicated music voice. Kept out of the pool so a busy board can never steal the music.</summary>
-    private AudioSource _musicSource;
-    private SoundEffect _musicSound;
-    private Coroutine _musicFade;
+    /// <summary>
+    /// A sound that plays continuously rather than as a reaction: the music track, and the ambience bed.
+    ///
+    /// Each gets a dedicated AudioSource OUTSIDE the pool. Two reasons, and both are fatal in the pool:
+    /// a busy board would steal the voice out from under a bed the moment thirty-two one-shots were in
+    /// flight, and a pooled voice is released the instant it stops -- which a bed never does, so it
+    /// would hold a slot forever and the pool would behave as though it were two voices smaller.
+    /// </summary>
+    private sealed class Bed
+    {
+        public Bed(string sourceName, AudioBus bus)
+        {
+            this.sourceName = sourceName;
+            this.bus = bus;
+        }
+
+        public readonly string sourceName;
+        public readonly AudioBus bus;
+
+        public AudioSource source;
+        public SoundEffect sound;
+
+        /// <summary>Non-null while a fade owns <see cref="AudioSource.volume"/>, so a slider move does not fight it.</summary>
+        public Coroutine fade;
+    }
+
+    private readonly Bed _music = new Bed("Music", AudioBus.Music);
+    /// <summary>
+    /// Room-tone recordings sounding at once. Layered rather than one mixed-down file, so each layer can
+    /// be levelled and swapped on its own asset. Each has its own source, for the same reasons as a bed.
+    /// </summary>
+    public const int AmbienceLayers = 4;
+
+    private readonly Bed[] _ambience = CreateAmbienceBeds();
+
+    private static Bed[] CreateAmbienceBeds()
+    {
+        var beds = new Bed[AmbienceLayers];
+        for (int i = 0; i < beds.Length; i++) beds[i] = new Bed($"Ambience {i + 1}", AudioBus.Ambient);
+        return beds;
+    }
 
     /// <summary>
     /// Whether the game was muted the last time <see cref="OnSettingsChanged"/> looked. A mute has to
@@ -167,8 +204,8 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Any setting moved. Music is the one bus that is usually already sounding when a slider does, so
-    /// it has to follow live; one-shots pick the new level up on their next play, which is soon enough.
+    /// Any setting moved. The beds are the ones usually already sounding when a slider does, so they
+    /// have to follow live; one-shots pick the new level up on their next play, which is soon enough.
     /// </summary>
     private void OnSettingsChanged()
     {
@@ -183,7 +220,8 @@ public class AudioManager : MonoBehaviour
             if (muted) StopAll();
         }
 
-        ApplyMusicVolume();
+        ApplyBedVolume(_music);
+        foreach (Bed layer in _ambience) ApplyBedVolume(layer);
     }
 
     /// <summary>
@@ -438,7 +476,9 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Stops every sound effect. Leaves the music alone -- see <see cref="StopMusic"/>.
+    /// Stops every sound effect. Leaves the beds alone -- see <see cref="StopMusic"/> and
+    /// <see cref="StopAllAmbience"/>. A mute silences those by re-levelling them to zero rather than by
+    /// stopping them, so unmuting brings the room straight back instead of restarting it.
     ///
     /// Hard cut, ignoring per-sound fades: the one caller is muting, and a mute that takes a moment to
     /// arrive is a broken mute.
@@ -482,91 +522,137 @@ public class AudioManager : MonoBehaviour
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Music
+    // Beds: music and ambience.
+    //
+    // One implementation for both. They differ only in which bus they are levelled on and which object
+    // the source hangs off -- everything else (a dedicated voice, looping regardless of how the asset is
+    // flagged, crossfading to a replacement, re-levelling when a slider moves) is the same problem, and
+    // the ambience bed got it for free by being the second one.
     // ---------------------------------------------------------------------------------------------
 
     /// <summary>
     /// Starts (or crossfades to) a looping track. Re-requesting the track already playing is a no-op, so
     /// a scene that reloads does not restart its own music.
     /// </summary>
-    public void PlayMusic(SoundEffect music, float fadeDuration = 1f)
+    public void PlayMusic(SoundEffect music, float fadeDuration = 1f) => PlayBed(_music, music, fadeDuration);
+
+    public void StopMusic(float fadeDuration = 1f) => StopBed(_music, fadeDuration);
+
+    /// <summary>
+    /// Starts (or crossfades to) the room tone. Long fade by default: a bed that snaps in announces
+    /// itself, and the one thing ambience must not do is be noticed starting.
+    /// </summary>
+    public void PlayAmbience(int layer, SoundEffect ambience, float fadeDuration = 3f)
     {
-        if (music == null || !music.HasClips) return;
-        if (_musicSound == music && _musicSource != null && _musicSource.isPlaying) return;
+        if (layer < 0 || layer >= _ambience.Length) return;
 
-        _musicSound = music;
-
-        EnsureMusicSource();
-
-        if (_musicFade != null) StopCoroutine(_musicFade);
-        _musicFade = StartCoroutine(CrossfadeMusic(music, fadeDuration));
+        PlayBed(_ambience[layer], ambience, fadeDuration);
     }
 
-    public void StopMusic(float fadeDuration = 1f)
+    public void StopAmbience(int layer, float fadeDuration = 3f)
     {
-        if (_musicSource == null || !_musicSource.isPlaying) return;
+        if (layer < 0 || layer >= _ambience.Length) return;
 
-        _musicSound = null;
-
-        if (_musicFade != null) StopCoroutine(_musicFade);
-        _musicFade = StartCoroutine(FadeOutAndStop(_musicSource, Mathf.Max(0.01f, fadeDuration)));
+        StopBed(_ambience[layer], fadeDuration);
     }
 
-    private IEnumerator CrossfadeMusic(SoundEffect music, float fadeDuration)
+    /// <summary>Stops every ambience layer.</summary>
+    public void StopAllAmbience(float fadeDuration = 3f)
     {
-        float target = music.ResolveVolume() * BusGain(AudioBus.Music);
+        foreach (Bed layer in _ambience) StopBed(layer, fadeDuration);
+    }
 
-        if (_musicSource.isPlaying && fadeDuration > 0f)
+    private void PlayBed(Bed bed, SoundEffect sound, float fadeDuration)
+    {
+        if (sound == null || !sound.HasClips) return;
+        if (bed.sound == sound && bed.source != null && bed.source.isPlaying) return;
+
+        bed.sound = sound;
+
+        EnsureBedSource(bed);
+
+        if (bed.fade != null) StopCoroutine(bed.fade);
+        bed.fade = StartCoroutine(CrossfadeBed(bed, sound, fadeDuration));
+    }
+
+    private void StopBed(Bed bed, float fadeDuration)
+    {
+        if (bed.source == null || !bed.source.isPlaying) return;
+
+        bed.sound = null;
+
+        if (bed.fade != null) StopCoroutine(bed.fade);
+        bed.fade = StartCoroutine(FadeOutAndStop(bed.source, Mathf.Max(0.01f, fadeDuration)));
+    }
+
+    private IEnumerator CrossfadeBed(Bed bed, SoundEffect sound, float fadeDuration)
+    {
+        float target = sound.ResolveVolume() * BusGain(bed.bus);
+
+        if (bed.source.isPlaying && fadeDuration > 0f)
         {
-            float from = _musicSource.volume;
+            float from = bed.source.volume;
             for (float elapsed = 0f; elapsed < fadeDuration * 0.5f; elapsed += Time.unscaledDeltaTime)
             {
-                _musicSource.volume = Mathf.Lerp(from, 0f, elapsed / (fadeDuration * 0.5f));
+                bed.source.volume = Mathf.Lerp(from, 0f, elapsed / (fadeDuration * 0.5f));
                 yield return null;
             }
         }
 
-        _musicSource.Stop();
-        _musicSource.clip = music.NextClip();
-        // A music track loops regardless of how the asset is flagged; a track that stopped dead mid-match
-        // would read as a bug, and the alternative (authoring every music asset with loop ticked) is a
-        // trap waiting for whoever adds the second track.
-        _musicSource.loop = true;
-        _musicSource.pitch = music.ResolvePitch();
-        _musicSource.spatialBlend = 0f;
-        _musicSource.volume = fadeDuration > 0f ? 0f : target;
-        _musicSource.Play();
+        bed.source.Stop();
+
+        AudioClip clip = sound.NextClip();
+
+        // Every slot turned out to be empty -- an asset authored before its audio exists. Leave the
+        // source stopped rather than starting it on a null clip, which Unity warns about and which would
+        // leave the bed looking as though it were playing.
+        if (clip == null)
+        {
+            bed.sound = null;
+            bed.fade = null;
+            yield break;
+        }
+
+        bed.source.clip = clip;
+        // A bed loops regardless of how the asset is flagged; a track or a room tone that stopped dead
+        // mid-match would read as a bug, and the alternative (authoring every one of them with loop
+        // ticked) is a trap waiting for whoever adds the second.
+        bed.source.loop = true;
+        bed.source.pitch = sound.ResolvePitch();
+        bed.source.spatialBlend = 0f;
+        bed.source.volume = fadeDuration > 0f ? 0f : target;
+        bed.source.Play();
 
         for (float elapsed = 0f; elapsed < fadeDuration; elapsed += Time.unscaledDeltaTime)
         {
-            _musicSource.volume = Mathf.Lerp(0f, target, elapsed / fadeDuration);
+            bed.source.volume = Mathf.Lerp(0f, target, elapsed / fadeDuration);
             yield return null;
         }
 
-        _musicSource.volume = target;
-        _musicFade = null;
+        bed.source.volume = target;
+        bed.fade = null;
     }
 
-    private void EnsureMusicSource()
+    private void EnsureBedSource(Bed bed)
     {
-        if (_musicSource != null) return;
+        if (bed.source != null) return;
 
-        var musicObject = new GameObject("Music");
-        musicObject.transform.SetParent(transform, false);
+        var bedObject = new GameObject(bed.sourceName);
+        bedObject.transform.SetParent(transform, false);
 
-        _musicSource = musicObject.AddComponent<AudioSource>();
-        _musicSource.playOnAwake = false;
-        _musicSource.loop = true;
-        _musicSource.spatialBlend = 0f;
-        _musicSource.outputAudioMixerGroup = mixerGroup;
+        bed.source = bedObject.AddComponent<AudioSource>();
+        bed.source.playOnAwake = false;
+        bed.source.loop = true;
+        bed.source.spatialBlend = 0f;
+        bed.source.outputAudioMixerGroup = mixerGroup;
     }
 
-    /// <summary>Re-levels the playing track after a slider move, unless a fade is mid-flight and owns the volume.</summary>
-    private void ApplyMusicVolume()
+    /// <summary>Re-levels a playing bed after a slider move, unless a fade is mid-flight and owns the volume.</summary>
+    private void ApplyBedVolume(Bed bed)
     {
-        if (_musicSource == null || _musicSound == null || _musicFade != null) return;
+        if (bed.source == null || bed.sound == null || bed.fade != null) return;
 
-        _musicSource.volume = _musicSound.ResolveVolume() * BusGain(AudioBus.Music);
+        bed.source.volume = bed.sound.ResolveVolume() * BusGain(bed.bus);
     }
 
     // ---------------------------------------------------------------------------------------------

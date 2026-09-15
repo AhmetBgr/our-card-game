@@ -56,6 +56,9 @@ public class MinionView : MonoBehaviour
     [SerializeField] private Color playerFrameTint = new Color(0.3f, 0.6f, 1f, 1f);
     [SerializeField] private Color opponentFrameTint = new Color(1f, 0.35f, 0.35f, 1f);
 
+    [Tooltip("Inline colour for a minion summoned from a FORGED (upgraded) card, replacing whatever colour that team's inline is authored with. Only the TINT changes -- which inline shows is still the team's, so a forged minion still reads as friendly or enemy.")]
+    [SerializeField] private Color forgedInlineTint = new Color(1f, 0.82f, 0.2f, 1f);
+
     [Tooltip("Purely visual lag: buff/debuff flashes and their stat numbers land this long after the value actually changed. Health loss uses damageIndicatorVisualDelay instead.")]
     [SerializeField] private float statChangeVisualDelay = 0.35f;
 
@@ -66,6 +69,17 @@ public class MinionView : MonoBehaviour
     // inline stays hidden until the pop-in completes, so it doesn't flash at full size mid scale-up.
     private bool _isPlayerMinion;
     private bool _hasAppeared;
+
+    // Whether this minion came from a forged (upgraded) card, which recolours its inline. Pushed from
+    // the modal on every UpdateView rather than latched, so a view reused for a different minion --
+    // or a card that becomes upgraded while on the board -- ends up with the right inline either way.
+    private bool _isForged;
+
+    // The inlines' authored colours, read once before anything overwrites them, so a minion that isn't
+    // forged can be tinted BACK without the plain colour having to be duplicated in the inspector.
+    private Color _enemyInlineBaseColor = Color.white;
+    private Color _friendlyInlineBaseColor = Color.white;
+    private bool _inlineBaseColorsCaptured;
 
     // Last attack value pushed through UpdateView, used to detect buffs/debuffs.
     private int _lastAttack;
@@ -125,7 +139,9 @@ public class MinionView : MonoBehaviour
 
         art.sprite = modal.minionArt;
         _isPlayerMinion = modal.isPlayerMinion;
+        _isForged = modal.isUpgraded;
         ApplyFrameTint();
+        ApplyInlineTint();
         ApplyInlineVisibility();
     }
 
@@ -148,6 +164,31 @@ public class MinionView : MonoBehaviour
     {
         if (frame == null) return;
         frame.color = _isPlayerMinion ? playerFrameTint : opponentFrameTint;
+    }
+
+    // Forged minions wear a different inline colour; everyone else wears the one the prefab authored.
+    // Applied to both inlines, since only one of them is ever visible anyway and this way the tint is
+    // already right if visibility flips later.
+    private void ApplyInlineTint()
+    {
+        if (!_inlineBaseColorsCaptured)
+        {
+            if (enemyInline != null) _enemyInlineBaseColor = enemyInline.color;
+            if (friendlyInline != null) _friendlyInlineBaseColor = friendlyInline.color;
+            _inlineBaseColorsCaptured = true;
+        }
+
+        TintInline(enemyInline, _isForged ? forgedInlineTint : _enemyInlineBaseColor);
+        TintInline(friendlyInline, _isForged ? forgedInlineTint : _friendlyInlineBaseColor);
+    }
+
+    // Alpha is left alone rather than taken from the tint: the inline is faded out on death
+    // (FadeOutArtImage), and an UpdateView arriving mid-fade must not snap it back to full opacity.
+    private static void TintInline(SpriteRenderer inline, Color tint)
+    {
+        if (inline == null) return;
+        tint.a = inline.color.a;
+        inline.color = tint;
     }
 
     private void ApplyInlineVisibility()

@@ -57,7 +57,7 @@ public static class GameAudioBinder
         DraggableItem.DragEnded += OnDragEnded;
         DraggableItem.DragCancelled += OnDragCancelled;
         Agent.CardDrawn += OnCardDrawn;
-        Agent.CardForged += OnCardForged;
+        CardView.ForgeStageStruck += OnForgeStageStruck;
 
         // Player resources
         Player.OnPlayerManaChanged += OnManaChanged;
@@ -153,11 +153,15 @@ public static class GameAudioBinder
     /// Spell-ness is health, the same test GameManager.PlayCard and the AI brains use: a card with no
     /// health never becomes a minion. Read off the CardSO rather than a runtime modal because that is
     /// what the event carries, and in-hand buffs never turn a spell into a minion.
+    ///
+    /// The player's spells only: the opponent's go off silently.
     /// </summary>
     private static void OnCardEffectsStarting(Agent agent, CardSO card)
     {
         // Ends the wait started below, whether or not there was one to end.
         StopLooping(GameSound.SpellPending);
+
+        if (!(agent is Player)) return;
 
         if (card != null && card.health <= 0) Play(GameSound.SpellPlay);
     }
@@ -211,13 +215,23 @@ public static class GameAudioBinder
     }
 
     /// <summary>
-    /// The upgraded copy popping into the play area. BOTH sides, unlike <see cref="OnCardDrawn"/> above:
-    /// the opponent's forged card is animated on screen exactly as the player's is, so this is one of the
-    /// few opponent-side sounds with something to look at behind it.
+    /// One blow of the forge landing. Each stage has its own slot so the three can be scored as a
+    /// sequence rather than sharing one clip; a stage with nothing mapped is silent, which is how the
+    /// set stays usable while the clips are still being cut.
     ///
-    /// Flat rather than positioned -- the card pops in the play area, not on the board.
+    /// Only the morph raises this, so in practice these are the player's own forges -- the opponent's
+    /// use the plain pop-and-fly, which has no stages. Flat rather than positioned: the card is forged
+    /// in the play area, not on the board.
     /// </summary>
-    private static void OnCardForged(Agent agent, CardSO card) => Play(GameSound.CardForged);
+    private static void OnForgeStageStruck(int stage)
+    {
+        switch (stage)
+        {
+            case 1: Play(GameSound.CardForgeStage1); break;
+            case 2: Play(GameSound.CardForgeStage2); break;
+            case 3: Play(GameSound.CardForgeStage3); break;
+        }
+    }
 
     private static void OnMinionSummoned(MinionController minion) => PlayAt(GameSound.MinionSummon, minion);
 

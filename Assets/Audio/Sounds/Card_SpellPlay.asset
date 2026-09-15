@@ -15,10 +15,10 @@ MonoBehaviour:
   clips: []
   bus: 0
   playOrder: 1
-  volume: 1
+  volume: 0.2
   useRandomVolume: 0
   volumeRandom: {x: 0.9, y: 1}
-  pitch: -1
+  pitch: 1.3
   useRandomPitch: 0
   pitchRandom: {x: 0.742, y: 0.815}
   loop: 0

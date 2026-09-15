@@ -60,6 +60,16 @@ public class SettingsData
     /// </summary>
     public bool hoverTiltEnabled = true;
 
+    /// <summary>
+    /// Fall back to the plain forged-card animation: the played card shrinks away and its upgrade pops
+    /// in already finished, instead of the played card visibly being struck into its upgrade in place.
+    /// Off by default, since the morph is the intended look.
+    ///
+    /// Only the PLAYER's own forges are affected -- the opponent's have always used the simple version,
+    /// so there is nothing to reduce there.
+    /// </summary>
+    public bool reduceCardAnimations;
+
     // -------------------------------------------------------------------------------------------------
     // Display. Only meaningful on desktop builds; the browser and phones size the game themselves and
     // the settings panel hides the row there (see GameSettings.SupportsResolution).

@@ -54,13 +54,26 @@ public enum GameSound
     /// because nothing else in the game hands you a permanently better card, and the moment has a whole
     /// animation of its own -- the pop, the hold, the flight -- that would otherwise pass in silence.
     ///
-    /// Both agents make it. Unlike a draw, which the opponent does off-screen, the forged card is shown
-    /// popping and flying for whichever side made it, so hearing the opponent's is the point.
+    /// The morph is three separate blows, and each gets its own sound so the forge can be scored as a
+    /// sequence -- a first strike, a heavier second, a final one -- rather than one clip laid over the
+    /// whole thing. Cued to the blow LANDING (CardView.ForgeStageStruck), not to the morph starting, so
+    /// each lands exactly with the punch it belongs to.
     ///
-    /// Cued to the pop starting (Agent.CardForged), so a clip with several strikes in it lays them over
-    /// the pop and the hold instead of arriving after the card has already gone.
+    /// Stage 1 keeps id 12 -- it is the original CardForged, renamed now that its two siblings sit
+    /// beside it, so whatever was mapped there stays the first strike.
+    ///
+    /// Only the MORPH makes these. The plain pop-and-fly has no stages, so it is silent -- which also
+    /// means the opponent's forges are silent, since that is the only animation the opponent uses. Any
+    /// stage with no clip assigned is simply silent, so these can be filled in one at a time.
     /// </summary>
-    CardForged = 12,
+    CardForgeStage1 = 12,
+
+    /// <summary>The second blow: the card's frame, name and art becoming the upgrade's.</summary>
+    CardForgeStage2 = 13,
+
+    /// <summary>The third blow: the description changing. The only stage that does not punch, so this
+    /// is the one place the sound is carrying the beat on its own.</summary>
+    CardForgeStage3 = 14,
 
     // The board
     MinionSummon = 20,
@@ -153,7 +166,46 @@ public enum GameSound
 
     // Music
     MusicMenu = 120,
-    MusicMatch = 121
+    MusicMatch = 121,
+
+    // ---------------------------------------------------------------------------------------------
+    // Ambience.
+    //
+    // The one family nothing in the game fires. Every other id here is a REACTION -- something the
+    // player or the board did -- and is played by GameAudioBinder off the event that caused it. These
+    // have no cause: the room is making them whether or not anything is happening, which is exactly
+    // what makes a silent turn feel like a place rather than a paused screen. AmbienceDirector owns
+    // them, and it is the only thing that plays them.
+    //
+    // Split by SCENE rather than by what the sound is, mirroring MusicMenu/MusicMatch: the menu and the
+    // arena are two different rooms, and the director swaps between them on a scene load.
+    // ---------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Room tone for the menu, and for anything that is not the match (the custom-game screen included).
+    /// Meant for ONE long recording rather than a variation set -- the director never restarts it, so a
+    /// second clip here would only ever be heard if the first were stopped.
+    /// </summary>
+    AmbienceMenu = 140,
+
+    /// <summary>Room tone for the match. Same one-clip rule as <see cref="AmbienceMenu"/>.</summary>
+    AmbienceMatch = 141,
+
+    /// <summary>
+    /// The extra layers of the menu's room tone, playing ON TOP of <see cref="AmbienceMenu"/> rather than
+    /// instead of it -- every layer sounds at once, each on its own dedicated source, so each can be
+    /// levelled and swapped on its own asset. Same one-clip rule as the first layer, and a layer with
+    /// nothing mapped is simply silent.
+    /// </summary>
+    AmbienceMenu2 = 142,
+    AmbienceMenu3 = 143,
+
+    /// <summary>The match's extra layers. Same rules as <see cref="AmbienceMenu2"/>.</summary>
+    AmbienceMatch2 = 144,
+    AmbienceMatch3 = 145,
+
+    AmbienceMenu4 = 146,
+    AmbienceMatch4 = 147
 }
 
 /// <summary>

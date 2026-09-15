@@ -156,6 +156,17 @@ public static class GameSettings
         set => SetBool(ref Data.hoverTiltEnabled, value);
     }
 
+    /// <summary>
+    /// Use the plain forged-card animation instead of the morph. Read on demand, once per forge, the
+    /// way <see cref="HoverTiltEnabled"/> is -- flipping it mid-match changes the next forge, and never
+    /// disturbs one already playing.
+    /// </summary>
+    public static bool ReduceCardAnimations
+    {
+        get => Data.reduceCardAnimations;
+        set => SetBool(ref Data.reduceCardAnimations, value);
+    }
+
     /// <summary>Chosen window resolution, in pixels. Zero when the player never chose one.</summary>
     public static int ResolutionWidth => Data.resolutionWidth;
 
@@ -492,6 +503,42 @@ public static class GameSettings
         _launchFullscreen = Screen.fullScreen;
 
         ApplyDisplay();
+
+        // Not in the editor: there the "window" is the Game view, and docking or resizing it is layout
+        // work, not a player choosing a size.
+        if (SupportsResolution && !Application.isEditor)
+        {
+            var host = new GameObject(nameof(WindowSizeWatcher)) { hideFlags = HideFlags.HideInHierarchy };
+            UnityEngine.Object.DontDestroyOnLoad(host);
+            host.AddComponent<WindowSizeWatcher>();
+        }
+    }
+
+    /// <summary>
+    /// Keeps a window the player resized by hand -- dragging an edge, maximizing -- as their chosen
+    /// resolution, so the next launch comes up at the same size instead of snapping back.
+    ///
+    /// Waits while the settings panel has an edit session open, so a drag never slips a size past its
+    /// Save button or its keep-or-revert question. Whatever the window settles at once the panel closes
+    /// is what gets kept. A size the game set itself (a save, a revert) already matches the stored one,
+    /// so recording it changes nothing.
+    /// </summary>
+    private static void RecordWindowSize(int width, int height)
+    {
+        if (IsEditing || width <= 0 || height <= 0) return;
+
+        // A window being resized is a windowed game. Stored as fullscreen, the next launch would come up
+        // fullscreen at the dragged size, which is neither thing the player had.
+        bool leaveFullscreen = Fullscreen;
+
+        if (!leaveFullscreen && Data.resolutionWidth == width && Data.resolutionHeight == height) return;
+
+        Data.resolutionWidth = width;
+        Data.resolutionHeight = height;
+        if (leaveFullscreen) Data.fullscreen = SettingsData.FullscreenWindowed;
+
+        MarkDirty();
+        Raise();
     }
 
     private static void Raise()
@@ -809,5 +856,55 @@ public static class GameSettings
         }
 
         private void OnApplicationQuit() => Flush();
+    }
+
+    /// <summary>
+    /// Notices the window changing size in windowed mode and hands the size to
+    /// <see cref="RecordWindowSize"/> once it stops changing. A drag passes through dozens of
+    /// in-between sizes, and only the one the player lets go at is worth keeping.
+    /// </summary>
+    private class WindowSizeWatcher : MonoBehaviour
+    {
+        /// <summary>Seconds the size has to hold still before it counts as chosen.</summary>
+        private const float SettleDelay = 0.5f;
+
+        private Vector2Int _lastSize;
+        private float _changedAt;
+        private bool _pending;
+
+        private void Awake() => _lastSize = new Vector2Int(Screen.width, Screen.height);
+
+        private void Update()
+        {
+            var size = new Vector2Int(Screen.width, Screen.height);
+
+            if (size != _lastSize)
+            {
+                _lastSize = size;
+                _changedAt = Time.realtimeSinceStartup;
+                _pending = true;
+                return;
+            }
+
+            if (!_pending || IsEditing) return;
+            if (Time.realtimeSinceStartup - _changedAt < SettleDelay) return;
+
+            _pending = false;
+
+            // A fullscreen game's size is the display's, not a window's. Leaving fullscreen does land
+            // here windowed, and that window is kept like any other.
+            if (Screen.fullScreenMode != FullScreenMode.Windowed) return;
+
+            RecordWindowSize(size.x, size.y);
+        }
+
+        // Written on the way out too, so resizing and closing straight away still keeps the size.
+        private void OnApplicationQuit()
+        {
+            if (_pending && !IsEditing && Screen.fullScreenMode == FullScreenMode.Windowed)
+                RecordWindowSize(Screen.width, Screen.height);
+
+            Flush();
+        }
     }
 }

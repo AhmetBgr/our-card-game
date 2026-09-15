@@ -87,6 +87,11 @@ public class SettingsPanelController : MonoBehaviour
     [Tooltip("Whether the in-match action log is expanded. The same setting the log's own Log button flips.")]
     [SerializeField] private ToggleRow actionLogRow = new ToggleRow();
 
+    [Tooltip("Falls back to the plain forged-card animation -- the played card shrinks away and its " +
+             "upgrade pops in finished -- instead of the played card being struck into its upgrade in " +
+             "place. Only affects the player's own forges; the opponent has always used the plain one.")]
+    [SerializeField] private ToggleRow reduceAnimationsRow = new ToggleRow();
+
     [Header("Display")]
     [Tooltip("The whole Display section -- heading and rows. Hidden on platforms where a resolution " +
              "means nothing (the browser, phones); see GameSettings.SupportsResolution.")]
@@ -140,6 +145,7 @@ public class SettingsPanelController : MonoBehaviour
     private void Awake()
     {
         actionLogRow.Bind(OnActionLogChanged);
+        reduceAnimationsRow.Bind(OnReduceAnimationsChanged);
         fullscreenRow.Bind(OnFullscreenChanged);
 
         if (resolutionDropdown != null) resolutionDropdown.onValueChanged.AddListener(OnResolutionPicked);
@@ -157,6 +163,7 @@ public class SettingsPanelController : MonoBehaviour
     private void OnDestroy()
     {
         actionLogRow.Unbind(OnActionLogChanged);
+        reduceAnimationsRow.Unbind(OnReduceAnimationsChanged);
         fullscreenRow.Unbind(OnFullscreenChanged);
 
         if (resolutionDropdown != null) resolutionDropdown.onValueChanged.RemoveListener(OnResolutionPicked);
@@ -182,6 +189,7 @@ public class SettingsPanelController : MonoBehaviour
     public void Refresh()
     {
         actionLogRow.Show(GameSettings.ShowActionLog);
+        reduceAnimationsRow.Show(GameSettings.ReduceCardAnimations);
         fullscreenRow.Show(GameSettings.Fullscreen);
 
         SeedResolution();
@@ -380,6 +388,8 @@ public class SettingsPanelController : MonoBehaviour
     }
 
     private void OnActionLogChanged(bool value) => GameSettings.ShowActionLog = value;
+
+    private void OnReduceAnimationsChanged(bool value) => GameSettings.ReduceCardAnimations = value;
 
     /// <summary>
     /// Records the screen mode. Nothing happens to the screen until the player saves -- see

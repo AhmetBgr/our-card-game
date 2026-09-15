@@ -126,6 +126,30 @@ public class SoundEffect : ScriptableObject
 
     public bool HasClips => clips != null && clips.Length > 0;
 
+    /// <summary>
+    /// Whether any slot actually holds a clip. Stricter than <see cref="HasClips"/>, which only asks
+    /// whether the array has a slot in it -- an asset authored ahead of its audio has exactly one, and
+    /// it is empty.
+    ///
+    /// For call sites that have to CHOOSE based on the answer rather than just play: an empty asset is
+    /// silence either way, but a caller swapping between two sounds needs to know that the one it is
+    /// about to switch to would say nothing.
+    /// </summary>
+    public bool HasAudibleClip
+    {
+        get
+        {
+            if (clips == null) return false;
+
+            for (int i = 0; i < clips.Length; i++)
+            {
+                if (clips[i] != null) return true;
+            }
+
+            return false;
+        }
+    }
+
     /// <summary>Copies playing right now, as tracked by <see cref="AudioManager"/>.</summary>
     public int LiveVoices => _liveVoices;
 
