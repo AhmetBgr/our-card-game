@@ -233,6 +233,13 @@ public class AudioLibrary : ScriptableObject
     [Tooltip("One row per sound the game can make. Rows with no sound assigned are silent, which is how a game event stays wired up before its clip exists.")]
     public List<Entry> entries = new List<Entry>();
 
+    [Header("Output")]
+    [Tooltip("Multiplies every sound on every bus, on top of the player's volume settings and each sound's own level. " +
+             "For making the whole game louder without touching either. Unity caps AudioSource.volume at 1, so a " +
+             "sound already at full volume with the sliders high can't get louder -- the gain lifts the quiet ones.")]
+    [Range(1f, 8f)]
+    public float outputGain = 1f;
+
     [Header("Automatic UI sounds")]
     [Tooltip("Give every Button, Toggle and Slider -- scene UI and UI spawned at runtime alike -- hover/click sounds automatically, without a component on each one. See UISoundBinder.")]
     public bool autoBindUISounds = true;
@@ -276,7 +283,14 @@ public class AudioLibrary : ScriptableObject
     }
 
     private void OnEnable() => _byId = null;
-    private void OnValidate() => _byId = null;
+    private void OnValidate()
+    {
+        _byId = null;
+
+        // So outputGain can be tuned by ear during play: the looping beds are already sounding and would
+        // otherwise keep their old level until a slider moved. One-shots pick it up on their next play.
+        if (Application.isPlaying && AudioManager.Exists) AudioManager.Instance.RefreshBedVolumes();
+    }
 
     /// <summary>Whether a name is opted out of the automatic UI sound pass.</summary>
     public bool IsExcludedFromAutoBind(string objectName)

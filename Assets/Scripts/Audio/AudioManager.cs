@@ -220,6 +220,12 @@ public class AudioManager : MonoBehaviour
             if (muted) StopAll();
         }
 
+        RefreshBedVolumes();
+    }
+
+    /// <summary>Re-levels the music and ambience beds, which keep the level they started at otherwise.</summary>
+    public void RefreshBedVolumes()
+    {
         ApplyBedVolume(_music);
         foreach (Bed layer in _ambience) ApplyBedVolume(layer);
     }
@@ -251,7 +257,9 @@ public class AudioManager : MonoBehaviour
 
         float linear = GameSettings.MasterVolume * busVolume;
 
-        return linear * linear;
+        // The global make-up gain comes after the curve, so it raises every slider position by the same
+        // amount instead of bending the curve. See AudioLibrary.outputGain for the cap it runs into.
+        return linear * linear * Library.outputGain;
     }
 
     // ---------------------------------------------------------------------------------------------

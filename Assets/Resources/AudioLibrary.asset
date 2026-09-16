@@ -113,5 +113,6 @@ MonoBehaviour:
     sound: {fileID: 11400000, guid: 7b3e9d1a5c2f4b8e9d6a0c3f1e5b7a2d, type: 2}
   - id: 147
     sound: {fileID: 11400000, guid: 2f8a6c4e1b9d4e7a8c5f3b1d9e7a4c6b, type: 2}
+  outputGain: 8
   autoBindUISounds: 1
   autoBindNameExclusions: []

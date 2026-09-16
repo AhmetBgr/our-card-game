@@ -29,17 +29,14 @@ public class SettingsData
     // changed later without silently re-levelling everyone's saved settings.
     // -------------------------------------------------------------------------------------------------
 
-    public float masterVolume = 1f;
+    public float masterVolume = 0.5f;
 
     public float musicVolume = 0.6f;
 
-    public float sfxVolume = 1f;
+    public float sfxVolume = 0.5f;
 
-    /// <summary>
-    /// Room tone and other beds. Nothing plays on this bus yet -- it exists so the mixer the player sets
-    /// up today still means the same thing on the day ambience ships.
-    /// </summary>
-    public float ambientVolume = 0.8f;
+    /// <summary>Room tone and other beds, fed by <see cref="AmbienceDirector"/>.</summary>
+    public float ambientVolume = 0.35f;
 
     /// <summary>Silences every bus at once, without disturbing the levels underneath.</summary>
     public bool muted;

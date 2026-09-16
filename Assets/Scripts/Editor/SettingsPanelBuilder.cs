@@ -124,10 +124,11 @@ public static class SettingsPanelBuilder
     // Master first because it is the one most players touch, then loudest to quietest of the rest.
     // Ambient was added here before anything played on it, so that a bus appearing later would not read
     // as a setting taken away and given back. AmbienceDirector now feeds it.
+    // No Music row: the game has no music, so the slider did nothing. The Music bus itself stays in
+    // AudioManager and GameSettings for the day a track ships; add the row back then.
     private static readonly VolumeRow[] VolumeRows =
     {
         new VolumeRow { Name = "Master", Label = "Master", Bus = VolumeSlider.Bus.Master },
-        new VolumeRow { Name = "Music", Label = "Music", Bus = VolumeSlider.Bus.Music },
         new VolumeRow { Name = "Sfx", Label = "Sound Effects", Bus = VolumeSlider.Bus.Sfx },
         new VolumeRow { Name = "Ambient", Label = "Ambience", Bus = VolumeSlider.Bus.Ambient }
     };

@@ -150,8 +150,16 @@ public class MainMenuManager : MonoBehaviour
 
     void ShowCredits(bool show)
     {
-        if (creditsPanel != null)
-            creditsPanel.SetActive(show);
+        if (creditsPanel == null) return;
+
+        creditsPanel.SetActive(show);
+
+        // The body scrolls; always open it at the top rather than wherever it was left.
+        if (show)
+        {
+            var scroll = creditsPanel.GetComponentInChildren<ScrollRect>();
+            if (scroll != null) scroll.verticalNormalizedPosition = 1f;
+        }
     }
 
     /// <summary>
