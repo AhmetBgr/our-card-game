@@ -38,6 +38,20 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject creditsPanel;
     [SerializeField] private Button closeCreditsButton;
 
+    [Header("Introduction")]
+    [Tooltip("Shown over the menu on the very first launch, before the tutorial match. Its backdrop blocks " +
+             "the menu underneath, and Escape does not close it: the player has to pick one of its buttons.")]
+    [SerializeField] private GameObject introPanel;
+
+    [Tooltip("Starts the tutorial match.")]
+    [SerializeField] private Button introProceedButton;
+
+    [Tooltip("Opens the settings over the introduction; closing them comes back to it.")]
+    [SerializeField] private Button introSettingsButton;
+
+    [Tooltip("Marks the tutorial as played and leaves the player on the menu.")]
+    [SerializeField] private Button introSkipButton;
+
     [Header("Settings")]
     [Tooltip("The same panel the pause menu opens, over its own backdrop. Built by " +
              "Tools ▸ Settings ▸ Rebuild Settings Panels.")]
@@ -49,10 +63,6 @@ public class MainMenuManager : MonoBehaviour
 
     void Start()
     {
-        // Checked before the buttons are wired: when it fires, this scene is already on its way out and
-        // is never shown, so there is nothing here for the player to press.
-        if (TryStartTutorial()) return;
-
         if (playButton != null)
             playButton.onClick.AddListener(() => ShowPlay(true));
 
@@ -82,34 +92,55 @@ public class MainMenuManager : MonoBehaviour
         if (settingsButton != null)
             settingsButton.onClick.AddListener(ToggleSettings);
 
+        if (introProceedButton != null)
+            introProceedButton.onClick.AddListener(OnIntroProceed);
+
+        if (introSettingsButton != null)
+            introSettingsButton.onClick.AddListener(ToggleSettings);
+
+        if (introSkipButton != null)
+            introSkipButton.onClick.AddListener(OnIntroSkip);
+
         // Always open on the menu itself, however the panels were left in the editor.
         ShowPlay(false);
         ShowCredits(false);
         if (settingsPanel != null) settingsPanel.Close();
+
+        // First launch: the tutorial hasn't been played yet, so say what is about to happen before it does.
+        ShowIntro(!SaveManager.Instance.IsTutorial);
     }
 
     /// <summary>
-    /// The tutorial hasn't been played yet, so skip the title screen entirely and drop straight into
-    /// the Game scene. The match-up itself is applied there by <see cref="Agent.ApplySavedSelection"/>,
-    /// not written into the save here, so it can't overwrite the player's own hero and deck choices.
-    /// <see cref="GameManager.CheckWinCondition"/> flips the save flag when that match ends, so the
-    /// menu behaves normally from the next visit onwards.
+    /// Proceed on the introduction: into the tutorial match. The match-up itself is applied in the Game
+    /// scene by <see cref="Agent.ApplySavedSelection"/>, not written into the save here, so it can't
+    /// overwrite the player's own hero and deck choices. <see cref="GameManager"/> flips the save flag when
+    /// that match ends, so the menu behaves normally from the next visit onwards.
     /// </summary>
-    /// <returns>True when the hand-off happened, so the caller can stop setting the menu up.</returns>
-    bool TryStartTutorial()
+    void OnIntroProceed()
     {
-        if (SaveManager.Instance.IsTutorial) return false;
+        // The fade takes a moment; don't let a second click (or a Skip) land during it.
+        SetIntroInteractable(false);
+        GoToScene(gameSceneName);
+    }
 
-        // Skipped, not faded: the scene starts under a fully opaque overlay that is only fading in this
-        // same frame, so a normal transition would fade the menu up and straight back down -- two seconds
-        // of a title screen the player was never meant to reach. SkipToScene holds that black through the
-        // load instead, and fades in on the Game scene.
-        if (SceneTransitionManager.Instance != null)
-            SceneTransitionManager.Instance.SkipToScene(gameSceneName);
-        else
-            SceneManager.LoadScene(gameSceneName);
+    /// <summary>Skip on the introduction: the tutorial counts as played, and the menu is left as it is.</summary>
+    void OnIntroSkip()
+    {
+        SaveManager.Instance.SetTutorial(true);
+        ShowIntro(false);
+    }
 
-        return true;
+    void ShowIntro(bool show)
+    {
+        if (introPanel != null)
+            introPanel.SetActive(show);
+    }
+
+    void SetIntroInteractable(bool interactable)
+    {
+        if (introProceedButton != null) introProceedButton.interactable = interactable;
+        if (introSettingsButton != null) introSettingsButton.interactable = interactable;
+        if (introSkipButton != null) introSkipButton.interactable = interactable;
     }
 
     void Update()
@@ -118,7 +149,8 @@ public class MainMenuManager : MonoBehaviour
 
         // One layer at a time, and the settings first: they are the panel that can be opened from on top
         // of the others, so they are the one Escape has to reach first. Play and Credits never overlap --
-        // each opens from the column the other's backdrop covers -- so their order is moot.
+        // each opens from the column the other's backdrop covers -- so their order is moot. The
+        // introduction is left alone: it asks a question, and Escape is not an answer to it.
         if (settingsPanel != null && settingsPanel.IsOpen)
             settingsPanel.Close();
         else if (playPanel != null && playPanel.activeSelf)

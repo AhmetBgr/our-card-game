@@ -20,8 +20,8 @@ MonoBehaviour:
   useRandomVolume: 0
   volumeRandom: {x: 0.9, y: 1}
   pitch: 1.38
-  useRandomPitch: 0
-  pitchRandom: {x: 0.96, y: 1.06}
+  useRandomPitch: 1
+  pitchRandom: {x: 1.262, y: 1.392}
   loop: 0
   delay: 0
   fadeOut: 0
