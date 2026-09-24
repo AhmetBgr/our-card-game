@@ -16,7 +16,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 40b85c53271e1ad40bbefb07512bf6fe, type: 3}
   bus: 3
   playOrder: 1
-  volume: 0.1
+  volume: 0.2
   useRandomVolume: 0
   volumeRandom: {x: 0.9, y: 1}
   pitch: 0.75

@@ -16,7 +16,7 @@ MonoBehaviour:
   minionArt: {fileID: 136297622846076780, guid: d63582f3f629afa4a8e5bdfd0486e04a,
     type: 3}
   cardArt: {fileID: 136297622846076780, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
-  cardName: Nailpuncher
+  cardName: Skeleton
   desc: 'At the end of your turn: Deal 1 damage to a random enemy minion in range.'
   attack: 4
   health: 3
@@ -27,6 +27,7 @@ MonoBehaviour:
   canMove: 1
   canAttack: 1
   canAttackManually: 1
+  attacksPerTurn: 1
   type: 0
   selectionIntent: 0
   aiIntent: 0
@@ -133,6 +134,9 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   OnAnyMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
+  OnThisMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrewCard:
