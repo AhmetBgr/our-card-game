@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: Nailpuncher
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 136297622846076780, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardArt: {fileID: 136297622846076780, guid: d63582f3f629afa4a8e5bdfd0486e04a, type: 3}
+  minionArt: {fileID: 1661066898, guid: f00ea1cf2bedae771802df4e5af5fcb3, type: 3}
+  cardArt: {fileID: 2921582248888115325, guid: f00ea1cf2bedae771802df4e5af5fcb3, type: 3}
   cardName: Skeleton
   desc: 'At the end of your turn: Deal 1 damage to a random enemy minion in range.'
   attack: 4
