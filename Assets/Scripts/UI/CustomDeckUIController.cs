@@ -1,18 +1,30 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CustomDeckUIController : MonoBehaviour
 {
-    private Dictionary<string, CardButtonHandler> cards = new Dictionary<string, CardButtonHandler>();
+    /// <summary>One row of the deck view. A list rather than a name-keyed map, because a deck may hold the same card twice.</summary>
+    private struct Entry
+    {
+        public string name;
+        public CardButtonHandler button;
+    }
+
+    private readonly List<Entry> entries = new List<Entry>();
 
     [SerializeField] private Transform cardsContainer;
     [SerializeField] private GameObject randomText;
 
     private List<CardButtonHandler> cardButtonPool;
     private bool hideCardContents;
+
+    // The rows overlap once the deck outgrows the room the view was laid out for (the classic 10),
+    // so an oversized deck still fits the carousel entry. Captured from the authored layout on first use.
+    private VerticalLayoutGroup layout;
+    private float authoredSpacing;
+    private bool layoutCaptured;
 
     // The panel this deck view lives in — it owns the side whose deck we mutate.
     private DeckPanelController owner;
@@ -34,7 +46,7 @@ public class CustomDeckUIController : MonoBehaviour
         foreach (var cardButton in cardButtonPool)
             cardButton.gameObject.SetActive(false);
 
-        cards.Clear();
+        entries.Clear();
 
         foreach (var name in deck.Deck)
         {
@@ -58,8 +70,16 @@ public class CustomDeckUIController : MonoBehaviour
         var cardButton = cardButtonPool.FirstOrDefault(b => !b.gameObject.activeSelf);
         if (cardButton == null)
         {
-            Debug.LogWarning($"No available card button slot for card {name}.");
-            return;
+            // The authored pool covers the classic deck size; a modifier that allows more grows it.
+            if (cardButtonPool.Count == 0)
+            {
+                Debug.LogWarning($"No card button to clone for card {name}.");
+                return;
+            }
+
+            cardButton = Instantiate(cardButtonPool[0], cardsContainer);
+            cardButton.name = cardButtonPool[0].name;
+            cardButtonPool.Add(cardButton);
         }
 
         cardButton.gameObject.SetActive(true);
@@ -79,28 +99,65 @@ public class CustomDeckUIController : MonoBehaviour
             cardButton.SetCost(cardSO.cost);
         }
 
-        cards.Add(name, cardButton);
+        entries.Add(new Entry { name = name, button = cardButton });
     }
+
+    /// <summary>Removes ONE copy of the card: with duplicates allowed, the others stay.</summary>
     public void RemoveCard(string cardName)
     {
-        if (cards.ContainsKey(cardName)) {
+        for (int i = entries.Count - 1; i >= 0; i--)
+        {
+            if (entries[i].name != cardName) continue;
 
-            var cardButton = cards[cardName];
-            cards.Remove(cardName);
+            var cardButton = entries[i].button;
+            entries.RemoveAt(i);
 
             cardButton.OnClicked = null;
             cardButton.gameObject.SetActive(false);
+            break;
         }
 
+        UpdateOverlap();
     }
+
     public void UpdateOrder()
     {
-        var cardbuttons = cards.Values.ToList();
-        cardbuttons.Sort((a, b) => a.Card.cost.CompareTo(b.Card.cost));
+        var sorted = entries.OrderBy(e => e.button.Card.cost).ToList();
 
-        for (int i = 0; i < cardbuttons.Count; i++)
+        for (int i = 0; i < sorted.Count; i++)
         {
-            cardbuttons[i].transform.SetSiblingIndex(i);
+            sorted[i].button.transform.SetSiblingIndex(i);
         }
+
+        UpdateOverlap();
+    }
+
+    /// <summary>
+    /// Tightens the row spacing (into overlap if it must) so the column never grows past the height
+    /// the classic deck size fills. Restores the authored spacing while the deck fits.
+    /// </summary>
+    private void UpdateOverlap()
+    {
+        if (!layoutCaptured)
+        {
+            layout = cardsContainer != null ? cardsContainer.GetComponent<VerticalLayoutGroup>() : null;
+            authoredSpacing = layout != null ? layout.spacing : 0f;
+            layoutCaptured = true;
+        }
+
+        if (layout == null || entries.Count == 0) return;
+
+        int capacity = SaveManager.Instance != null ? SaveManager.Instance.DeckSize : 10;
+        int count = entries.Count;
+
+        if (count <= capacity)
+        {
+            layout.spacing = authoredSpacing;
+            return;
+        }
+
+        float rowHeight = ((RectTransform)entries[0].button.transform).rect.height;
+        float roomHeight = capacity * rowHeight + (capacity - 1) * authoredSpacing;
+        layout.spacing = (roomHeight - count * rowHeight) / (count - 1);
     }
 }

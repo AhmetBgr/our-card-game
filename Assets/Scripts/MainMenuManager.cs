@@ -101,6 +101,10 @@ public class MainMenuManager : MonoBehaviour
         if (introSkipButton != null)
             introSkipButton.onClick.AddListener(OnIntroSkip);
 
+        // Back at the menu, no mode is being set up: Quick Play and the tutorial run on the plain rules,
+        // and Custom Game re-enters its mode itself.
+        MatchModifiers.Clear();
+
         // Always open on the menu itself, however the panels were left in the editor.
         ShowPlay(false);
         ShowCredits(false);

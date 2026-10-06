@@ -13,11 +13,10 @@ MonoBehaviour:
   m_Name: Copycat
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: -7153372905783188231, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
-  cardArt: {fileID: 0}
+  minionArt: {fileID: 1661066898, guid: c740c5402a351b0479b5026bd5bd1f03, type: 3}
+  cardArt: {fileID: 2921582248888115325, guid: c740c5402a351b0479b5026bd5bd1f03, type: 3}
   cardName: Useful Rat
-  desc: 'Ignition: Draw an upgraded card from your deck. If none, draw normally.'
+  desc: 'Ignition: Draw a forged card from your deck. If none, draw normally.'
   attack: 2
   health: 2
   cost: 4

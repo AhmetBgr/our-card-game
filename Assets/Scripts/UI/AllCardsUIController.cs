@@ -9,8 +9,19 @@ public class AllCardsUIController : MonoBehaviour
     [SerializeField] private List<Button> pageButtons;
     [SerializeField] private int cardsPerPage = 8;
 
+    [Header("Upgraded filter")]
+    [Tooltip("Shown only while the deck rules allow upgraded cards. Holds the label and the switch.")]
+    [SerializeField] private GameObject upgradedFilterRoot;
+    [Tooltip("While on, the grid lists upgraded cards only.")]
+    [SerializeField] private ToggleButton upgradedOnlyToggle;
+
+    // Every card the grid can show, in cost order. Which of them are on offer depends on the deck
+    // rules in force (upgraded cards only while a modifier allows them) -- see ApplyRules.
+    private readonly List<CardButtonHandler> everyCard = new List<CardButtonHandler>();
     private List<CardButtonHandler> orderedCards = new List<CardButtonHandler>();
     private int currentPage = 0;
+    private bool includeUpgraded;
+    private bool upgradedOnly;
 
     // The panel this grid belongs to; it decides which side's deck a click edits.
     private DeckPanelController owner;
@@ -23,13 +34,15 @@ public class AllCardsUIController : MonoBehaviour
     public void Initialize()
     {
         var allCardSOs = new List<CardSO>(DeckDatabase.Instance.AllCards);
-        allCardSOs.RemoveAll(c => c.isUpgraded);
         allCardSOs.Sort((a, b) => a.cost.CompareTo(b.cost));
 
         foreach (var item in allCardSOs)
         {
             var name = item.cardName;
+            if (allCards.ContainsKey(name)) continue;
+
             var cardButton = Instantiate(cardButtonPrefab, transform);
+            cardButton.Card = item;
             cardButton.OnClicked = () => {
                 if (!owner.IsCurCustomDeckLocked())
                 {
@@ -48,11 +61,53 @@ public class AllCardsUIController : MonoBehaviour
             cardButton.SetName(name);
             cardButton.SetCost(item.cost);
             allCards.Add(name, cardButton);
-            orderedCards.Add(cardButton);
+            everyCard.Add(cardButton);
         }
 
+        if (upgradedOnlyToggle != null)
+        {
+            upgradedOnlyToggle.onValueChanged.RemoveListener(OnUpgradedOnlyChanged);
+            upgradedOnlyToggle.onValueChanged.AddListener(OnUpgradedOnlyChanged);
+        }
+
+        ApplyRules(force: true);
+    }
+
+    /// <summary>
+    /// Re-reads the deck rules and shows the cards they allow. Cheap when nothing changed: the grid is
+    /// only rebuilt when the upgraded-cards rule flips.
+    /// </summary>
+    public void ApplyRules(bool force = false)
+    {
+        bool upgraded = MatchModifiers.CurrentDeckRules.allowUpgraded;
+        if (!force && upgraded == includeUpgraded) return;
+
+        includeUpgraded = upgraded;
+
+        // The filter only means something while upgraded cards are on offer; it is hidden and reset
+        // otherwise, so the rule going off can never leave the grid stuck on an empty upgraded list.
+        if (upgradedFilterRoot != null) upgradedFilterRoot.SetActive(includeUpgraded);
+        if (!includeUpgraded)
+        {
+            upgradedOnly = false;
+            if (upgradedOnlyToggle != null) upgradedOnlyToggle.SetIsOn(false, notify: false);
+        }
+
+        RebuildOffer();
+    }
+
+    private void OnUpgradedOnlyChanged(bool on)
+    {
+        upgradedOnly = on && includeUpgraded;
+        RebuildOffer();
+    }
+
+    private void RebuildOffer()
+    {
+        orderedCards = everyCard.FindAll(c => upgradedOnly ? c.Card.isUpgraded : (includeUpgraded || !c.Card.isUpgraded));
+
         SetupPageButtons();
-        ShowPage(0);
+        ShowPage(currentPage);
     }
 
     private void SetupPageButtons()
@@ -77,6 +132,10 @@ public class AllCardsUIController : MonoBehaviour
         int totalPages = Mathf.CeilToInt((float)orderedCards.Count / cardsPerPage);
         currentPage = Mathf.Clamp(page, 0, totalPages - 1);
 
+        // Cards outside the offered set stay hidden whatever page is up.
+        foreach (var card in everyCard)
+            card.gameObject.SetActive(false);
+
         int start = currentPage * cardsPerPage;
         for (int i = 0; i < orderedCards.Count; i++)
             orderedCards[i].gameObject.SetActive(i >= start && i < start + cardsPerPage);
@@ -97,6 +156,11 @@ public class AllCardsUIController : MonoBehaviour
         // the all-cards grid, revealing the hidden deck — so leave every card unmarked while
         // it's the selected deck. It's locked, so nothing can be added/removed anyway.
         if (SaveManager.Instance.GetSelectedDeckIndex(side) == SaveManager.MysteryDeckIndex)
+            return;
+
+        // With duplicates allowed a card in the deck is still on offer (clicking adds another copy;
+        // copies are removed from the deck view), so nothing is greyed out.
+        if (MatchModifiers.CurrentDeckRules.allowDuplicates)
             return;
 
         List<string> cardsInCustomDeck = owner.curCustomDeck;

@@ -14,6 +14,13 @@ public class HeroRuntime : MonoBehaviour
     public MinionController hero;
     public HeroSO heroSO;
 
+    /// <summary>
+    /// The passives this hero actually plays with: the HeroSO's own, plus any extras the setup screen
+    /// added (see MatchModifiers.ExtraPassivesEnabled). Everything that dispatches or renders passives
+    /// reads THIS list, never heroSO.passives, so the two can differ without anything disagreeing.
+    /// </summary>
+    public List<HeroPassiveSO> passives = new List<HeroPassiveSO>();
+
     /// <summary>Turns this hero's owner has started. Drives EveryNOwnerTurns.</summary>
     public int ownerTurnNumber;
 

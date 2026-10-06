@@ -52,9 +52,39 @@ public class DeckPanelController : MonoBehaviour
 
     public static event Action<SelectionSide, bool> DeckChanged;
 
+    /// <summary>
+    /// Raised with <see cref="DeckChanged"/>, carrying why the deck is invalid (null when it is valid),
+    /// so the setup screen can say which rule the deck breaks.
+    /// </summary>
+    public static event Action<SelectionSide, string> DeckInvalidReasonChanged;
+
+    private bool initialized;
+
     void Awake()
     {
         Side = DeckSelectionContext.SideOf(this);
+    }
+
+    void OnEnable()
+    {
+        MatchModifiers.Changed += OnModifiersChanged;
+    }
+
+    void OnDisable()
+    {
+        MatchModifiers.Changed -= OnModifiersChanged;
+    }
+
+    // The deck rules just changed under the panel (a modifier toggled): re-offer the cards, re-grey
+    // the grid and re-judge the deck. Nothing in the saved deck is touched.
+    void OnModifiersChanged()
+    {
+        if (!initialized) return;
+
+        AllCardsUIController.ApplyRules();
+        AllCardsUIController.UpdateSelectableCards();
+        UpdateCardAmount();
+        TriggerDeckChanged();
     }
 
     void Start()
@@ -93,6 +123,7 @@ public class DeckPanelController : MonoBehaviour
 
         AllCardsUIController.UpdateSelectableCards();
 
+        initialized = true;
         TriggerDeckChanged();
 
     }
@@ -237,8 +268,14 @@ public class DeckPanelController : MonoBehaviour
     private void TriggerDeckChanged()
     {
         bool isMysteryDeck = SelectedDeckIndex == SaveManager.MysteryDeckIndex;
-        DeckChanged?.Invoke(Side, isMysteryDeck || curCustomDeck.Count >= SaveManager.Instance.DeckSize);
 
+        // Locked decks (the authored default and the mystery deck) are always playable: they were not
+        // built under these rules, and the default deck deliberately repeats cards.
+        string reason = null;
+        bool valid = isMysteryDeck || IsCurCustomDeckLocked() || MatchModifiers.CurrentDeckRules.IsValid(curCustomDeck, out reason);
+
+        DeckChanged?.Invoke(Side, valid);
+        DeckInvalidReasonChanged?.Invoke(Side, valid ? null : reason);
     }
     private void UpdateDeckName(int index)
     {
@@ -248,16 +285,15 @@ public class DeckPanelController : MonoBehaviour
     private void UpdateCardAmount()
     {
         int amount = curCustomDeck.Count;
+        DeckRules rules = MatchModifiers.CurrentDeckRules;
 
-        if (amount < SaveManager.Instance.DeckSize) {
-            cardAmount.text = $"<color=yellow>{amount}/{SaveManager.Instance.DeckSize}</color>";
-        }
-        else
-        {
-            cardAmount.text = $"<color=green>{amount}/{SaveManager.Instance.DeckSize}</color>";
+        // "7/10" under the classic rules; "7 (5-30)" once a modifier has opened the size up.
+        string target = rules.minSize == rules.maxSize
+            ? $"{amount}/{rules.maxSize}"
+            : $"{amount} ({rules.minSize}-{rules.maxSize})";
 
-        }
-
+        bool valid = IsCurCustomDeckLocked() || rules.IsValid(curCustomDeck, out _);
+        cardAmount.text = valid ? $"<color=green>{target}</color>" : $"<color=yellow>{target}</color>";
     }
 
     // Locked decks (default/mystery) can't be edited: show the lock image and hide the transfer

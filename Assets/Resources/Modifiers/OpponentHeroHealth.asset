@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66ec5102e726e3343b5c35d2553298aa, type: 3}
+  m_Name: OpponentHeroHealth
+  m_EditorClassIdentifier: Assembly-CSharp::HeroHealthMultiplierModifierSO
+  id: opponent_hero_health
+  displayName: Opponent Hero Health
+  description: Multiplies the opponent hero's starting and maximum health.
+  min: 0.1
+  max: 3
+  step: 0.1
+  defaultValue: 1
+  format: x{0:0.0}
+  side: 1

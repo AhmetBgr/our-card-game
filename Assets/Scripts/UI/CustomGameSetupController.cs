@@ -35,6 +35,12 @@ public class CustomGameSetupController : MonoBehaviour
     [Tooltip("Enabled while the opponent's side is being edited, disabled while the player's is. Optional.")]
     [SerializeField] private Transform opponentEditingTransform;
 
+    [Header("Game modifiers")]
+    [Tooltip("The mode this screen sets up. Its modifiers fill the popup and shape the match; see MatchModifiers.")]
+    [SerializeField] private GameModeSO gameMode;
+    [SerializeField] private Button modifiersButton;
+    [SerializeField] private ModifiersPopupController modifiersPopup;
+
     [Header("Scenes")]
     [SerializeField] private string gameSceneName = "Game";
     [SerializeField] private string menuSceneName = "Menu";
@@ -46,6 +52,20 @@ public class CustomGameSetupController : MonoBehaviour
     private bool playerDeckReady, playerHeroReady;
     private bool opponentDeckReady, opponentHeroReady;
 
+    // Why each side's deck is invalid right now (null when it is fine), from the deck panels.
+    private string playerDeckReason, opponentDeckReason;
+
+    // The notice's authored text, shown when a deck is invalid for no reason the rules can name.
+    private TextMeshProUGUI invalidDeckLabel;
+    private string invalidDeckDefaultText;
+
+    void Awake()
+    {
+        // Before the panels' Start: they read the deck rules while building, and the rules come from
+        // the mode. Also (re)loads this mode's saved modifier values.
+        MatchModifiers.Begin(gameMode);
+    }
+
     void Start()
     {
         // Always open on the player's step, wherever the container happened to be left in the editor.
@@ -53,6 +73,15 @@ public class CustomGameSetupController : MonoBehaviour
 
         proceedButton.onClick.AddListener(OnProceed);
         backButton.onClick.AddListener(OnBack);
+
+        if (modifiersButton != null)
+            modifiersButton.onClick.AddListener(OnModifiers);
+
+        if (invalidDeckText != null)
+        {
+            invalidDeckLabel = invalidDeckText.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (invalidDeckLabel != null) invalidDeckDefaultText = invalidDeckLabel.text;
+        }
 
         //if (exitButton != null)
         //    exitButton.onClick.AddListener(() => Application.Quit());
@@ -64,13 +93,20 @@ public class CustomGameSetupController : MonoBehaviour
     private void OnEnable()
     {
         DeckPanelController.DeckChanged += OnDeckChanged;
+        DeckPanelController.DeckInvalidReasonChanged += OnDeckInvalidReasonChanged;
         HeroSelectionController.HeroSelectionChanged += OnHeroSelectionChanged;
     }
 
     private void OnDisable()
     {
         DeckPanelController.DeckChanged -= OnDeckChanged;
+        DeckPanelController.DeckInvalidReasonChanged -= OnDeckInvalidReasonChanged;
         HeroSelectionController.HeroSelectionChanged -= OnHeroSelectionChanged;
+    }
+
+    private void OnModifiers()
+    {
+        if (modifiersPopup != null) modifiersPopup.Toggle();
     }
 
     private void OnProceed()
@@ -136,6 +172,16 @@ public class CustomGameSetupController : MonoBehaviour
         UpdateProceedButton();
     }
 
+    void OnDeckInvalidReasonChanged(SelectionSide side, string reason)
+    {
+        if (side == SelectionSide.Opponent)
+            opponentDeckReason = reason;
+        else
+            playerDeckReason = reason;
+
+        UpdateProceedButton();
+    }
+
     void OnHeroSelectionChanged(SelectionSide side, bool value)
     {
         if (side == SelectionSide.Opponent)
@@ -156,9 +202,16 @@ public class CustomGameSetupController : MonoBehaviour
         if (proceedLabel != null)
             proceedLabel.text = step == SelectionSide.Opponent ? playText : proceedText;
 
-        // Surface the "invalid deck" notice for the side being edited whenever its deck is incomplete.
+        // Surface the "invalid deck" notice for the side being edited whenever its deck is incomplete,
+        // naming the rule it breaks when the deck panel supplied one.
         if (invalidDeckText != null)
+        {
             invalidDeckText.SetActive(!deckReady);
+
+            string reason = step == SelectionSide.Opponent ? opponentDeckReason : playerDeckReason;
+            if (invalidDeckLabel != null)
+                invalidDeckLabel.text = string.IsNullOrEmpty(reason) ? invalidDeckDefaultText : reason;
+        }
     }
 
     // Show the editing indicator for the side currently being chosen and hide the other's. Called

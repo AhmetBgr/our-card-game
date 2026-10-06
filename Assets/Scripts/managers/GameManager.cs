@@ -295,6 +295,16 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    /// <summary>
+    /// The passives the setup screen added for <paramref name="side"/> on top of the hero's own, or null
+    /// unless the multiple-passives modifier is on for this match.
+    /// </summary>
+    static List<HeroPassiveSO> ExtraPassivesFor(SelectionSide side)
+    {
+        if (!MatchModifiers.ExtraPassivesEnabled || SaveManager.Instance == null || HeroDatabase.Instance == null) return null;
+        return HeroDatabase.Instance.ResolvePassives(SaveManager.Instance.GetExtraPassives(side));
+    }
+
     IEnumerator SetupGame()
     {
         // Seed the hero statlines BEFORE registering passives. Register stamps the standing self
@@ -307,8 +317,14 @@ public class GameManager : Singleton<GameManager>
         if (player != null && player.hero is HeroController playerHero) playerHero.EnsureInitialized();
         if (opponent != null && opponent.hero is HeroController opponentHero) opponentHero.EnsureInitialized();
 
-        heroPassives.Register(player != null ? player.hero : null);
-        heroPassives.Register(opponent != null ? opponent.hero : null);
+        // Match modifiers scale the seeded statline (hero health / attack multipliers) here, between
+        // the seed and the passives, so a passive's own stat stamp lands on top of the scaled base.
+        // No-ops when no mode is active.
+        MatchModifiers.ApplyHeroSetup(player != null ? player.hero : null, SelectionSide.Player);
+        MatchModifiers.ApplyHeroSetup(opponent != null ? opponent.hero : null, SelectionSide.Opponent);
+
+        heroPassives.Register(player != null ? player.hero : null, ExtraPassivesFor(SelectionSide.Player));
+        heroPassives.Register(opponent != null ? opponent.hero : null, ExtraPassivesFor(SelectionSide.Opponent));
 
         switchController.PlaySwitchAnim(true);
         currentState = GameState.Setup;
@@ -1635,7 +1651,7 @@ public class GameManager : Singleton<GameManager>
         HeroRuntime runtime = heroPassives.GetRuntime(hero);
         if (runtime == null || runtime.heroSO == null) return false;
 
-        var passives = runtime.heroSO.passives;
+        var passives = runtime.passives;
         for (int i = 0; i < passives.Count; i++)
             if (passives[i] != null && passives[i].SuppressesCounterAttack) return true;
 

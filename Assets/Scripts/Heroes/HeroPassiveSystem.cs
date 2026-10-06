@@ -26,32 +26,45 @@ public class HeroPassiveSystem
     /// Attaches runtime state to a hero whose card is a HeroSO with passives. Heroes without passives
     /// are skipped, so a plain CardSO hero keeps behaving exactly as before.
     /// </summary>
-    public void Register(MinionController hero)
+    public void Register(MinionController hero, IReadOnlyList<HeroPassiveSO> extraPassives = null)
     {
         if (hero == null) return;
-        if (!(hero.card is HeroSO heroSO) || heroSO.passives == null || heroSO.passives.Count == 0) return;
+        if (!(hero.card is HeroSO heroSO)) return;
+
+        // The hero's own passives first (order is the order they resolve in), then the extras, with
+        // anything already present skipped so a picked copy of the hero's own passive is not doubled.
+        var passives = new List<HeroPassiveSO>();
+        if (heroSO.passives != null)
+            for (int i = 0; i < heroSO.passives.Count; i++)
+                if (heroSO.passives[i] != null && !passives.Contains(heroSO.passives[i])) passives.Add(heroSO.passives[i]);
+        if (extraPassives != null)
+            for (int i = 0; i < extraPassives.Count; i++)
+                if (extraPassives[i] != null && !passives.Contains(extraPassives[i])) passives.Add(extraPassives[i]);
+
+        if (passives.Count == 0) return;
 
         HeroRuntime runtime = hero.GetComponent<HeroRuntime>();
         if (runtime == null) runtime = hero.gameObject.AddComponent<HeroRuntime>();
 
         runtime.hero = hero;
         runtime.heroSO = heroSO;
+        runtime.passives = passives;
 
         if (!_heroes.Contains(runtime)) _heroes.Add(runtime);
 
         // Stamp the passives that modify this hero's OWN statline (the Summoner's -2 Attack). Guarded
         // per passive by the runtime, so a second Register on the same hero doesn't apply them twice.
-        for (int i = 0; i < heroSO.passives.Count; i++)
-            if (runtime.ClaimSelfStatApply(heroSO.passives[i]))
-                heroSO.passives[i].ApplyToOwnHero(runtime);
+        for (int i = 0; i < passives.Count; i++)
+            if (runtime.ClaimSelfStatApply(passives[i]))
+                passives[i].ApplyToOwnHero(runtime);
 
         // Stamp this hero's auras onto any minions already on the board. Usually none at setup (heroes
         // register before any minion is summoned), but keeps auras correct if a hero is registered later.
         if (hero.owner != null && hero.owner.minions != null)
         {
             foreach (MinionController m in hero.owner.minions)
-                for (int i = 0; i < heroSO.passives.Count; i++)
-                    if (heroSO.passives[i] != null) heroSO.passives[i].ApplyAuraOnSummon(m, hero.owner);
+                for (int i = 0; i < passives.Count; i++)
+                    passives[i].ApplyAuraOnSummon(m, hero.owner);
         }
 
         // Build the indicator row now that runtime state exists. An inline call from the registration
@@ -90,7 +103,7 @@ public class HeroPassiveSystem
             HeroRuntime runtime = _heroes[i];
             if (runtime == null || runtime.heroSO == null || runtime.hero == null) continue;
 
-            List<HeroPassiveSO> passives = runtime.heroSO.passives;
+            List<HeroPassiveSO> passives = runtime.passives;
             for (int j = 0; j < passives.Count; j++)
                 if (passives[j] != null) passives[j].ApplyAuraOnSummon(minion, runtime.hero.owner);
         }
@@ -114,7 +127,7 @@ public class HeroPassiveSystem
     {
         if (runtime == null || runtime.heroSO == null) return;
 
-        List<HeroPassiveSO> passives = runtime.heroSO.passives;
+        List<HeroPassiveSO> passives = runtime.passives;
         for (int i = 0; i < passives.Count; i++)
         {
             HeroPassiveSO passive = passives[i];

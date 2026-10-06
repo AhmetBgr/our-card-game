@@ -274,15 +274,46 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
         var decks = GetDecks(side);
 
-        if (decks[deckIndex].Deck.Contains(cardName)) return false;
-
-        if (decks[deckIndex].Deck.Count >= DeckSize) return false;
+        // The rules come from the active mode and its modifiers; with none set they are the classic
+        // 10 unique, non-upgraded cards this check used to hard-code.
+        CardSO card = DeckDatabase.Instance != null ? DeckDatabase.Instance.GetCard(cardName) : null;
+        if (!MatchModifiers.CurrentDeckRules.CanAdd(decks[deckIndex].Deck, card, out _)) return false;
 
         decks[deckIndex].Deck.Add(cardName);
 
         SaveData();
 
         return true;
+    }
+
+    // ------------------------------------------------------------------ game modifiers
+
+    /// <summary>The saved modifier values for <paramref name="modeId"/>, created empty if this is the first visit.</summary>
+    public ModifierProfile GetOrCreateModifierProfile(string modeId)
+    {
+        if (saveData.ModifierProfiles == null) saveData.ModifierProfiles = new List<ModifierProfile>();
+
+        foreach (var profile in saveData.ModifierProfiles)
+            if (profile != null && profile.modeId == modeId) return profile;
+
+        var created = new ModifierProfile { modeId = modeId };
+        saveData.ModifierProfiles.Add(created);
+        return created;
+    }
+
+    public List<string> GetExtraPassives(SelectionSide side) =>
+        side == SelectionSide.Opponent ? saveData.OpponentExtraPassives : saveData.PlayerExtraPassives;
+
+    public void SetExtraPassives(SelectionSide side, List<string> passiveNames)
+    {
+        var copy = passiveNames != null ? new List<string>(passiveNames) : new List<string>();
+
+        if (side == SelectionSide.Opponent)
+            saveData.OpponentExtraPassives = copy;
+        else
+            saveData.PlayerExtraPassives = copy;
+
+        SaveData();
     }
 
     public void GenerateRandomDeck(int deckIndex, SelectionSide side = SelectionSide.Player)
@@ -376,6 +407,11 @@ public class SaveManager : PermanentSingleton<SaveManager>
 
         EnsureDecksAreValid(saveData.Decks);
         EnsureDecksAreValid(saveData.OpponentDecks);
+
+        // Saves written before modifiers existed deserialize these as null.
+        if (saveData.ModifierProfiles == null) saveData.ModifierProfiles = new List<ModifierProfile>();
+        if (saveData.PlayerExtraPassives == null) saveData.PlayerExtraPassives = new List<string>();
+        if (saveData.OpponentExtraPassives == null) saveData.OpponentExtraPassives = new List<string>();
     }
 
     static void EnsureDecksAreValid(DeckData[] decks)

@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: Displacement
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 0}
-  cardArt: {fileID: -7153372905783188231, guid: d63582f3f629afa4a8e5bdfd0486e04a,
-    type: 3}
+  minionArt: {fileID: 1661066898, guid: a1c92b6562c6e12408bdd522e172b50a, type: 3}
+  cardArt: {fileID: 2921582248888115325, guid: a1c92b6562c6e12408bdd522e172b50a, type: 3}
   cardName: Swap Forward
   desc: Swap a minion with the one in front of it
   attack: 0
@@ -98,6 +97,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnAnyMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
+  OnThisMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrewCard:

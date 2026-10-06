@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d40919b97c7624b46a46bafef376db29, type: 3}
+  m_Name: CustomGameMode
+  m_EditorClassIdentifier: Assembly-CSharp::GameModeSO
+  modeId: custom
+  displayName: Custom Game
+  baseDeckRules:
+    minSize: 10
+    maxSize: 10
+    allowDuplicates: 0
+    allowUpgraded: 0
+  modifiers:
+  - {fileID: 11400000, guid: f28db1bbe3a5eed4194f3a15e0adf811, type: 2}
+  - {fileID: 11400000, guid: b241030d69289794d857c302faf16fda, type: 2}
+  - {fileID: 11400000, guid: 29cfc81759bf46a408f832c6c960c3bf, type: 2}
+  - {fileID: 11400000, guid: 8435b2e0620764047ad62ad9d95363b0, type: 2}
+  - {fileID: 11400000, guid: 159b45b2977912745a9ca1563cc8c8c1, type: 2}
+  - {fileID: 11400000, guid: 03e01823ea4d8174f9262e7779454432, type: 2}
+  - {fileID: 11400000, guid: a27882e10062d6e499e539cc7d5d762c, type: 2}
+  - {fileID: 11400000, guid: 643c04a8d703f6544b0b93baf14393db, type: 2}

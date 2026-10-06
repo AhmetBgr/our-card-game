@@ -32,6 +32,16 @@ public class HeroDatabase : PermanentSingleton<HeroDatabase>
     /// </summary>
     private readonly List<HeroSO> tutorialHeroes = new List<HeroSO>();
 
+    /// <summary>Where the pickable passives live, relative to Resources. The tutorial variants in Heroes/Other are not here.</summary>
+    public const string PassivesFolder = "Heroes/Passives";
+
+    /// <summary>
+    /// Every passive a side can add in the setup screen (multiple-passives modifier), sorted by asset
+    /// name. Addressed by asset name in the save, like the tutorial heroes, so the list can grow or
+    /// reorder without a saved pick pointing at the wrong passive.
+    /// </summary>
+    public List<HeroPassiveSO> AllPassives = new List<HeroPassiveSO>();
+
     protected override void Awake()
     {
         base.Awake();
@@ -62,7 +72,30 @@ public class HeroDatabase : PermanentSingleton<HeroDatabase>
         // to the same hero across sessions and between the Menu and Game scenes.
         AllHeroes.Sort((a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
 
+        AllPassives.Clear();
+        AllPassives.AddRange(Resources.LoadAll<HeroPassiveSO>(PassivesFolder));
+        AllPassives.Sort((a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
+
         Debug.Log($"Loaded {AllHeroes.Count} heroes into HeroDatabase ({tutorialHeroes.Count} tutorial-only heroes held back).");
+    }
+
+    public HeroPassiveSO GetPassiveByName(string assetName) =>
+        AllPassives.Find(p => p != null && p.name == assetName);
+
+    /// <summary>The passives named in <paramref name="assetNames"/>, in that order; unknown names are dropped with a warning.</summary>
+    public List<HeroPassiveSO> ResolvePassives(IReadOnlyList<string> assetNames)
+    {
+        var result = new List<HeroPassiveSO>();
+        if (assetNames == null) return result;
+
+        for (int i = 0; i < assetNames.Count; i++)
+        {
+            HeroPassiveSO passive = GetPassiveByName(assetNames[i]);
+            if (passive != null) result.Add(passive);
+            else Debug.LogWarning($"Passive asset not found: {assetNames[i]}.");
+        }
+
+        return result;
     }
 
     public HeroSO GetHeroByIndex(int index)

@@ -30,6 +30,15 @@ public class SaveData
     // saves written before this field existed) since it's the existing look; players who dislike the
     // motion can turn it off.
     public bool HoverTiltEnabled = true;
+
+    // The modifier values last chosen per game mode (see MatchModifiers). Null on saves written before
+    // modifiers existed; SaveManager.EnsureSaveDataIsValid fills the lists in.
+    public List<ModifierProfile> ModifierProfiles = new();
+
+    // Passive asset names each side picked in the setup screen while the multiple-passives modifier
+    // is on. Registered on top of the hero's own passives; ignored while the modifier is off.
+    public List<string> PlayerExtraPassives = new();
+    public List<string> OpponentExtraPassives = new();
 }
 
 [Serializable]
