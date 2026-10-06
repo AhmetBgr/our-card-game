@@ -112,6 +112,13 @@ public static class MatchModifiers
         if (hero.view != null && hero.modal != null) hero.view.UpdateViewWithoutStatFlash(hero.modal);
     }
 
+    /// <summary>
+    /// How many passives a side may add on top of its hero's own while the multiple-passives modifier
+    /// is on. The picker refuses the pick past this, and GameManager trims to it when the match reads
+    /// the save — so a save written before the cap (or edited by hand) cannot smuggle extras in.
+    /// </summary>
+    public const int MaxExtraPassives = 2;
+
     public static bool ExtraPassivesEnabled
     {
         get

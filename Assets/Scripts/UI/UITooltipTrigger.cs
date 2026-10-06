@@ -11,16 +11,30 @@ public class UITooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExi
     [TextArea(2, 4)]
     [SerializeField] private string message;
 
+    [Tooltip("Optional fixed spot: the tooltip is centered there instead of being placed beside this " +
+             "element. For an element spawned at runtime the spot is handed over in code (see " +
+             "PassiveSelectionController), since a prefab cannot reference a scene object.")]
+    [SerializeField] private Transform point;
+
     public string Message
     {
         get => message;
         set => message = value;
     }
 
+    /// <summary>Where the tooltip shows. Null = beside this element.</summary>
+    public Transform Point
+    {
+        get => point;
+        set => point = value;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (UITooltip.Instance != null)
-            UITooltip.Instance.Show(message, (RectTransform)transform);
+        if (UITooltip.Instance == null) return;
+
+        if (point != null) UITooltip.Instance.ShowAt(message, point);
+        else UITooltip.Instance.Show(message, (RectTransform)transform);
     }
 
     public void OnPointerExit(PointerEventData eventData)

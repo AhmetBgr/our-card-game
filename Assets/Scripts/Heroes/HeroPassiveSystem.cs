@@ -37,9 +37,20 @@ public class HeroPassiveSystem
         if (heroSO.passives != null)
             for (int i = 0; i < heroSO.passives.Count; i++)
                 if (heroSO.passives[i] != null && !passives.Contains(heroSO.passives[i])) passives.Add(heroSO.passives[i]);
+
+        // MaxExtraPassives is enforced HERE rather than on the saved list, because only here is it
+        // decidable what an extra actually is: an entry the hero already owns adds nothing, so it must
+        // not eat a slot. That makes this count the same one the picker caps (see
+        // PassiveSelectionController) even for a save that holds more names than the cap allows.
+        int added = 0;
         if (extraPassives != null)
-            for (int i = 0; i < extraPassives.Count; i++)
-                if (extraPassives[i] != null && !passives.Contains(extraPassives[i])) passives.Add(extraPassives[i]);
+            for (int i = 0; i < extraPassives.Count && added < MatchModifiers.MaxExtraPassives; i++)
+            {
+                if (extraPassives[i] == null || passives.Contains(extraPassives[i])) continue;
+
+                passives.Add(extraPassives[i]);
+                added++;
+            }
 
         if (passives.Count == 0) return;
 

@@ -34,8 +34,13 @@ public class UITooltip : MonoBehaviour
     [Tooltip("Gap in canvas units between the hovered element and the tooltip.")]
     [SerializeField] private float gap = 12f;
 
+    [Tooltip("Panel art behind the text. Empty = the graphic on this object. Hidden while the tooltip " +
+             "sits on an authored spot (ShowAt), where it would box in a surface that is already a panel.")]
+    [SerializeField] private Graphic background;
+
     private RectTransform rect;
     private RectTransform canvasRect;
+    private bool backgroundResolved;
 
     void Awake()
     {
@@ -64,11 +69,42 @@ public class UITooltip : MonoBehaviour
         if (label != null)
             label.text = text;
 
+        ShowBackground(true);
+
         // The panel is content-sized, so its width is only correct after the layout has been rebuilt
         // with the new text — and the width is what decides which side of the target it fits on.
         LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
 
         PlaceBeside(target);
+    }
+
+    /// <summary>
+    /// Shows <paramref name="text"/> centered on <paramref name="point"/> — an authored spot in the
+    /// scene — instead of hanging it off the hovered element. For surfaces that already have a place
+    /// where hover detail belongs: the passive picker puts its text on the deck panel's card-preview
+    /// area, so hovering a passive reads in the same spot as hovering a card.
+    /// </summary>
+    public void ShowAt(string text, Transform point)
+    {
+        if (string.IsNullOrEmpty(text) || point == null)
+            return;
+
+        EnsureInitialized();
+
+        gameObject.SetActive(true);
+
+        if (label != null)
+            label.text = text;
+
+        // Bare text on an authored spot: the spot is chosen because it is already a place the eye
+        // goes (the card-preview area), so the panel art would only box it in.
+        ShowBackground(false);
+
+        // Content-sized like Show(): the panel's own size decides how far it has to clamp, so it is
+        // only correct after a rebuild with the new text.
+        LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+
+        PlaceAt(point);
     }
 
     public void Hide()
@@ -89,6 +125,40 @@ public class UITooltip : MonoBehaviour
             if (canvas != null)
                 canvasRect = (RectTransform)canvas.rootCanvas.transform;
         }
+    }
+
+    // Resolved lazily (and only once) rather than in Awake, for the same reason the transforms are:
+    // Show can be the first thing that ever touches this component. An authored reference wins; with
+    // none, the graphic on this object is the panel art.
+    void ShowBackground(bool visible)
+    {
+        if (!backgroundResolved)
+        {
+            backgroundResolved = true;
+            if (background == null) background = GetComponent<Graphic>();
+        }
+
+        if (background != null) background.enabled = visible;
+    }
+
+    // Centers the panel on an authored point and clamps it inside the canvas, so a long description
+    // at the edge of the preview area cannot run off screen.
+    void PlaceAt(Transform point)
+    {
+        if (canvasRect == null)
+            return;
+
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+
+        Vector2 p = canvasRect.InverseTransformPoint(point.position);
+
+        float halfW = canvasRect.rect.width * 0.5f;
+        float halfH = canvasRect.rect.height * 0.5f;
+        p.x = Mathf.Clamp(p.x, -halfW + rect.rect.width * 0.5f, halfW - rect.rect.width * 0.5f);
+        p.y = Mathf.Clamp(p.y, -halfH + rect.rect.height * 0.5f, halfH - rect.rect.height * 0.5f);
+
+        rect.anchoredPosition = p;
     }
 
     // Prefers the right of the target, flipping to the left when the panel would overhang the canvas.
