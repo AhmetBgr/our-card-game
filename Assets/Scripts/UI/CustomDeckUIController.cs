@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -20,11 +21,16 @@ public class CustomDeckUIController : MonoBehaviour
     private List<CardButtonHandler> cardButtonPool;
     private bool hideCardContents;
 
-    // The rows overlap once the deck outgrows the room the view was laid out for (the classic 10),
-    // so an oversized deck still fits the carousel entry. Captured from the authored layout on first use.
-    private VerticalLayoutGroup layout;
-    private float authoredSpacing;
-    private bool layoutCaptured;
+    // The view is laid out for the classic 10 rows; a bigger deck (a modifier allows up to 30) is split
+    // into pages of this many, turned by the page buttons on the panel.
+    [SerializeField] private int cardsPerPage = 10;
+    private int currentPage;
+
+    public int CurrentPage => currentPage;
+    public int PageCount => Mathf.Max(1, Mathf.CeilToInt((float)entries.Count / cardsPerPage));
+
+    /// <summary>Raised whenever the page shown or the number of pages may have changed.</summary>
+    public event Action PagesChanged;
 
     // The panel this deck view lives in — it owns the side whose deck we mutate.
     private DeckPanelController owner;
@@ -47,6 +53,7 @@ public class CustomDeckUIController : MonoBehaviour
             cardButton.gameObject.SetActive(false);
 
         entries.Clear();
+        currentPage = 0;
 
         foreach (var name in deck.Deck)
         {
@@ -67,7 +74,8 @@ public class CustomDeckUIController : MonoBehaviour
             return;
         }
 
-        var cardButton = cardButtonPool.FirstOrDefault(b => !b.gameObject.activeSelf);
+        // Rows on other pages are inactive too, so "free" means not holding a card, not inactive.
+        var cardButton = cardButtonPool.FirstOrDefault(b => !entries.Any(e => e.button == b));
         if (cardButton == null)
         {
             // The authored pool covers the classic deck size; a modifier that allows more grows it.
@@ -117,47 +125,39 @@ public class CustomDeckUIController : MonoBehaviour
             break;
         }
 
-        UpdateOverlap();
+        ShowPage(currentPage);
     }
 
     public void UpdateOrder()
     {
+        // Keep entries in display order so a page is a plain slice of them.
         var sorted = entries.OrderBy(e => e.button.Card.cost).ToList();
+        entries.Clear();
+        entries.AddRange(sorted);
 
-        for (int i = 0; i < sorted.Count; i++)
+        for (int i = 0; i < entries.Count; i++)
         {
-            sorted[i].button.transform.SetSiblingIndex(i);
+            entries[i].button.transform.SetSiblingIndex(i);
         }
 
-        UpdateOverlap();
+        ShowPage(currentPage);
     }
 
-    /// <summary>
-    /// Tightens the row spacing (into overlap if it must) so the column never grows past the height
-    /// the classic deck size fills. Restores the authored spacing while the deck fits.
-    /// </summary>
-    private void UpdateOverlap()
+    /// <summary>Turns to the page holding the last copy of the card, so a freshly added card is in view.</summary>
+    public void ShowPageOf(string cardName)
     {
-        if (!layoutCaptured)
-        {
-            layout = cardsContainer != null ? cardsContainer.GetComponent<VerticalLayoutGroup>() : null;
-            authoredSpacing = layout != null ? layout.spacing : 0f;
-            layoutCaptured = true;
-        }
+        int index = entries.FindLastIndex(e => e.name == cardName);
+        if (index >= 0) ShowPage(index / cardsPerPage);
+    }
 
-        if (layout == null || entries.Count == 0) return;
+    public void ShowPage(int page)
+    {
+        currentPage = Mathf.Clamp(page, 0, PageCount - 1);
 
-        int capacity = SaveManager.Instance != null ? SaveManager.Instance.DeckSize : 10;
-        int count = entries.Count;
+        int start = currentPage * cardsPerPage;
+        for (int i = 0; i < entries.Count; i++)
+            entries[i].button.gameObject.SetActive(i >= start && i < start + cardsPerPage);
 
-        if (count <= capacity)
-        {
-            layout.spacing = authoredSpacing;
-            return;
-        }
-
-        float rowHeight = ((RectTransform)entries[0].button.transform).rect.height;
-        float roomHeight = capacity * rowHeight + (capacity - 1) * authoredSpacing;
-        layout.spacing = (roomHeight - count * rowHeight) / (count - 1);
+        PagesChanged?.Invoke();
     }
 }

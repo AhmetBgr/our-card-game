@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,18 +9,13 @@ using UnityEngine.UI;
 /// panel's columns in turn, so another mode's setup screen drops in the same prefab and gets its
 /// own list.
 ///
-/// Open/close follows the menu's panels (SetActive + a backdrop that swallows clicks) with the
-/// PopupManager scale-in; Escape closes it.
+/// Open/close follows the menu's panels (SetActive + a backdrop that swallows clicks), with no
+/// animation either way; Escape closes it.
 /// </summary>
 public class ModifiersPopupController : MonoBehaviour
 {
     [Tooltip("The part that is shown and hidden. Empty = this object.")]
     [SerializeField] private GameObject panel;
-
-    [Tooltip("Scaled in from zero on open. Empty = no animation.")]
-    [SerializeField] private RectTransform window;
-
-    [SerializeField] private float popDuration = 0.2f;
 
     [Header("Rows")]
     [Tooltip("The columns rows are dealt into, filled top to bottom and then left to right. Empty = the single rows container below.")]
@@ -40,6 +34,7 @@ public class ModifiersPopupController : MonoBehaviour
 
     private readonly List<ModifierRowView> rows = new List<ModifierRowView>();
     private GameModeSO builtFor;
+    private bool opening;
 
     public bool IsOpen => Panel.activeSelf;
 
@@ -50,8 +45,10 @@ public class ModifiersPopupController : MonoBehaviour
         if (resetButton != null) resetButton.onClick.AddListener(MatchModifiers.ResetToDefaults);
         if (closeButton != null) closeButton.onClick.AddListener(Close);
 
-        // Closed until asked, however the prefab was left.
-        Panel.SetActive(false);
+        // Closed until asked, however the prefab was left. Not when Open() is what woke us: the panel
+        // starts inactive in the scene, so the first open is what runs Awake, and closing here would
+        // swallow that first click.
+        if (!opening) Panel.SetActive(false);
     }
 
     void OnEnable() => MatchModifiers.Changed += RefreshRows;
@@ -71,32 +68,17 @@ public class ModifiersPopupController : MonoBehaviour
     public void Open()
     {
         Build(MatchModifiers.Mode);
-        Panel.SetActive(true);
 
-        if (window != null)
-        {
-            window.DOKill();
-            window.localScale = Vector3.zero;
-            window.DOScale(Vector3.one, popDuration).SetEase(Ease.OutBack);
-        }
+        opening = true;
+        Panel.SetActive(true);
+        opening = false;
     }
 
     public void Close()
     {
         if (!IsOpen) return;
 
-        if (window == null)
-        {
-            Panel.SetActive(false);
-            return;
-        }
-
-        window.DOKill();
-        window.DOScale(Vector3.zero, popDuration * 0.75f).SetEase(Ease.InBack).OnComplete(() =>
-        {
-            Panel.SetActive(false);
-            window.localScale = Vector3.one;
-        });
+        Panel.SetActive(false);
     }
 
     private void Build(GameModeSO mode)

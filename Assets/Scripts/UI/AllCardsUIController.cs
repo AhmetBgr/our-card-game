@@ -12,11 +12,11 @@ public class AllCardsUIController : MonoBehaviour
     [Header("Upgraded filter")]
     [Tooltip("Shown only while the deck rules allow upgraded cards. Holds the label and the switch.")]
     [SerializeField] private GameObject upgradedFilterRoot;
-    [Tooltip("While on, the grid lists upgraded cards only.")]
+    [Tooltip("While on, the grid lists upgraded cards only; while off, base cards only.")]
     [SerializeField] private ToggleButton upgradedOnlyToggle;
 
     // Every card the grid can show, in cost order. Which of them are on offer depends on the deck
-    // rules in force (upgraded cards only while a modifier allows them) -- see ApplyRules.
+    // rules in force (upgraded cards only while a modifier allows them and the filter is on) -- see ApplyRules.
     private readonly List<CardButtonHandler> everyCard = new List<CardButtonHandler>();
     private List<CardButtonHandler> orderedCards = new List<CardButtonHandler>();
     private int currentPage = 0;
@@ -104,7 +104,9 @@ public class AllCardsUIController : MonoBehaviour
 
     private void RebuildOffer()
     {
-        orderedCards = everyCard.FindAll(c => upgradedOnly ? c.Card.isUpgraded : (includeUpgraded || !c.Card.isUpgraded));
+        // Upgraded cards stay out of the grid until the filter is switched on, even while the rule
+        // allows them; the switch then swaps the grid over to the upgraded cards.
+        orderedCards = everyCard.FindAll(c => upgradedOnly ? c.Card.isUpgraded : !c.Card.isUpgraded);
 
         SetupPageButtons();
         ShowPage(currentPage);

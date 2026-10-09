@@ -408,7 +408,6 @@ public static class ModifiersPanelBuilder
 
             var serialized = new SerializedObject(controller);
             serialized.FindProperty("panel").objectReferenceValue = rootGo;
-            serialized.FindProperty("window").objectReferenceValue = window;
             SerializedProperty columnsProperty = serialized.FindProperty("columns");
             columnsProperty.arraySize = columns.Length;
             for (int i = 0; i < columns.Length; i++)

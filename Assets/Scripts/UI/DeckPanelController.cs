@@ -37,6 +37,9 @@ public class DeckPanelController : MonoBehaviour
     [Tooltip("Shown when the selected deck is unlocked/editable.")]
     [SerializeField] private GameObject transferImage;
 
+    [Tooltip("Pages through the selected deck once it holds more cards than its view shows (10). Hidden while it fits.")]
+    [SerializeField] private List<Button> deckPageButtons;
+
     private List<CustomDeckUIController> customDeckUIControllers = new();
     public AllCardsUIController AllCardsUIController;
 
@@ -103,6 +106,7 @@ public class DeckPanelController : MonoBehaviour
         {
             var deckView = Instantiate(deckPrefab, selectableDecksPanel);
             deckView.Initialize(decks[i], isRandomDeck: i == SaveManager.MysteryDeckIndex);
+            deckView.PagesChanged += () => { if (initialized) UpdateDeckPageButtons(); };
 
             customDeckUIControllers.Add(deckView);
         }
@@ -121,9 +125,16 @@ public class DeckPanelController : MonoBehaviour
         UpdateCardAmount();
         UpdateLockState();
 
+        for (int i = 0; i < deckPageButtons.Count; i++)
+        {
+            int pageIndex = i;
+            deckPageButtons[i].onClick.AddListener(() => customDeckUIControllers[SelectedDeckIndex].ShowPage(pageIndex));
+        }
+
         AllCardsUIController.UpdateSelectableCards();
 
         initialized = true;
+        UpdateDeckPageButtons();
         TriggerDeckChanged();
 
     }
@@ -210,6 +221,7 @@ public class DeckPanelController : MonoBehaviour
         if (success) {
             customDeckUIControllers[index].AddCard(card);
             customDeckUIControllers[index].UpdateOrder();
+            customDeckUIControllers[index].ShowPageOf(card);
             TriggerDeckChanged();
         }
 
@@ -243,7 +255,22 @@ public class DeckPanelController : MonoBehaviour
         UpdateDeckName(newIndex);
         UpdateCardAmount();
         UpdateLockState();
+        UpdateDeckPageButtons();
         TriggerDeckChanged();
+    }
+
+    // One button per page of the selected deck, the current page's greyed out; none while it fits one page.
+    private void UpdateDeckPageButtons()
+    {
+        var deckView = customDeckUIControllers[SelectedDeckIndex];
+        int pageCount = deckView.PageCount;
+
+        for (int i = 0; i < deckPageButtons.Count; i++)
+        {
+            bool active = pageCount > 1 && i < pageCount;
+            deckPageButtons[i].gameObject.SetActive(active);
+            deckPageButtons[i].interactable = i != deckView.CurrentPage;
+        }
     }
 
     private void SetSelectableDecksPanelToIndex(int index, bool instant)
@@ -287,10 +314,9 @@ public class DeckPanelController : MonoBehaviour
         int amount = curCustomDeck.Count;
         DeckRules rules = MatchModifiers.CurrentDeckRules;
 
-        // "7/10" under the classic rules; "7 (5-30)" once a modifier has opened the size up.
-        string target = rules.minSize == rules.maxSize
-            ? $"{amount}/{rules.maxSize}"
-            : $"{amount} ({rules.minSize}-{rules.maxSize})";
+        // Always "count/max" ("7/10", "7/30"): the badge has no room for more. A deck under the minimum
+        // still shows yellow, and the setup screen spells out the reason.
+        string target = $"{amount}/{rules.maxSize}";
 
         bool valid = IsCurCustomDeckLocked() || rules.IsValid(curCustomDeck, out _);
         cardAmount.text = valid ? $"<color=green>{target}</color>" : $"<color=yellow>{target}</color>";
