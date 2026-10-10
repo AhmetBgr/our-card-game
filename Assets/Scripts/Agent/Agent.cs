@@ -147,6 +147,22 @@ public class Agent : MonoBehaviour
     {
         var saveManager = SaveManager.Instance;
 
+        // Forged in Battle: the run decides both sides (the player's drafted hero and deck, the rolled
+        // enemy), and nothing is read from or written to the save slots.
+        if (GauntletRun.IsActive)
+        {
+            var runHero = GauntletRun.HeroFor(side);
+            if (hero != null && runHero != null)
+                hero.card = runHero;
+
+            deck.Clear();
+            foreach (var cardSO in GauntletRun.DeckFor(side))
+                if (cardSO != null)
+                    deck.Add(cardSO);
+
+            return;
+        }
+
         if (hero != null)
         {
             var selectedHero = TutorialHero(side) ?? HeroDatabase.Instance.GetSelectedHero(side);

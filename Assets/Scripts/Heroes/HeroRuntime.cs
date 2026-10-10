@@ -49,6 +49,9 @@ public class HeroRuntime : MonoBehaviour
 
     public void SetCounter(string key, int value) => _counters[key] = value;
 
+    /// <summary>Every counter written so far. Read by GauntletRun to carry passive state into the next match.</summary>
+    public IReadOnlyDictionary<string, int> Counters => _counters;
+
     /// <summary>Finds the runtime state for a hero, or null if it was never registered.</summary>
     public static HeroRuntime For(MinionController hero)
         => hero != null ? hero.GetComponent<HeroRuntime>() : null;

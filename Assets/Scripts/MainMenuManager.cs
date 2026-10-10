@@ -5,7 +5,7 @@ using UnityEngine.UI;
 /// <summary>
 /// Drives the title screen. Play opens a popup with the game modes: Quick Play drops straight into a
 /// match with a random hero and a freshly rolled deck on both sides, Custom Game opens the full setup
-/// scene, and Forged in Battle is a placeholder for a mode that is not written yet. Settings and Credits
+/// scene, and Forged in Battle starts a draft gauntlet run in the Draft scene. Settings and Credits
 /// open their own overlays, Quit leaves the game.
 /// </summary>
 public class MainMenuManager : MonoBehaviour
@@ -27,8 +27,7 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Button quickPlayButton;
     [SerializeField] private Button customGameButton;
 
-    [Tooltip("Not a mode yet. Kept non-interactable from here, so nobody can switch it on in the scene " +
-             "before there is anything behind it.")]
+    [Tooltip("Starts a new draft gauntlet run (see GauntletRun) in the Draft scene.")]
     [SerializeField] private Button forgedInBattleButton;
 
     [SerializeField] private Button closePlayButton;
@@ -75,10 +74,11 @@ public class MainMenuManager : MonoBehaviour
         if (customGameButton != null)
             customGameButton.onClick.AddListener(() => GoToScene(customGameSceneName));
 
-        // Nothing to open yet: the button is there so the player can see the mode is coming, and its
-        // tooltip says as much. A dead button still gets the blocked-click sound from UISoundTrigger.
         if (forgedInBattleButton != null)
-            forgedInBattleButton.interactable = false;
+        {
+            forgedInBattleButton.interactable = true;
+            forgedInBattleButton.onClick.AddListener(OnForgedInBattle);
+        }
 
         if (creditsButton != null)
             creditsButton.onClick.AddListener(() => ShowCredits(true));
@@ -104,6 +104,9 @@ public class MainMenuManager : MonoBehaviour
         // Back at the menu, no mode is being set up: Quick Play and the tutorial run on the plain rules,
         // and Custom Game re-enters its mode itself.
         MatchModifiers.Clear();
+
+        // Coming back to the menu abandons any Forged in Battle run, won, lost or walked out of.
+        GauntletRun.End();
 
         // Always open on the menu itself, however the panels were left in the editor.
         ShowPlay(false);
@@ -216,6 +219,13 @@ public class MainMenuManager : MonoBehaviour
         saveManager.SaveData();
 
         GoToScene(gameSceneName);
+    }
+
+    /// <summary>Forged in Battle: a fresh run, starting with the hero pick in the Draft scene.</summary>
+    void OnForgedInBattle()
+    {
+        GauntletRun.StartNew();
+        GoToScene(GauntletRun.Config.draftSceneName);
     }
 
     static void Randomize(SaveManager saveManager, SelectionSide side)

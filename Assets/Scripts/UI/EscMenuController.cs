@@ -125,6 +125,9 @@ public class EscMenuController : MonoBehaviour
         if (mainMenuButton != null) mainMenuButton.onClick.AddListener(ExitToMenu);
         if (quitButton != null) quitButton.onClick.AddListener(Quit);
 
+        // No restarting a Forged in Battle battle: it would be a free retry of a lost fight.
+        if (restartButton != null && GauntletRun.IsActive) restartButton.gameObject.SetActive(false);
+
         if (howToPlayButton != null)
         {
             _howToPlayToggle = howToPlayButton.GetComponent<ToggleButton>();

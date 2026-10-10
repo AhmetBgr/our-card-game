@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4f3f83855caed3438b23c21ddb015d7, type: 3}
+  m_Name: GauntletConfig
+  m_EditorClassIdentifier: Assembly-CSharp::GauntletConfigSO
+  heroChoiceCount: 3
+  initialDeckSize: 5
+  cardChoiceCount: 3
+  allowDuplicates: 1
+  distinctOptionsPerPick: 1
+  cardsAddedAfterWin: 2
+  healAfterWin: 0
+  healAfterWinPercent: 0
+  keepHeroAttack: 1
+  keepPassiveState: 1
+  encounters:
+  - label: Battle 1
+    enemyHealthMultiplier: 0.33
+    enemyDeckSize: 10
+  - label: Battle 2
+    enemyHealthMultiplier: 0.5
+    enemyDeckSize: 10
+  - label: Final Battle
+    enemyHealthMultiplier: 1
+    enemyDeckSize: 10
+  avoidMirrorHero: 0
+  draftSceneName: Draft
+  gameSceneName: Game
+  menuSceneName: MainMenu

@@ -6654,7 +6654,9 @@ MonoBehaviour:
     description: Choose the deck and the hero for both sides yourself before the
       match starts.
   - button: {fileID: 1220182893}
-    description: Not available yet. This mode is still being built.
+    description: Pick a hero and draft a 5-card deck, then battle three enemies
+      in a row. Your hero's wounds and buffs carry over, and every victory adds
+      new cards to your deck.
 --- !u!114 &1510087815
 MonoBehaviour:
   m_ObjectHideFlags: 0

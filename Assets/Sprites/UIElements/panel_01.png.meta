@@ -113,12 +113,12 @@ TextureImporter:
     buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 4
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -926,7 +926,7 @@ TextureImporter:
         width: 8
         height: 8
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 1, y: 1, z: 1, w: 1}
       customData: 
       outline: []
@@ -935,6 +935,28 @@ TextureImporter:
       bones: []
       spriteID: 23a2db99bed593b45adf1288f9f3a345
       internalID: 629264567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_37
+      rect:
+        serializedVersion: 2
+        x: 307
+        y: 660
+        width: 57
+        height: 27
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5a19634435008c4fb07acad399eec06
+      internalID: -491215518
       vertices: []
       indices: 
       edges: []
@@ -984,6 +1006,7 @@ TextureImporter:
       panel_01_34: 410364992
       panel_01_35: 1578664222
       panel_01_36: 629264567
+      panel_01_37: -491215518
       panel_01_4: 1152573127
       panel_01_5: -67600548
       panel_01_6: -2024813826

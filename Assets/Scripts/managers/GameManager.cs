@@ -151,12 +151,15 @@ public class GameManager : Singleton<GameManager>
     {
         get
         {
-            if (isTutorialMatch == null) isTutorialMatch = !SaveManager.Instance.IsTutorial;
+            if (isTutorialMatch == null) isTutorialMatch = ResolveIsTutorialMatch();
             return isTutorialMatch.Value;
         }
     }
 
     private static bool? isTutorialMatch;
+
+    // A Forged in Battle match is never the tutorial, even before the tutorial has been played.
+    private static bool ResolveIsTutorialMatch() => !SaveManager.Instance.IsTutorial && !GauntletRun.IsActive;
 
     // Statics survive between play sessions when domain reload is off, so clear the cache before each
     // run. Without this, a stale answer from the previous session could be handed to Agent.Awake, which
@@ -191,7 +194,7 @@ public class GameManager : Singleton<GameManager>
 
         // Static, so it outlives the scene: re-resolve per match rather than letting a Replay inherit
         // the previous one's answer.
-        isTutorialMatch = !SaveManager.Instance.IsTutorial;
+        isTutorialMatch = ResolveIsTutorialMatch();
     }
 
     void Start()
@@ -323,8 +326,16 @@ public class GameManager : Singleton<GameManager>
         MatchModifiers.ApplyHeroSetup(player != null ? player.hero : null, SelectionSide.Player);
         MatchModifiers.ApplyHeroSetup(opponent != null ? opponent.hero : null, SelectionSide.Opponent);
 
+        // Forged in Battle scales the enemy's health per encounter. No-op outside a run.
+        GauntletRun.ApplyEnemySetup(opponent != null ? opponent.hero : null);
+
         heroPassives.Register(player != null ? player.hero : null, ExtraPassivesFor(SelectionSide.Player));
         heroPassives.Register(opponent != null ? opponent.hero : null, ExtraPassivesFor(SelectionSide.Opponent));
+
+        // ...and carries the player's hero over from the last won battle: health, attack, passive state.
+        // After Register, so the carried attack replaces the passives' self-stat stamp instead of
+        // stacking it again. No-op outside a run and before the first win.
+        GauntletRun.RestorePlayerHero(player != null ? player.hero : null);
 
         switchController.PlaySwitchAnim(true);
         currentState = GameState.Setup;
@@ -804,6 +815,7 @@ public class GameManager : Singleton<GameManager>
             Debug.Log("Player Loses!");
             currentState = GameState.EndGame;
             MarkTutorialPlayed();
+            GauntletRun.OnBattleLost();
             PopupManager.Instance.OpenGameOverPopup(false);
         }
         else if (opponent.hero.modal.health <= 0)
@@ -811,6 +823,7 @@ public class GameManager : Singleton<GameManager>
             Debug.Log("Player Wins!");
             currentState = GameState.EndGame;
             MarkTutorialPlayed();
+            GauntletRun.OnBattleWon(player.hero);
             PopupManager.Instance.OpenGameOverPopup(true);
 
         }
@@ -838,12 +851,14 @@ public class GameManager : Singleton<GameManager>
     public void TriggerVictory()
     {
         currentState = GameState.EndGame;
+        GauntletRun.OnBattleWon(player.hero);
         PopupManager.Instance.OpenGameOverPopup(true, 0f);
     }
 
     public void TriggerDefeat()
     {
         currentState = GameState.EndGame;
+        GauntletRun.OnBattleLost();
         PopupManager.Instance.OpenGameOverPopup(false, 0f);
     }
     public void Addtoactions(IEnumerator action)

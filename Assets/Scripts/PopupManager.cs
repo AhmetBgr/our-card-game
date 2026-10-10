@@ -49,9 +49,16 @@ public class PopupManager : Singleton<PopupManager>
     }
 
     // Proceed leaves the match for the main menu, from which the next match can either be started
-    // straight away (Quick Play) or reconfigured (Custom Game).
+    // straight away (Quick Play) or reconfigured (Custom Game). In a Forged in Battle run it goes back
+    // to the Draft scene instead, which shows the next draft step or the run's result.
     public void ExitToMenu()
     {
+        if (GauntletRun.IsActive)
+        {
+            GauntletRun.LeaveBattle();
+            return;
+        }
+
         SceneTransitionManager.Instance.TransitionToScene(menuSceneName);
     }
 
@@ -65,6 +72,9 @@ public class PopupManager : Singleton<PopupManager>
 
         if (victoryTitle != null) victoryTitle.gameObject.SetActive(won);
         if (defeatTitle != null) defeatTitle.gameObject.SetActive(!won);
+
+        // A run's battle can't be replayed: a loss ends the run, a win moves on to the next draft.
+        if (replayButton != null) replayButton.gameObject.SetActive(!GauntletRun.IsActive);
 
         float resolvedDelay = delay ?? gameOverDelay;
 
