@@ -97,6 +97,9 @@ public readonly struct HeroPassiveDisplay
     /// <summary>False dims the icon: the passive is present but currently doing nothing.</summary>
     public readonly bool isActive;
 
+    /// <summary>True for a forged (upgraded) passive: the indicator wears the yellow forged inline.</summary>
+    public readonly bool isForged;
+
     /// <summary>Passive name. Not rendered on the board row today; carried for a future tooltip.</summary>
     public readonly string title;
 
@@ -107,7 +110,7 @@ public readonly struct HeroPassiveDisplay
         PassiveIndicatorType type = PassiveIndicatorType.Other,
         int counterValue = 0, int counterMax = 0,
         int counterProgress = 0, bool counterFromProgress = false,
-        bool isActive = true, bool visible = true)
+        bool isActive = true, bool visible = true, bool isForged = false)
     {
         this.icon = icon;
         this.title = title;
@@ -119,6 +122,7 @@ public readonly struct HeroPassiveDisplay
         this.counterFromProgress = counterFromProgress;
         this.isActive = isActive;
         this.visible = visible;
+        this.isForged = isForged;
     }
 
     /// <summary>The "render nothing" display. Equals default(HeroPassiveDisplay).</summary>
@@ -126,10 +130,10 @@ public readonly struct HeroPassiveDisplay
 
     // Copy-with helpers so a GetDisplay override stays a one-liner over base.GetDisplay(runtime).
     public HeroPassiveDisplay WithCounter(int value, int max)
-        => new HeroPassiveDisplay(icon, title, body, type, value, max, counterProgress, counterFromProgress, isActive, visible);
+        => new HeroPassiveDisplay(icon, title, body, type, value, max, counterProgress, counterFromProgress, isActive, visible, isForged);
 
     public HeroPassiveDisplay WithActive(bool value)
-        => new HeroPassiveDisplay(icon, title, body, type, counterValue, counterMax, counterProgress, counterFromProgress, value, visible);
+        => new HeroPassiveDisplay(icon, title, body, type, counterValue, counterMax, counterProgress, counterFromProgress, value, visible, isForged);
 
     /// <summary>
     /// True when nothing the indicator renders has changed, so Refresh can skip the push.
@@ -139,6 +143,7 @@ public readonly struct HeroPassiveDisplay
     public bool SameAs(in HeroPassiveDisplay other)
         => visible == other.visible
         && isActive == other.isActive
+        && isForged == other.isForged
         && icon == other.icon
         && type == other.type
         && counterValue == other.counterValue

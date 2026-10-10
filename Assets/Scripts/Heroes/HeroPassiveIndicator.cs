@@ -25,6 +25,10 @@ public class HeroPassiveIndicator : MonoBehaviour
     [Tooltip("Ring drawn around the icon for PassiveIndicatorType.Aura.")]
     [SerializeField] private GameObject auraOutline;
 
+    [Tooltip("Inline colour for a FORGED passive. The aura outline doubles as the forged inline: it is shown for " +
+             "every forged passive, whatever its type, and recoloured to this (same yellow as a forged minion's inline).")]
+    [SerializeField] private Color forgedInlineTint = new Color(1f, 0.82f, 0.2f, 1f);
+
     [Tooltip("Countdown ring shown for PassiveIndicatorType.Counter.")]
     [SerializeField] private GameObject counterRoot;
 
@@ -62,6 +66,12 @@ public class HeroPassiveIndicator : MonoBehaviour
     private static CardTextHighlightConfig highlightConfig;
     private static CardTextHighlightConfig HighlightConfig =>
         highlightConfig != null ? highlightConfig : (highlightConfig = Resources.Load<CardTextHighlightConfig>("CardTextHighlightConfig"));
+
+    // The aura outline's authored colour, read once so a slot rebound from a forged passive to a plain
+    // one can be tinted back without the colour being duplicated in the inspector.
+    private Image _auraOutlineImage;
+    private Color _auraOutlineBaseColor = Color.white;
+    private bool _auraOutlineColorCaptured;
 
     private Tween _procTween;
     private Tween _counterTween;
@@ -259,8 +269,26 @@ public class HeroPassiveIndicator : MonoBehaviour
         bool isAura = display.type == PassiveIndicatorType.Aura;
         bool isCounter = display.type == PassiveIndicatorType.Counter;
 
-        if (auraOutline != null) auraOutline.SetActive(isAura);
+        // A forged passive always wears the outline, as its yellow forged inline.
+        if (auraOutline != null)
+        {
+            auraOutline.SetActive(isAura || display.isForged);
+            TintAuraOutline(display.isForged);
+        }
         if (counterRoot != null) counterRoot.SetActive(isCounter);
+    }
+
+    private void TintAuraOutline(bool forged)
+    {
+        if (!_auraOutlineColorCaptured)
+        {
+            _auraOutlineImage = auraOutline.GetComponent<Image>();
+            if (_auraOutlineImage != null) _auraOutlineBaseColor = _auraOutlineImage.color;
+            _auraOutlineColorCaptured = true;
+        }
+
+        if (_auraOutlineImage != null)
+            _auraOutlineImage.color = forged ? forgedInlineTint : _auraOutlineBaseColor;
     }
 
     /// <summary>Pushes a (possibly fractional, mid-animation) remaining count to the ring and its text.</summary>

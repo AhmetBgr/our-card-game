@@ -10,51 +10,39 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e4270f2963f5e7a46ac06d374e4d4561, type: 3}
-  m_Name: SummonOnAttackedPassive
+  m_Name: Berserker_RagingBlood_Forged
   m_EditorClassIdentifier: Assembly-CSharp::TriggeredHeroPassiveSO
-  passiveName: Rally
-  description: When attacked, Summon a random 2-cost minion on a random Spawn tile. _-2 Attack._
-  isForged: 0
-  forgedVersion: {fileID: 11400000, guid: 3f13300900bb407e8b7df48b01428556, type: 2}
-  icon: {fileID: 21300000, guid: 2e0672d03b00bf14e833cf27eb2123cd, type: 3}
+  passiveName: Raging Blood
+  description: Gain +2 Attack for every 4 Health lost.
+  isForged: 1
+  forgedVersion: {fileID: 0}
+  icon: {fileID: 21300000, guid: 12d003855df46ed44ad722ace9f80c8c, type: 3}
   showIndicator: 1
-  indicatorType: 1
-  counterSource: 0
+  indicatorType: 2
+  counterSource: 1
   counterKey: 
-  counterMax: 1
-  counterOverflows: 0
+  counterMax: 4
+  counterOverflows: 1
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  trigger: 1
+  trigger: 0
   everyNTurns: 1
   subjectFilter:
     side: 0
     minAttack: 0
     minMaxHealth: 0
   suppressesCounterAttack: 0
-  heroAttackModifier: -2
+  heroAttackModifier: 0
   actions:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
         m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: Wait
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-        m_TargetAssemblyTypeName: ActionHolder, Assembly-CSharp
-        m_MethodName: SummonRandomMinionOnOwnSpawnRow
+        m_MethodName: ScaleDoubleAttackWithHealthLost
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 2
+          m_IntArgument: 4
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

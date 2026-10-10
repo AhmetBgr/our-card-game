@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e4270f2963f5e7a46ac06d374e4d4561, type: 3}
-  m_Name: Hunter_SpawnStrike
+  m_Name: Hunter_SpawnStrike_Forged
   m_EditorClassIdentifier: Assembly-CSharp::TriggeredHeroPassiveSO
   passiveName: Spawn Strike
-  description: When damaged, deal 2 damage to a random enemy minion on the enemy's
+  description: When damaged, deal 4 damage to a random enemy minion on the enemy's
     spawn tile.
-  isForged: 0
-  forgedVersion: {fileID: 11400000, guid: 4dc158fcd77741418e1bd50a6497c1a0, type: 2}
+  isForged: 1
+  forgedVersion: {fileID: 0}
   icon: {fileID: 21300000, guid: 4aee442e3217705469247900163c65d7, type: 3}
   showIndicator: 1
   indicatorType: 1
@@ -79,7 +79,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: -2
+          m_IntArgument: -4
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

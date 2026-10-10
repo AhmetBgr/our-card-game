@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GauntletConfigSO
   heroChoiceCount: 3
   initialDeckSize: 5
+  initialDraftMaxCost: 4
   cardChoiceCount: 3
   allowDuplicates: 1
   distinctOptionsPerPick: 1
@@ -26,13 +27,29 @@ MonoBehaviour:
   - label: Battle 1
     enemyHealthMultiplier: 0.33
     enemyDeckSize: 10
+    enemyBlessings: 0
   - label: Battle 2
     enemyHealthMultiplier: 0.5
     enemyDeckSize: 10
+    enemyBlessings: 1
+  - label: Battle 3
+    enemyHealthMultiplier: 0.75
+    enemyDeckSize: 10
+    enemyBlessings: 3
   - label: Final Battle
     enemyHealthMultiplier: 1
     enemyDeckSize: 10
+    enemyBlessings: 5
   avoidMirrorHero: 0
+  blessingPool: 0000000001000000020000000300000004000000050000000600000007000000
+  extraPassiveMaxStacks: 2
+  strongerMinionsCount: 3
+  strongerMinionsBonus: 1
+  upgradedDeckSize: 15
+  bonusHealth: 5
+  startingMinionCost: 3
+  extraStartingCards: 2
+  blessedStartingMana: 3
   draftSceneName: Draft
   gameSceneName: Game
   menuSceneName: MainMenu

@@ -1454,7 +1454,15 @@ public class ActionHolder : ScriptableObject
 
         curActionsList.Enqueue(_ScaleAttackWithHealthLost(healthPerAttack));
     }
-    public IEnumerator _ScaleAttackWithHealthLost(int healthPerAttack)
+
+    /// <summary>Forged Raging Blood: as ScaleAttackWithHealthLost, but +2 attack per `healthPerAttack` health lost.</summary>
+    public void ScaleDoubleAttackWithHealthLost(int healthPerAttack)
+    {
+        if (GameManager.Instance.isTesting) return;
+
+        curActionsList.Enqueue(_ScaleAttackWithHealthLost(healthPerAttack, 2));
+    }
+    public IEnumerator _ScaleAttackWithHealthLost(int healthPerAttack, int attackPerStack = 1)
     {
         var hero = thisMinion;
         var runtime = HeroRuntime.For(hero);
@@ -1467,7 +1475,8 @@ public class ActionHolder : ScriptableObject
 
         int per = Mathf.Max(1, healthPerAttack);
         int healthLost = Mathf.Max(0, hero.modal.defHealth - hero.modal.health);
-        int owedBonus = healthLost / per;
+        // appliedAttackBonus is in attack, not stacks, so it also tracks the forged +2-per-stack version.
+        int owedBonus = (healthLost / per) * Mathf.Max(1, attackPerStack);
 
         if (owedBonus > runtime.appliedAttackBonus)
         {
@@ -2053,6 +2062,37 @@ public class ActionHolder : ScriptableObject
         Agent owner = thisMinion != null ? thisMinion.owner : null;
         curActionsList.Enqueue(_SummonMinionForAgentOnSpawnRow(card, owner));
     }
+    /// <summary>
+    /// As SummonMinionOnOwnSpawnRow, but the minion is a random BASE (not forged) minion of `cost`, rolled
+    /// when the summon resolves. Rally summons a random 2-cost, its forged version a random 3-cost.
+    /// </summary>
+    public void SummonRandomMinionOnOwnSpawnRow(int cost)
+    {
+        Agent owner = thisMinion != null ? thisMinion.owner : null;
+        curActionsList.Enqueue(_SummonRandomMinionForAgentOnSpawnRow(cost, owner));
+    }
+    public IEnumerator _SummonRandomMinionForAgentOnSpawnRow(int cost, Agent owner)
+    {
+        if (DeckDatabase.Instance == null || DeckDatabase.Instance.AllCards == null)
+        {
+            Debug.LogWarning("SummonRandomMinionOnOwnSpawnRow: DeckDatabase unavailable");
+            yield break;
+        }
+
+        var candidates = DeckDatabase.Instance.AllCards
+            .Where(c => c != null && c.cost == cost && c.health > 0 && !c.isUpgraded && !(c is HeroSO))
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            Debug.LogWarning("SummonRandomMinionOnOwnSpawnRow: no minion with cost " + cost);
+            yield break;
+        }
+
+        CardSO picked = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+        yield return _SummonMinionForAgentOnSpawnRow(picked, owner);
+    }
+
     public IEnumerator _SummonMinionForAgentOnSpawnRow(CardSO card, Agent owner)
     {
         if (card == null || owner == null) yield break;

@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TriggeredHeroPassiveSO
   passiveName: Raging Blood
   description: Gain +1 Attack for every 4 Health lost.
+  isForged: 0
+  forgedVersion: {fileID: 11400000, guid: 21592666fd224fc096a193c29be67d0a, type: 2}
   icon: {fileID: 21300000, guid: 12d003855df46ed44ad722ace9f80c8c, type: 3}
   showIndicator: 1
   indicatorType: 2

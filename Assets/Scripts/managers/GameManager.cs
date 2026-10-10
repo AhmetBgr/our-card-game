@@ -74,7 +74,11 @@ public class GameManager : Singleton<GameManager>
 
     // The tutorial only changes where the player's ramp STARTS — from there it climbs by one a turn
     // like any other match, so the head start narrows rather than compounding.
-    private int PlayerStartingMana => IsTutorialMatch ? tutorialPlayerStartingMana : playerStartingMana;
+    private int PlayerStartingMana => GauntletRun.StartingManaFor(SelectionSide.Player,
+        IsTutorialMatch ? tutorialPlayerStartingMana : playerStartingMana);
+
+    // Forged in Battle's Head Start blessing raises it; otherwise the configured value.
+    private int OpponentStartingMana => GauntletRun.StartingManaFor(SelectionSide.Opponent, opponentStartingMana);
 
     // "This side hasn't taken a turn yet", so their next turn opens on their starting mana rather
     // than one more than last turn's.
@@ -299,11 +303,13 @@ public class GameManager : Singleton<GameManager>
     }
 
     /// <summary>
-    /// The passives the setup screen added for <paramref name="side"/> on top of the hero's own, or null
-    /// unless the multiple-passives modifier is on for this match.
+    /// The passives added for <paramref name="side"/> on top of the hero's own: a Forged in Battle
+    /// enemy's Extra Passive blessings, else the setup screen's picks, or null unless the
+    /// multiple-passives modifier is on for this match.
     /// </summary>
-    static List<HeroPassiveSO> ExtraPassivesFor(SelectionSide side)
+    static IReadOnlyList<HeroPassiveSO> ExtraPassivesFor(SelectionSide side)
     {
+        if (GauntletRun.IsActive) return GauntletRun.ExtraPassivesFor(side);
         if (!MatchModifiers.ExtraPassivesEnabled || SaveManager.Instance == null || HeroDatabase.Instance == null) return null;
         return HeroDatabase.Instance.ResolvePassives(SaveManager.Instance.GetExtraPassives(side));
     }
@@ -326,11 +332,13 @@ public class GameManager : Singleton<GameManager>
         MatchModifiers.ApplyHeroSetup(player != null ? player.hero : null, SelectionSide.Player);
         MatchModifiers.ApplyHeroSetup(opponent != null ? opponent.hero : null, SelectionSide.Opponent);
 
-        // Forged in Battle scales the enemy's health per encounter. No-op outside a run.
+        // Forged in Battle scales the enemy's health per encounter and arms its blessings. No-op outside a run.
         GauntletRun.ApplyEnemySetup(opponent != null ? opponent.hero : null);
 
-        heroPassives.Register(player != null ? player.hero : null, ExtraPassivesFor(SelectionSide.Player));
-        heroPassives.Register(opponent != null ? opponent.hero : null, ExtraPassivesFor(SelectionSide.Opponent));
+        heroPassives.Register(player != null ? player.hero : null, ExtraPassivesFor(SelectionSide.Player),
+            GauntletRun.OwnPassivesFor(SelectionSide.Player));
+        heroPassives.Register(opponent != null ? opponent.hero : null, ExtraPassivesFor(SelectionSide.Opponent),
+            GauntletRun.OwnPassivesFor(SelectionSide.Opponent));
 
         // ...and carries the player's hero over from the last won battle: health, attack, passive state.
         // After Register, so the carried attack replaces the passives' self-stat stamp instead of
@@ -342,6 +350,17 @@ public class GameManager : Singleton<GameManager>
         //Debug.Log("Setting up game...");
         yield return new WaitForSeconds(0.5f);
 
+        // A blessed enemy may start with a minion on the board. After Register, so hero auras stamp it,
+        // and after the wait above: the board's cells register with the grid in their own Start, which
+        // has not run yet when this coroutine begins.
+        GauntletRun.SummonStartingMinion(opponent);
+
+        player.DrawCard();
+        yield return new WaitForSeconds(0.5f);
+
+        opponent.DrawCard();
+        yield return new WaitForSeconds(0.5f);
+
         player.DrawCard();
         yield return new WaitForSeconds(0.5f);
 
@@ -354,11 +373,17 @@ public class GameManager : Singleton<GameManager>
         opponent.DrawCard();
         yield return new WaitForSeconds(0.5f);
 
-        player.DrawCard();
-        yield return new WaitForSeconds(0.5f);
-
-        opponent.DrawCard();
-        yield return new WaitForSeconds(0.5f);
+        // Forged in Battle's Bigger Hand blessing. 0 outside a run.
+        for (int i = GauntletRun.ExtraStartingCardsFor(SelectionSide.Player); i > 0; i--)
+        {
+            player.DrawCard();
+            yield return new WaitForSeconds(0.5f);
+        }
+        for (int i = GauntletRun.ExtraStartingCardsFor(SelectionSide.Opponent); i > 0; i--)
+        {
+            opponent.DrawCard();
+            yield return new WaitForSeconds(0.5f);
+        }
 
         /*player.DrawCard(true);
         yield return new WaitForSeconds(0.25f);
@@ -667,7 +692,7 @@ public class GameManager : Singleton<GameManager>
 
         currentState = GameState.OpponentTurn;
         //Debug.Log("Opponent's Turn");
-        OpponentMaxMana = GrowMaxMana(OpponentMaxMana, opponentStartingMana);
+        OpponentMaxMana = GrowMaxMana(OpponentMaxMana, OpponentStartingMana);
         opponent.availibleMana = OpponentMaxMana;
 
         yield return StartCoroutine(DrawTurnStartCards(opponent));

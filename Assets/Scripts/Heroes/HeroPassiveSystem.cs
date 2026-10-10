@@ -26,7 +26,10 @@ public class HeroPassiveSystem
     /// Attaches runtime state to a hero whose card is a HeroSO with passives. Heroes without passives
     /// are skipped, so a plain CardSO hero keeps behaving exactly as before.
     /// </summary>
-    public void Register(MinionController hero, IReadOnlyList<HeroPassiveSO> extraPassives = null)
+    /// <param name="ownPassives">Plays in place of the HeroSO's own list when given (a Forged in Battle
+    /// enemy whose passive was forged by a blessing).</param>
+    public void Register(MinionController hero, IReadOnlyList<HeroPassiveSO> extraPassives = null,
+        IReadOnlyList<HeroPassiveSO> ownPassives = null)
     {
         if (hero == null) return;
         if (!(hero.card is HeroSO heroSO)) return;
@@ -34,9 +37,10 @@ public class HeroPassiveSystem
         // The hero's own passives first (order is the order they resolve in), then the extras, with
         // anything already present skipped so a picked copy of the hero's own passive is not doubled.
         var passives = new List<HeroPassiveSO>();
-        if (heroSO.passives != null)
-            for (int i = 0; i < heroSO.passives.Count; i++)
-                if (heroSO.passives[i] != null && !passives.Contains(heroSO.passives[i])) passives.Add(heroSO.passives[i]);
+        IReadOnlyList<HeroPassiveSO> own = ownPassives ?? heroSO.passives;
+        if (own != null)
+            for (int i = 0; i < own.Count; i++)
+                if (own[i] != null && !passives.Contains(own[i])) passives.Add(own[i]);
 
         // MaxExtraPassives is enforced HERE rather than on the saved list, because only here is it
         // decidable what an extra actually is: an entry the hero already owns adds nothing, so it must

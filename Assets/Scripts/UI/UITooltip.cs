@@ -107,6 +107,27 @@ public class UITooltip : MonoBehaviour
         PlaceAt(point);
     }
 
+    /// <summary>Shows <paramref name="text"/> centred under <paramref name="target"/>, with the panel art.</summary>
+    public void ShowBelow(string text, RectTransform target)
+    {
+        if (string.IsNullOrEmpty(text) || target == null)
+            return;
+
+        EnsureInitialized();
+
+        gameObject.SetActive(true);
+
+        if (label != null)
+            label.text = text;
+
+        ShowBackground(true);
+
+        // Content-sized like Show(): the width decides how far it has to clamp.
+        LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+
+        PlaceBelow(target);
+    }
+
     public void Hide()
     {
         gameObject.SetActive(false);
@@ -159,6 +180,26 @@ public class UITooltip : MonoBehaviour
         p.y = Mathf.Clamp(p.y, -halfH + rect.rect.height * 0.5f, halfH - rect.rect.height * 0.5f);
 
         rect.anchoredPosition = p;
+    }
+
+    // Hangs the panel from the target's bottom edge, centred on it and kept inside the canvas sideways.
+    void PlaceBelow(RectTransform target)
+    {
+        if (canvasRect == null)
+            return;
+
+        var corners = new Vector3[4];
+        target.GetWorldCorners(corners);
+
+        Vector2 min = canvasRect.InverseTransformPoint(corners[0]);
+        Vector2 max = canvasRect.InverseTransformPoint(corners[2]);
+
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 1f);
+
+        float halfW = canvasRect.rect.width * 0.5f;
+        float x = Mathf.Clamp((min.x + max.x) * 0.5f, -halfW + rect.rect.width * 0.5f, halfW - rect.rect.width * 0.5f);
+        rect.anchoredPosition = new Vector2(x, min.y - gap);
     }
 
     // Prefers the right of the target, flipping to the left when the panel would overhang the canvas.

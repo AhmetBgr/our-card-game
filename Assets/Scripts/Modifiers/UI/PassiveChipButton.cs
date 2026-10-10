@@ -13,6 +13,8 @@ public class PassiveChipButton : MonoBehaviour, IPointerClickHandler
     [SerializeField] private GameObject selectedFrame;
     [SerializeField] private GameObject lockedOverlay;
     [SerializeField] private UITooltipTrigger tooltip;
+    [Tooltip("Yellow outline shown while the chip holds a FORGED passive, like a forged minion's inline.")]
+    [SerializeField] private GameObject forgedInline;
 
     [Tooltip("Icon tint while the passive is not picked.")]
     [SerializeField] private Color unselectedTint = new Color(1f, 1f, 1f, 0.45f);
@@ -36,8 +38,36 @@ public class PassiveChipButton : MonoBehaviour, IPointerClickHandler
 
         if (icon != null) icon.sprite = passive.icon;
         if (tooltip != null) tooltip.Message = TooltipFor(passive);
+        ShowForgedInline(passive);
 
         SetState(locked: false, selected: false);
+    }
+
+    /// <summary>
+    /// Shows a passive for display only (icon at full colour and its tooltip), with no picked or locked
+    /// state. Null clears the icon and the tooltip.
+    /// </summary>
+    public void ShowPassive(HeroPassiveSO passive)
+    {
+        Passive = passive;
+
+        if (icon != null)
+        {
+            icon.gameObject.SetActive(passive != null && passive.icon != null);
+            if (passive != null) icon.sprite = passive.icon;
+            icon.color = Color.white;
+        }
+        if (tooltip != null)
+        {
+            tooltip.Message = passive != null ? TooltipFor(passive) : null;
+            tooltip.enabled = passive != null;
+        }
+        ShowForgedInline(passive);
+    }
+
+    private void ShowForgedInline(HeroPassiveSO passive)
+    {
+        if (forgedInline != null) forgedInline.SetActive(passive != null && passive.isForged);
     }
 
     /// <summary>

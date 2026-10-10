@@ -82,7 +82,8 @@ public class PassiveSelectionController : MonoBehaviour
 
         foreach (HeroPassiveSO passive in HeroDatabase.Instance.AllPassives)
         {
-            if (passive == null) continue;
+            // Forged passives are upgrades, not picks; they stay in AllPassives only so they resolve by name.
+            if (passive == null || passive.isForged) continue;
 
             PassiveChipButton chip = Instantiate(chipPrefab, chipsContainer);
             chip.name = passive.name;

@@ -3,6 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// A buff the enemy of a Forged in Battle battle may be rolled with. Later battles roll more of them
+/// (<see cref="GauntletConfigSO.Encounter.enemyBlessings"/>); <see cref="GauntletRun"/> applies them.
+/// </summary>
+public enum GauntletBlessing
+{
+    /// <summary>The first few minions the enemy summons get +1/+1.</summary>
+    StrongerMinions,
+    /// <summary>The enemy's deck is made of upgraded cards, on a balanced curve, duplicates allowed.</summary>
+    UpgradedDeck,
+    /// <summary>A random extra passive. The only blessing that can be rolled more than once.</summary>
+    ExtraPassive,
+    /// <summary>Extra health on the enemy hero.</summary>
+    BonusHealth,
+    /// <summary>The enemy starts with a random minion already on its spawn row.</summary>
+    StartingMinion,
+    /// <summary>Extra cards in the enemy's starting hand.</summary>
+    BiggerHand,
+    /// <summary>The enemy's mana ramp starts higher.</summary>
+    StartingMana,
+    /// <summary>One of the enemy hero's own passives is swapped for its forged version.</summary>
+    ForgedPassive,
+}
+
+/// <summary>
 /// Tuning for the Forged in Battle mode (the draft gauntlet): the player picks a hero and drafts a small
 /// deck out of base cards, then fights a fixed sequence of AI opponents, drafting more cards after each
 /// win. Loaded from <see cref="ResourcePath"/>, like the other Resources-backed configs.
@@ -23,6 +47,9 @@ public class GauntletConfigSO : ScriptableObject
 
         [Tooltip("Cards in the enemy's randomly generated base-card deck.")]
         [Min(1)] public int enemyDeckSize = 10;
+
+        [Tooltip("Random blessings (enemy buffs) rolled for this battle, from the blessing pool.")]
+        [Min(0)] public int enemyBlessings = 0;
     }
 
     [Header("Draft")]
@@ -65,13 +92,53 @@ public class GauntletConfigSO : ScriptableObject
     [Tooltip("Fought in order. Clearing the last one wins the run.")]
     public List<Encounter> encounters = new List<Encounter>
     {
-        new Encounter { label = "Battle 1", enemyHealthMultiplier = 0.33f, enemyDeckSize = 10 },
-        new Encounter { label = "Battle 2", enemyHealthMultiplier = 0.5f, enemyDeckSize = 10 },
-        new Encounter { label = "Final Battle", enemyHealthMultiplier = 1f, enemyDeckSize = 10 },
+        new Encounter { label = "Battle 1", enemyHealthMultiplier = 0.33f, enemyDeckSize = 10, enemyBlessings = 0 },
+        new Encounter { label = "Battle 2", enemyHealthMultiplier = 0.5f, enemyDeckSize = 10, enemyBlessings = 1 },
+        new Encounter { label = "Battle 3", enemyHealthMultiplier = 0.75f, enemyDeckSize = 10, enemyBlessings = 2 },
+        new Encounter { label = "Final Battle", enemyHealthMultiplier = 1f, enemyDeckSize = 10, enemyBlessings = 3 },
     };
 
     [Tooltip("When on, an enemy never uses the same hero the player picked (if another hero exists).")]
     public bool avoidMirrorHero = false;
+
+    [Header("Blessings")]
+    [Tooltip("Blessings an encounter can roll. Each is rolled at most once per battle, except Extra Passive, " +
+             "which can stack up to extraPassiveMaxStacks times.")]
+    public List<GauntletBlessing> blessingPool = new List<GauntletBlessing>
+    {
+        GauntletBlessing.StrongerMinions,
+        GauntletBlessing.UpgradedDeck,
+        GauntletBlessing.ExtraPassive,
+        GauntletBlessing.BonusHealth,
+        GauntletBlessing.StartingMinion,
+        GauntletBlessing.BiggerHand,
+        GauntletBlessing.StartingMana,
+        GauntletBlessing.ForgedPassive,
+    };
+
+    [Tooltip("How many times Extra Passive can be rolled for one battle.")]
+    [Range(1, MatchModifiers.MaxExtraPassives)] public int extraPassiveMaxStacks = 2;
+
+    [Tooltip("Stronger Minions: how many of the enemy's first summoned minions are buffed.")]
+    [Min(1)] public int strongerMinionsCount = 3;
+
+    [Tooltip("Stronger Minions: attack and health added to each of them.")]
+    [Min(1)] public int strongerMinionsBonus = 1;
+
+    [Tooltip("Upgraded Deck: cards in the enemy's upgraded deck (replaces the encounter's deck size).")]
+    [Min(1)] public int upgradedDeckSize = 15;
+
+    [Tooltip("Bonus Health: added to the enemy hero's health after the encounter's multiplier.")]
+    [Min(1)] public int bonusHealth = 5;
+
+    [Tooltip("Starting Minion: mana cost of the random base minion the enemy starts with on the board.")]
+    [Min(0)] public int startingMinionCost = 3;
+
+    [Tooltip("Bigger Hand: extra cards in the enemy's starting hand.")]
+    [Min(1)] public int extraStartingCards = 2;
+
+    [Tooltip("Starting Mana: max mana the enemy has on its first turn.")]
+    [Min(1)] public int blessedStartingMana = 3;
 
     [Header("Scenes")]
     public string draftSceneName = "Draft";

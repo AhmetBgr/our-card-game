@@ -13,6 +13,14 @@ public abstract class HeroPassiveSO : ScriptableObject
     public string passiveName;
     [TextArea] public string description;
 
+    [Header("Forge")]
+    [Tooltip("This asset IS the forged (upgraded) version of a passive. Drawn with the yellow forged inline, " +
+             "like a minion summoned from a forged card. Kept out of the custom-game passive picker.")]
+    public bool isForged = false;
+
+    [Tooltip("The forged version of this passive. Empty on a passive that is already forged.")]
+    public HeroPassiveSO forgedVersion;
+
     [Header("Indicator")]
     [Tooltip("Shown on the hero's passive indicator row. Leave empty to render no indicator.")]
     public Sprite icon;
@@ -93,7 +101,7 @@ public abstract class HeroPassiveSO : ScriptableObject
 
         ResolveCounter(runtime, out int value, out int max, out int progress, out bool fromProgress);
         return new HeroPassiveDisplay(icon, passiveName, description, indicatorType,
-            value, max, progress, fromProgress);
+            value, max, progress, fromProgress, isForged: isForged);
     }
 
     /// <summary>
