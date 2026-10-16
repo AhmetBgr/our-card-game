@@ -27,9 +27,37 @@ public enum GauntletBlessing
 }
 
 /// <summary>
+/// What a milestone of the Forged in Battle progression track gives the player once the run's XP (the
+/// summed end-of-match scores) reaches it. Every milestone's reward is rolled from
+/// <see cref="GauntletConfigSO.randomRewardPool"/> when the hero is picked.
+///
+/// New base cards are deliberately NOT in here: those are the reward of winning a battle, handed out by
+/// the rewards panel over the end-of-match screen (<see cref="GauntletRun.PendingBattleReward"/>).
+/// </summary>
+public enum MilestoneReward
+{
+    /// <summary>Nothing yet: a placeholder milestone, used when the pool has nothing left to offer.</summary>
+    None,
+    /// <summary>Draft upgraded cards, one pick at a time.</summary>
+    UpgradedCards,
+    /// <summary>Draft one extra passive for the hero.</summary>
+    NewPerk,
+    /// <summary>One of the hero's passives, picked at random, is swapped for its forged version.</summary>
+    ForgePerk,
+    /// <summary>More max (and current) health for the hero.</summary>
+    BonusHealth,
+    /// <summary>More attack for the hero.</summary>
+    BonusAttack,
+    /// <summary>More cards in the player's starting hand, every battle for the rest of the run.</summary>
+    BiggerHand,
+    /// <summary>Pick one of a few random cards already in the deck; a second copy of it is added.</summary>
+    DuplicateCard,
+}
+
+/// <summary>
 /// Tuning for the Forged in Battle mode (the draft gauntlet): the player picks a hero and drafts a small
-/// deck out of base cards, then fights a fixed sequence of AI opponents, drafting more cards after each
-/// win. Loaded from <see cref="ResourcePath"/>, like the other Resources-backed configs.
+/// deck out of base cards, then fights a fixed sequence of AI opponents. Each win's score is added to the
+/// run's XP, which unlocks rewards along the milestone track. Loaded from <see cref="ResourcePath"/>, like the other Resources-backed configs.
 /// </summary>
 [CreateAssetMenu(fileName = "GauntletConfig", menuName = "Game Modes/Gauntlet Config")]
 public class GauntletConfigSO : ScriptableObject
@@ -59,7 +87,7 @@ public class GauntletConfigSO : ScriptableObject
     [Tooltip("Cards drafted before the first battle.")]
     [Min(1)] public int initialDeckSize = 5;
 
-    [Tooltip("Highest mana cost offered in the opening draft (before the first battle). Picks after a win " +
+    [Tooltip("Highest mana cost offered in the opening draft (before the first battle). Milestone picks " +
              "are not capped. 0 = no cap.")]
     [Min(0)] public int initialDraftMaxCost = 4;
 
@@ -72,10 +100,59 @@ public class GauntletConfigSO : ScriptableObject
     [Tooltip("When on, the options of a single pick are all different cards.")]
     public bool distinctOptionsPerPick = true;
 
-    [Header("Between battles")]
-    [Tooltip("Cards added to the deck after each won battle (one pick each).")]
-    [Min(0)] public int cardsAddedAfterWin = 2;
+    [Header("Milestones")]
+    [Tooltip("XP between the regular milestones: the track's nodes sit at this step, twice it, and so on. The " +
+             "track unlocks once the first battle is won; every reached milestone must be claimed before the next battle.")]
+    [Min(1)] public int milestoneXpStep = 266;
 
+    [Tooltip("Regular nodes on the track, evenly spaced by the step above. Each is rolled a reward from the random pool.")]
+    [Min(1)] public int milestoneCount = 3;
+
+    [Tooltip("Rewards a regular milestone can roll. A run rolls each at most once while there are enough to go " +
+             "around; rewards that can't apply to the picked hero are left out.")]
+    public List<MilestoneReward> randomRewardPool = new List<MilestoneReward>
+    {
+        MilestoneReward.UpgradedCards,
+        MilestoneReward.BonusHealth,
+        MilestoneReward.BonusAttack,
+        MilestoneReward.BiggerHand,
+        MilestoneReward.DuplicateCard,
+    };
+
+    [Tooltip("XP of the final milestone, after the regular ones. 0 leaves it out.")]
+    [Min(0)] public int finalMilestoneXp = 900;
+
+    [Tooltip("Rewards the final milestone can roll; rewards that can't apply to the picked hero (Forge Perk " +
+             "with nothing to forge) are left out.")]
+    public List<MilestoneReward> finalRewardPool = new List<MilestoneReward>
+    {
+        MilestoneReward.NewPerk,
+        MilestoneReward.ForgePerk,
+    };
+
+    [Tooltip("Upgraded Cards: upgraded cards drafted (one pick each).")]
+    [Min(1)] public int milestoneUpgradedPicks = 1;
+
+    [Tooltip("New Perk: passives offered; the player keeps one.")]
+    [Min(1)] public int perkChoiceCount = 3;
+
+    [Tooltip("Bonus Health: added to the hero's max and current health.")]
+    [Min(1)] public int milestoneBonusHealth = 3;
+
+    [Tooltip("Bonus Attack: added to the hero's attack.")]
+    [Min(1)] public int milestoneBonusAttack = 1;
+
+    [Tooltip("Bigger Hand: cards added to the player's starting hand, every battle for the rest of the run.")]
+    [Min(1)] public int milestoneExtraStartingCards = 1;
+
+    [Tooltip("Duplicate: cards of the deck offered; the player picks one to add a second copy of.")]
+    [Min(1)] public int duplicateChoiceCount = 3;
+
+    [Header("Battle rewards")]
+    [Tooltip("Base cards the rewards panel offers after a won battle (one pick of cardChoiceCount each).")]
+    [Min(1)] public int battleCardPicks = 2;
+
+    [Header("Between battles")]
     [Tooltip("Flat health restored to the player's hero after a won battle. 0 = no healing. Never above max health.")]
     [Min(0)] public int healAfterWin = 0;
 

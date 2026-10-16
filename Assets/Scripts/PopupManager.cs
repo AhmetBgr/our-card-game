@@ -50,11 +50,21 @@ public class PopupManager : Singleton<PopupManager>
 
     // Proceed leaves the match for the main menu, from which the next match can either be started
     // straight away (Quick Play) or reconfigured (Custom Game). In a Forged in Battle run it goes back
-    // to the Draft scene instead, which shows the next draft step or the run's result.
+    // to the Draft scene instead, which shows the next draft step or the run's result -- but a won
+    // battle hands its rewards out first: the end-game panel closes and BattleRewardsPanel takes over,
+    // and its own Proceed is what leaves for the Draft scene.
     public void ExitToMenu()
     {
         if (GauntletRun.IsActive)
         {
+            var rewards = BattleRewardsPanel.HasRewards ? BattleRewardsPanel.Resolve() : null;
+            if (rewards != null)
+            {
+                CloseCurPopup();
+                rewards.Show();
+                return;
+            }
+
             GauntletRun.LeaveBattle();
             return;
         }
@@ -110,6 +120,13 @@ public class PopupManager : Singleton<PopupManager>
         const float scaleInDuration = 0.5f;
 
         var statsView = popup.GetComponentInChildren<MatchStatsView>(true);
+
+        // In a run, the panel also carries the milestone track, which fills with the score being tallied.
+        // Wired before the reveal starts so it is on screen from the first number, and left to itself on
+        // panels without one.
+        var xpTrack = popup.GetComponentInChildren<BattleXpTrack>(true);
+        if (xpTrack != null) xpTrack.Show(won, statsView);
+
         // The stats view reveals its rows one by one; hold them until the panel has finished scaling in.
         if (statsView != null) statsView.Show(won, delay + scaleInDuration);
 

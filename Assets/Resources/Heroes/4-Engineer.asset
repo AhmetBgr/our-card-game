@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: 4-Engineer
   m_EditorClassIdentifier: 
   actionHolder: {fileID: 11400000, guid: 1f779a62abab5c049b5462640f34ddf7, type: 2}
-  minionArt: {fileID: 21300000, guid: 6a57c7dca517e6148a97d3e937dc17c8, type: 3}
-  cardArt: {fileID: 21300000, guid: 6a57c7dca517e6148a97d3e937dc17c8, type: 3}
-  cardName: Engineer
+  minionArt: {fileID: 21300000, guid: d824808e2ed07e14c825194d59c8ad41, type: 3}
+  cardArt: {fileID: 21300000, guid: d824808e2ed07e14c825194d59c8ad41, type: 3}
+  cardName: Blacksmith
   desc: ' Friendly minions have +1 Clash Damage'
   attack: 2
   health: 15
@@ -49,6 +49,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnAnyMinionSummoned:
+    m_PersistentCalls:
+      m_Calls: []
+  OnThisMinionSummoned:
     m_PersistentCalls:
       m_Calls: []
   OnOwnerDrewCard:

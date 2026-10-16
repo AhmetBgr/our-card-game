@@ -404,9 +404,19 @@ public class MatchStatsView : MonoBehaviour
         catch (System.FormatException) { rankText.text = grade; }
     }
 
+    /// <summary>
+    /// The score the panel is showing right now: 0 at the start of a reveal, climbing to the final total
+    /// as the rows land. Raised on every change, including the jump a skip makes.
+    ///
+    /// Purely additive, like PopupManager.GameOver: the gauntlet's XP track (BattleXpTrack) rides on it so
+    /// its bar fills in step with the number, and nothing here depends on anyone listening.
+    /// </summary>
+    public event System.Action<int> ShownScoreChanged;
+
     private void SetScoreText(int value)
     {
         if (scoreText != null) scoreText.text = value.ToString("N0");
+        ShownScoreChanged?.Invoke(value);
     }
 
     // The highest-score line is on screen for the whole panel. During the count-up it shows the best as

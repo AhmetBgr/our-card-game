@@ -62,6 +62,7 @@ public class PassiveChipButton : MonoBehaviour, IPointerClickHandler
             tooltip.Message = passive != null ? TooltipFor(passive) : null;
             tooltip.enabled = passive != null;
         }
+        if (lockedOverlay != null) lockedOverlay.SetActive(false);
         ShowForgedInline(passive);
     }
 

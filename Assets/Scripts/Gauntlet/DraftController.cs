@@ -9,11 +9,15 @@ using UnityEngine.UI;
 /// Drives the Draft scene of Forged in Battle. Every visit to the scene shows whichever step the
 /// <see cref="GauntletRun"/> is on:
 ///   1. no hero yet: pick 1 of N heroes in the draft panel;
-///   2. card picks owed: pick 1 of N base cards in the draft panel, until the step's picks are done;
-///   3. nothing owed: the draft panel hides and the upcoming battle's skull on the track becomes the way
+///   2. card picks owed: pick 1 of N base cards in the draft panel, until the step's picks are done.
+///      A claimed card milestone owes picks the same way (upgraded cards too); a perk milestone owes a
+///      pick of 1 of N passives;
+///   3. a reached milestone unclaimed: the draft panel asks for it to be claimed. Hovering a milestone
+///      on the track previews it in the draft panel, clicking a reached one claims it;
+///   4. nothing owed: the draft panel hides and the upcoming battle's skull on the track becomes the way
 ///      in: clicking it keeps the Next Match panel up and shows the Proceed button under the skull.
 ///      Hovering that skull previews the enemy at any point once a hero is picked, mid-draft included;
-///   4. run over: the result in the draft panel's header, with New Run and Main Menu.
+///   5. run over: the result in the draft panel's header, with New Run and Main Menu.
 /// Entering the scene with no run active (from the menu, or opened directly in the editor) starts one.
 ///
 /// Card options are drawn with the same display-only card prefab the in-match card choice uses
@@ -22,33 +26,6 @@ using UnityEngine.UI;
 /// </summary>
 public class DraftController : MonoBehaviour
 {
-    /// <summary>One hero panel of the layout: name plate, portrait with stats, passive chips.</summary>
-    [System.Serializable]
-    private class HeroPanelView
-    {
-        public GameObject root;
-        public TextMeshProUGUI nameText;
-        public HeroButtonHandler portrait;
-        [Tooltip("Overwritten after the portrait fills in, with the health the hero will actually start at.")]
-        public TextMeshProUGUI healthText;
-        public TextMeshProUGUI attackText;
-        [Tooltip("Filled in order with the hero's passives; chips past the last passive keep their empty look.")]
-        public PassiveChipButton[] passiveChips;
-
-        /// <summary>Resolves the parts of a spawned HeroPanel prefab instance. Stats keep the printed values.</summary>
-        public static HeroPanelView FromInstance(GameObject go)
-        {
-            var nameBg = go.transform.Find("NameBG");
-            return new HeroPanelView
-            {
-                root = go,
-                nameText = nameBg != null ? nameBg.GetComponentInChildren<TextMeshProUGUI>(true) : null,
-                portrait = go.GetComponentInChildren<HeroButtonHandler>(true),
-                passiveChips = go.GetComponentsInChildren<PassiveChipButton>(true),
-            };
-        }
-    }
-
     /// <summary>One skull on the battle track.</summary>
     [System.Serializable]
     private class BattleNode
@@ -88,8 +65,8 @@ public class DraftController : MonoBehaviour
     [SerializeField] private CardButtonHandler deckEntryTemplate;
 
     [Header("Heroes")]
-    [SerializeField] private HeroPanelView playerHero;
-    [SerializeField] private HeroPanelView enemyHero;
+    [SerializeField] private GauntletHeroPanelView playerHero;
+    [SerializeField] private GauntletHeroPanelView enemyHero;
 
     [Header("Next match")]
     [SerializeField] private GameObject nextMatchPanel;
@@ -102,6 +79,15 @@ public class DraftController : MonoBehaviour
     [SerializeField] private float proceedGap = 4f;
     [Tooltip("Skull tint once its battle is won; the others are shown untinted.")]
     [SerializeField] private Color beatenSkullTint = new Color(0.396f, 0.396f, 0.396f, 1f);
+
+    [Header("Milestones")]
+    [SerializeField] private MilestoneTrack milestoneTrack;
+    [Tooltip("Passive chip prefab (PassiveChip) used for each perk option.")]
+    [SerializeField] private PassiveChipButton perkOptionPrefab;
+    [Tooltip("Size each perk option takes in the options row.")]
+    [SerializeField] private Vector2 perkOptionSize = new Vector2(170f, 210f);
+    [SerializeField] private float perkIconScale = 1.8f;
+    [SerializeField] private float perkTextSize = 14f;
 
     [Header("Buttons")]
     [Tooltip("Proceed on the briefing step (sits under the selected skull); New Run on the result step.")]
@@ -137,14 +123,19 @@ public class DraftController : MonoBehaviour
         if (nextMatchRulesText != null) _rulesFontSize = nextMatchRulesText.fontSize;
         ClearAuthoredPlaceholders();
         HookBattleNodes();
+        if (milestoneTrack != null)
+        {
+            milestoneTrack.NodeHovered += OnMilestoneHover;
+            milestoneTrack.NodeClicked += OnMilestoneClicked;
+        }
         Refresh();
+        RefreshMilestones(animate: true);
     }
 
     // ---------------------------------------------------------------- Steps
 
     private void Refresh()
     {
-        ClearOptions();
         _nextMatchPinned = false;
 
         bool inProgress = GauntletRun.Outcome == GauntletRun.RunOutcome.InProgress;
@@ -155,17 +146,28 @@ public class DraftController : MonoBehaviour
             GauntletRun.PrepareNextBattle();
 
         RefreshDeck();
-        RefreshHero(playerHero, GauntletRun.Hero, carried: true);
+        playerHero?.ShowRunHero();
         RefreshNextMatch();
         RefreshTrack();
+        if (milestoneTrack != null) milestoneTrack.RefreshStates();
         SetNextMatchVisible(false);
 
         if (menuButtonLabel != null) menuButtonLabel.text = mainMenuLabel;
         if (menuButton != null) menuButton.gameObject.SetActive(!inProgress);
 
-        if (!inProgress) ShowResult();
+        ShowStep();
+    }
+
+    /// <summary>Fills the draft panel for the step the run is on. Also restores it after a milestone preview.</summary>
+    private void ShowStep()
+    {
+        ClearOptions();
+
+        if (GauntletRun.Outcome != GauntletRun.RunOutcome.InProgress) ShowResult();
         else if (GauntletRun.Hero == null) ShowHeroPick();
+        else if (GauntletRun.PendingPerkPick) ShowPerkPick();
         else if (GauntletRun.PendingPicks > 0) ShowCardPick();
+        else if (GauntletRun.HasUnclaimedMilestone) ShowMilestonePrompt();
         else ShowBriefing();
     }
 
@@ -178,26 +180,55 @@ public class DraftController : MonoBehaviour
         {
             GauntletRun.SetHero(picked);
             Refresh();
+            RefreshMilestones(animate: false);
         });
     }
 
     private void ShowCardPick()
     {
         int pickNumber = GauntletRun.PicksThisStep - GauntletRun.PendingPicks + 1;
-        SetDraftPanel($"Draft a New Card For Your Deck {pickNumber}/{GauntletRun.PicksThisStep}");
+        if (GauntletRun.PickingDuplicate)
+        {
+            SetDraftPanel("Choose a Card to Duplicate");
+        }
+        else
+        {
+            string what = GauntletRun.PickingUpgraded ? "an Upgraded Card" : "a New Card";
+            SetDraftPanel($"Draft {what} For Your Deck {pickNumber}/{GauntletRun.PicksThisStep}");
+        }
         SetPrimary(null);
 
-        SpawnOptions(GauntletRun.RollCardOptions(), picked =>
+        SpawnOptions(GauntletRun.CurrentCardOptions(), picked =>
         {
             GauntletRun.AddDraftedCard(picked);
             Refresh();
         });
     }
 
+    private void ShowPerkPick()
+    {
+        SetDraftPanel("Draft a New Perk For Your Hero");
+        SetPrimary(null);
+
+        SpawnPerkOptions(GauntletRun.CurrentPerkOptions, picked =>
+        {
+            GauntletRun.AddPerk(picked);
+            Refresh();
+        });
+    }
+
+    /// <summary>A reached milestone waits to be claimed: the next battle stays shut until it is.</summary>
+    private void ShowMilestonePrompt()
+    {
+        SetDraftPanel(WithSubtitle("Milestone Reached!", "Click a glowing milestone to claim its reward"));
+        SetPrimary(null);
+    }
+
     /// <summary>Picks done: the track's upcoming skull takes over (see <see cref="OnNodeClicked"/>).</summary>
     private void ShowBriefing()
     {
-        SetDraftPanel(null);
+        // What an instant milestone reward just did stays up until the player moves on.
+        SetDraftPanel(GauntletRun.LastRewardMessage);
         SetPrimary(null);
     }
 
@@ -225,6 +256,7 @@ public class DraftController : MonoBehaviour
         {
             GauntletRun.StartNew();
             Refresh();
+            RefreshMilestones(animate: false);
             return;
         }
 
@@ -250,7 +282,89 @@ public class DraftController : MonoBehaviour
     private static bool CanFight =>
         GauntletRun.Outcome == GauntletRun.RunOutcome.InProgress
         && GauntletRun.Hero != null
-        && GauntletRun.PendingPicks == 0;
+        && GauntletRun.PendingPicks == 0
+        && !GauntletRun.PendingPerkPick
+        && !GauntletRun.HasUnclaimedMilestone;
+
+    // ---------------------------------------------------------------- Milestones
+
+    /// <summary>
+    /// Shows the run's track. On the first visit after it unlocks the lock slides away, and any XP
+    /// gained since the last visit fills in.
+    /// </summary>
+    private void RefreshMilestones(bool animate)
+    {
+        if (milestoneTrack == null) return;
+
+        bool unlocked = GauntletRun.MilestonesUnlocked;
+        bool reveal = animate && unlocked && !GauntletRun.MilestonesRevealed;
+        int from = animate ? GauntletRun.XpShown : GauntletRun.Xp;
+
+        milestoneTrack.Show(GauntletRun.Milestones, from, GauntletRun.Xp, unlocked, reveal);
+
+        if (unlocked)
+        {
+            GauntletRun.MilestonesRevealed = true;
+            GauntletRun.XpShown = GauntletRun.Xp;
+        }
+    }
+
+    /// <summary>
+    /// Previews are only for the time between picks: while a pick is owed, or the Proceed button is up,
+    /// the draft panel stays on that.
+    /// </summary>
+    private bool CanPreviewMilestones =>
+        !_leaving && !_nextMatchPinned
+        && GauntletRun.Outcome == GauntletRun.RunOutcome.InProgress
+        && GauntletRun.MilestonesUnlocked
+        && GauntletRun.PendingPicks == 0 && !GauntletRun.PendingPerkPick;
+
+    private void OnMilestoneHover(int index, bool entered)
+    {
+        if (!CanPreviewMilestones) return;
+
+        if (entered) ShowMilestonePreview(index);
+        else ShowStep();
+    }
+
+    private void OnMilestoneClicked(int index)
+    {
+        if (_leaving || !GauntletRun.CanClaim(index)) return;
+
+        GauntletRun.ClaimMilestone(index);
+        Refresh();
+    }
+
+    /// <summary>
+    /// The hovered milestone in the draft panel: what it gives, and for a reached card or perk reward, the
+    /// options it offers (display only; clicking the milestone claims it and makes them pickable).
+    /// </summary>
+    private void ShowMilestonePreview(int index)
+    {
+        var milestones = GauntletRun.Milestones;
+        if (index < 0 || index >= milestones.Count) return;
+
+        var milestone = milestones[index];
+        string status;
+        if (milestone.Reward == MilestoneReward.None) status = GauntletRun.MilestoneRewardDescription(milestone.Reward);
+        else if (milestone.Claimed) status = "Claimed";
+        else if (!milestone.Reached) status = $"{GauntletRun.MilestoneRewardDescription(milestone.Reward)}. Reach {milestone.Xp} XP to unlock";
+        else status = $"{GauntletRun.MilestoneRewardDescription(milestone.Reward)}. Click to claim";
+
+        ClearOptions();
+        SetDraftPanel(WithSubtitle($"{milestone.Xp} XP: {GauntletRun.MilestoneRewardName(milestone.Reward)}", status));
+        SetPrimary(null);
+
+        if (!milestone.Reached || milestone.Claimed) return;
+
+        var cards = GauntletRun.MilestoneCardOptions(index);
+        if (cards != null) SpawnOptions(cards, null);
+
+        var perks = GauntletRun.MilestonePerkOptions(index);
+        if (perks != null) SpawnPerkOptions(perks, null);
+    }
+
+    private static string WithSubtitle(string title, string subtitle) => $"{title}\n<size=60%>{subtitle}</size>";
 
     // ---------------------------------------------------------------- Battle track
 
@@ -384,45 +498,12 @@ public class DraftController : MonoBehaviour
                 foreach (var b in go.GetComponentsInChildren<Button>(true)) b.interactable = interactable;
     }
 
+    /// <summary>A hero as an enemy would field it this battle (the encounter's health scaling).</summary>
     /// <param name="passives">Shown in place of the hero's own passives when given (a blessed enemy's).</param>
-    private void RefreshHero(HeroPanelView panel, HeroSO hero, bool carried, IReadOnlyList<HeroPassiveSO> passives = null)
+    private static void RefreshHero(GauntletHeroPanelView panel, HeroSO hero, IReadOnlyList<HeroPassiveSO> passives = null)
     {
         if (panel == null) return;
-
-        if (panel.nameText != null) panel.nameText.text = hero != null ? hero.cardName : "???";
-
-        if (panel.portrait != null)
-        {
-            if (hero != null) panel.portrait.SetHero(hero);
-            else panel.portrait.SetRandom(null);
-        }
-
-        if (hero != null)
-        {
-            int health, attack;
-            if (carried && GauntletRun.TryGetCarriedStats(out int hp, out _, out int atk))
-            {
-                health = hp;
-                attack = atk;
-            }
-            else
-            {
-                health = carried ? hero.health : EnemyStartingHealth(hero);
-                attack = hero.attack;
-            }
-
-            if (panel.healthText != null) panel.healthText.text = health.ToString();
-            if (panel.attackText != null) panel.attackText.text = attack.ToString();
-        }
-
-        if (panel.passiveChips == null) return;
-        if (passives == null && hero != null) passives = hero.passives;
-        for (int i = 0; i < panel.passiveChips.Length; i++)
-        {
-            var chip = panel.passiveChips[i];
-            if (chip == null) continue;
-            chip.ShowPassive(passives != null && i < passives.Count ? passives[i] : null);
-        }
+        panel.Show(hero, hero != null ? EnemyStartingHealth(hero) : 0, hero != null ? hero.attack : 0, passives);
     }
 
     /// <summary>Same scaling (and Bonus Health) <see cref="GauntletRun.ApplyEnemySetup"/> applies in the match.</summary>
@@ -434,7 +515,7 @@ public class DraftController : MonoBehaviour
         var encounter = GauntletRun.CurrentEncounter;
         var enemy = GauntletRun.EnemyHero;
 
-        RefreshHero(enemyHero, enemy, carried: false, enemy != null ? GauntletRun.EnemyPassives : null);
+        RefreshHero(enemyHero, enemy, enemy != null ? GauntletRun.EnemyPassives : null);
 
         if (nextMatchHeaderText != null)
             nextMatchHeaderText.text = encounter != null && !string.IsNullOrEmpty(encounter.label)
@@ -473,42 +554,8 @@ public class DraftController : MonoBehaviour
         nextMatchRulesText.text = rules.ToString();
     }
 
-    private void RefreshDeck()
-    {
-        var deck = GauntletRun.Deck;
-
-        if (deckHeaderText != null) deckHeaderText.text = deck.Count > 0 ? $"DECK ({deck.Count})" : "DECK";
-        if (deckEntryTemplate == null) return;
-
-        // One entry per card, by mana cost then name; duplicates get their own row.
-        var cards = new List<CardSO>(deck.Count);
-        foreach (var card in deck)
-            if (card != null) cards.Add(card);
-        cards.Sort((a, b) =>
-        {
-            int byCost = a.cost.CompareTo(b.cost);
-            return byCost != 0 ? byCost : string.CompareOrdinal(a.cardName, b.cardName);
-        });
-
-        while (_deckEntries.Count < cards.Count)
-        {
-            var entry = Instantiate(deckEntryTemplate, deckEntryTemplate.transform.parent);
-            _deckEntries.Add(entry);
-        }
-
-        for (int i = 0; i < _deckEntries.Count; i++)
-        {
-            var entry = _deckEntries[i];
-            bool used = i < cards.Count;
-            entry.gameObject.SetActive(used);
-            if (!used) continue;
-
-            var card = cards[i];
-            entry.Card = card;
-            entry.SetName(card.cardName);
-            entry.SetCost(card.cost);
-        }
-    }
+    private void RefreshDeck() =>
+        GauntletDeckList.Refresh(deckHeaderText, deckEntryTemplate, _deckEntries, GauntletRun.Deck);
 
     /// <summary>
     /// Removes the stand-ins the layout was authored with: the example option cards and the example
@@ -520,16 +567,7 @@ public class DraftController : MonoBehaviour
             for (int i = optionsContainer.childCount - 1; i >= 0; i--)
                 Destroy(optionsContainer.GetChild(i).gameObject);
 
-        if (deckEntryTemplate != null)
-        {
-            var parent = deckEntryTemplate.transform.parent;
-            for (int i = parent.childCount - 1; i >= 0; i--)
-            {
-                var child = parent.GetChild(i).gameObject;
-                if (child != deckEntryTemplate.gameObject) Destroy(child);
-            }
-            deckEntryTemplate.gameObject.SetActive(false);
-        }
+        GauntletDeckList.ClearPlaceholders(deckEntryTemplate);
     }
 
     private void SpawnOptions<T>(List<T> options, System.Action<CardSO> onPicked) where T : CardSO
@@ -574,7 +612,7 @@ public class DraftController : MonoBehaviour
                 button.onClick.AddListener(() =>
                 {
                     if (_leaving) return;
-                    onPicked(option);
+                    onPicked?.Invoke(option);
                 });
             }
 
@@ -603,8 +641,8 @@ public class DraftController : MonoBehaviour
             rt.sizeDelta = new Vector2(heroOptionSlotWidth, rt.sizeDelta.y);
             _spawned.Add(go);
 
-            var view = HeroPanelView.FromInstance(go);
-            RefreshHero(view, hero, carried: false);
+            var view = GauntletHeroPanelView.FromInstance(go);
+            RefreshHero(view, hero);
 
             System.Action pick = () =>
             {
@@ -653,6 +691,93 @@ public class DraftController : MonoBehaviour
             go.transform.localScale = Vector3.zero;
             go.transform.DOScale(heroOptionScale, optionRevealDuration).SetDelay(i * optionRevealStagger);
         }
+    }
+
+    /// <summary>
+    /// One option per passive: its chip, scaled up, over its name and description. Null
+    /// <paramref name="onPicked"/> shows them for display only (a milestone preview).
+    /// </summary>
+    private void SpawnPerkOptions(IReadOnlyList<HeroPassiveSO> perks, System.Action<HeroPassiveSO> onPicked)
+    {
+        if (optionsContainer == null || perkOptionPrefab == null)
+        {
+            Debug.LogWarning("[Gauntlet] DraftController is not wired up (options container / perk prefab missing).");
+            return;
+        }
+
+        for (int i = 0; i < perks.Count; i++)
+        {
+            HeroPassiveSO perk = perks[i];
+            if (perk == null) continue;
+
+            var go = new GameObject(perk.passiveName, typeof(RectTransform));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(optionsContainer, false);
+            rt.sizeDelta = perkOptionSize;
+            var layout = go.AddComponent<LayoutElement>();
+            layout.preferredWidth = perkOptionSize.x;
+            layout.preferredHeight = perkOptionSize.y;
+            _spawned.Add(go);
+
+            var chip = Instantiate(perkOptionPrefab, rt);
+            chip.ShowPassive(perk);
+            var chipRt = (RectTransform)chip.transform;
+            chipRt.anchorMin = chipRt.anchorMax = new Vector2(0.5f, 1f);
+            chipRt.anchoredPosition = new Vector2(0f, -chipRt.rect.height * perkIconScale * 0.5f);
+            chipRt.localScale = Vector3.one * perkIconScale;
+
+            // The option spells the passive out itself, so the chip's own tooltip would only repeat it.
+            string description = perk.passiveName;
+            if (chip.TryGetComponent(out UITooltipTrigger chipTooltip))
+            {
+                if (!string.IsNullOrEmpty(chipTooltip.Message)) description = chipTooltip.Message;
+                chipTooltip.enabled = false;
+            }
+
+            var textGo = new GameObject("Description", typeof(RectTransform));
+            var textRt = (RectTransform)textGo.transform;
+            textRt.SetParent(rt, false);
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = new Vector2(1f, 0f);
+            textRt.pivot = new Vector2(0.5f, 0f);
+            textRt.sizeDelta = new Vector2(0f, perkOptionSize.y - chipRt.rect.height * perkIconScale - 8f);
+            var text = textGo.AddComponent<TextMeshProUGUI>();
+            if (draftHeaderText != null)
+            {
+                text.font = draftHeaderText.font;
+                text.fontSharedMaterial = draftHeaderText.fontSharedMaterial;
+            }
+            text.fontSize = perkTextSize;
+            text.alignment = TextAlignmentOptions.Top;
+            text.enableWordWrapping = true;
+            text.text = description;
+
+            if (onPicked != null)
+            {
+                System.Action pick = () =>
+                {
+                    if (_leaving) return;
+                    onPicked(perk);
+                };
+                chip.OnClicked = _ => pick();
+
+                var trigger = go.AddComponent<EventTrigger>();
+                AddTrigger(trigger, EventTriggerType.PointerEnter, () => SetPerkOptionHovered(go, true));
+                AddTrigger(trigger, EventTriggerType.PointerExit, () => SetPerkOptionHovered(go, false));
+                AddTrigger(trigger, EventTriggerType.PointerClick, pick);
+            }
+
+            go.transform.localScale = Vector3.zero;
+            go.transform.DOScale(1f, optionRevealDuration).SetDelay(i * optionRevealStagger);
+        }
+    }
+
+    private void SetPerkOptionHovered(GameObject option, bool hovered)
+    {
+        if (_leaving && hovered) return;
+
+        option.transform.DOKill();
+        option.transform.DOScale(hovered ? heroHoverScale : 1f, heroHoverDuration);
     }
 
     private void SetHeroOptionHovered(GameObject option, Transform highlighted, bool hovered, string tooltip, RectTransform tooltipAnchor)

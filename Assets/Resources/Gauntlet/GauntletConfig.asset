@@ -18,22 +18,33 @@ MonoBehaviour:
   cardChoiceCount: 3
   allowDuplicates: 1
   distinctOptionsPerPick: 1
-  cardsAddedAfterWin: 2
+  milestoneXpStep: 266
+  milestoneCount: 3
+  randomRewardPool: 0100000004000000050000000600000007000000
+  finalMilestoneXp: 900
+  finalRewardPool: 0200000003000000
+  milestoneUpgradedPicks: 1
+  perkChoiceCount: 3
+  milestoneBonusHealth: 3
+  milestoneBonusAttack: 1
+  milestoneExtraStartingCards: 1
+  duplicateChoiceCount: 3
+  battleCardPicks: 2
   healAfterWin: 0
   healAfterWinPercent: 0
   keepHeroAttack: 1
   keepPassiveState: 1
   encounters:
   - label: Battle 1
-    enemyHealthMultiplier: 0.33
-    enemyDeckSize: 10
+    enemyHealthMultiplier: 0.25
+    enemyDeckSize: 5
     enemyBlessings: 0
   - label: Battle 2
-    enemyHealthMultiplier: 0.5
-    enemyDeckSize: 10
+    enemyHealthMultiplier: 0.4
+    enemyDeckSize: 7
     enemyBlessings: 1
   - label: Battle 3
-    enemyHealthMultiplier: 0.75
+    enemyHealthMultiplier: 0.7
     enemyDeckSize: 10
     enemyBlessings: 3
   - label: Final Battle
