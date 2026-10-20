@@ -50,21 +50,13 @@ public class PopupManager : Singleton<PopupManager>
 
     // Proceed leaves the match for the main menu, from which the next match can either be started
     // straight away (Quick Play) or reconfigured (Custom Game). In a Forged in Battle run it goes back
-    // to the Draft scene instead, which shows the next draft step or the run's result -- but a won
-    // battle hands its rewards out first: the end-game panel closes and BattleRewardsPanel takes over,
-    // and its own Proceed is what leaves for the Draft scene.
+    // to the Draft scene instead, which shows the next draft step or the run's result. A won battle that
+    // owes rewards never gets here: BattleRewardsPanel opens beside the end-game panel and its own
+    // Proceed replaces this one (see OpenGameOverPopup).
     public void ExitToMenu()
     {
         if (GauntletRun.IsActive)
         {
-            var rewards = BattleRewardsPanel.HasRewards ? BattleRewardsPanel.Resolve() : null;
-            if (rewards != null)
-            {
-                CloseCurPopup();
-                rewards.Show();
-                return;
-            }
-
             GauntletRun.LeaveBattle();
             return;
         }
@@ -93,7 +85,25 @@ public class PopupManager : Singleton<PopupManager>
         if (resolvedDelay > 0f) DOVirtual.DelayedCall(resolvedDelay, () => GameOver?.Invoke(won), false);
         else GameOver?.Invoke(won);
 
-        OpenPopup(gameOverPopup, won, resolvedDelay);
+        float openDuration = OpenPopup(gameOverPopup, won, resolvedDelay);
+
+        // A won run battle opens its rewards beside the panel, scaling in with it, and milestone rows land
+        // as the panel's XP track fills. Must follow OpenPopup: the track reads its base XP there, before
+        // the rewards panel credits the battle's score. The rewards panel's Proceed is the way out, so the
+        // panel's own is hidden while it is up; a loss or a finished run keeps it.
+        bool rewardsShown = false;
+        if (won && GauntletRun.IsActive)
+        {
+            var rewards = BattleRewardsPanel.Resolve();
+            if (rewards != null)
+            {
+                var xpTrack = gameOverPopup.GetComponentInChildren<BattleXpTrack>(true);
+                // Its rows wait out the panel's entrance: the column they sit in is still sliding in.
+                rewardsShown = rewards.Show(resolvedDelay + openDuration, xpTrack,
+                    gameOverPopup.GetComponent<CanvasGroup>());
+            }
+        }
+        if (exitButton != null) exitButton.gameObject.SetActive(!rewardsShown);
     }
 
     /// <summary>
@@ -107,17 +117,23 @@ public class PopupManager : Singleton<PopupManager>
     /// </summary>
     public static event System.Action<bool> GameOver;
 
-    public void OpenPopup(Transform popup, bool won = false, float delay = 0f)
+    /// <summary>Opens <paramref name="popup"/>, and returns how long it takes to finish arriving.</summary>
+    public float OpenPopup(Transform popup, bool won = false, float delay = 0f)
     {
         CloseCurPopup();
         curPopup = popup;
 
         curPopup.gameObject.SetActive(true);
-        curPopup.localScale = Vector3.zero;
 
         // Populate the end-game stats/score on this panel, if it has a view. Additive: does nothing on
         // panels without a MatchStatsView. Covers both real wins/losses and the editor debug triggers.
         const float scaleInDuration = 0.5f;
+
+        // A panel with an entrance of its own -- the end-of-match panel, whose title and columns each
+        // arrive separately -- opens at full size and poses itself; everything else scales in whole.
+        var intro = popup.GetComponent<GameOverPanelIntro>();
+        float openDuration = intro != null ? intro.Duration : scaleInDuration;
+        curPopup.localScale = intro != null ? Vector3.one : Vector3.zero;
 
         var statsView = popup.GetComponentInChildren<MatchStatsView>(true);
 
@@ -127,15 +143,22 @@ public class PopupManager : Singleton<PopupManager>
         var xpTrack = popup.GetComponentInChildren<BattleXpTrack>(true);
         if (xpTrack != null) xpTrack.Show(won, statsView);
 
-        // The stats view reveals its rows one by one; hold them until the panel has finished scaling in.
-        if (statsView != null) statsView.Show(won, delay + scaleInDuration);
+        // The stats view reveals its rows one by one; hold them until the panel has finished arriving.
+        if (statsView != null) statsView.Show(won, delay + openDuration);
 
-        curPopup.DOScale(1f, scaleInDuration).SetDelay(delay);
+        // Posed for the entrance now, played after the delay, so the board is clear of the panel until then.
+        if (intro != null) intro.Play(delay);
+        else curPopup.DOScale(1f, scaleInDuration).SetDelay(delay);
+
+        return openDuration;
     }
 
     public void CloseCurPopup()
     {
         if (curPopup == null) return;
+
+        var intro = curPopup.GetComponent<GameOverPanelIntro>();
+        if (intro != null) intro.Stop();
 
         curPopup.DOScale(0f, 0.5f).OnComplete(() =>
         {

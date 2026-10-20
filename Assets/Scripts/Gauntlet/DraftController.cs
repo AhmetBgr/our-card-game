@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -395,10 +395,7 @@ public class DraftController : MonoBehaviour
         trigger.triggers.Add(entry);
     }
 
-    private bool IsUpcoming(int nodeIndex) =>
-        GauntletRun.Outcome == GauntletRun.RunOutcome.InProgress
-        && GauntletRun.Hero != null
-        && nodeIndex == GauntletRun.EncounterIndex;
+    private static bool IsUpcoming(int nodeIndex) => GauntletBattleTrack.IsUpcoming(nodeIndex);
 
     private void OnNodeHover(int index, bool entered)
     {
@@ -421,16 +418,12 @@ public class DraftController : MonoBehaviour
     {
         if (battleNodes == null) return;
 
-        bool won = GauntletRun.Outcome == GauntletRun.RunOutcome.Won;
         for (int i = 0; i < battleNodes.Length; i++)
         {
             var node = battleNodes[i];
             if (node == null) continue;
 
-            bool defeated = won || i < GauntletRun.EncounterIndex;
-            if (node.defeatedMark != null) node.defeatedMark.SetActive(defeated);
-            if (node.skull != null) node.skull.color = defeated ? beatenSkullTint : Color.white;
-            if (node.highlight != null) node.highlight.SetActive(IsUpcoming(i));
+            GauntletBattleTrack.RefreshNode(node.skull, node.highlight, node.defeatedMark, i, beatenSkullTint);
         }
     }
 
@@ -498,61 +491,8 @@ public class DraftController : MonoBehaviour
                 foreach (var b in go.GetComponentsInChildren<Button>(true)) b.interactable = interactable;
     }
 
-    /// <summary>A hero as an enemy would field it this battle (the encounter's health scaling).</summary>
-    /// <param name="passives">Shown in place of the hero's own passives when given (a blessed enemy's).</param>
-    private static void RefreshHero(GauntletHeroPanelView panel, HeroSO hero, IReadOnlyList<HeroPassiveSO> passives = null)
-    {
-        if (panel == null) return;
-        panel.Show(hero, hero != null ? EnemyStartingHealth(hero) : 0, hero != null ? hero.attack : 0, passives);
-    }
-
-    /// <summary>Same scaling (and Bonus Health) <see cref="GauntletRun.ApplyEnemySetup"/> applies in the match.</summary>
-    private static int EnemyStartingHealth(HeroSO hero) =>
-        GauntletRun.EnemyStartingHealth(hero.defHealth > 0 ? hero.defHealth : hero.health);
-
-    private void RefreshNextMatch()
-    {
-        var encounter = GauntletRun.CurrentEncounter;
-        var enemy = GauntletRun.EnemyHero;
-
-        RefreshHero(enemyHero, enemy, enemy != null ? GauntletRun.EnemyPassives : null);
-
-        if (nextMatchHeaderText != null)
-            nextMatchHeaderText.text = encounter != null && !string.IsNullOrEmpty(encounter.label)
-                ? encounter.label
-                : $"Battle {GauntletRun.EncounterIndex + 1}";
-
-        if (nextMatchRulesText == null) return;
-        if (encounter == null)
-        {
-            nextMatchRulesText.text = string.Empty;
-            return;
-        }
-
-        var rules = new System.Text.StringBuilder();
-
-        // The enemy's blessings under one header, one line each; stacked ones (Extra Passive) once, with a count.
-        var blessings = GauntletRun.EnemyBlessings;
-        if (blessings.Count > 0) rules.Append("> Enemy blessings:");
-        var listed = new List<GauntletBlessing>();
-        foreach (var blessing in blessings)
-        {
-            if (listed.Contains(blessing)) continue;
-            listed.Add(blessing);
-
-            int stacks = 0;
-            foreach (var b in blessings) if (b == blessing) stacks++;
-
-            rules.Append($"\n<color=#FFD36B>{GauntletRun.BlessingName(blessing)}{(stacks > 1 ? $" x{stacks}" : "")}</color>: " +
-                         GauntletRun.BlessingDescription(blessing));
-        }
-
-        // Up to three blessings can outgrow the panel at the authored size; shrink to fit instead.
-        nextMatchRulesText.enableAutoSizing = true;
-        nextMatchRulesText.fontSizeMax = _rulesFontSize;
-        nextMatchRulesText.fontSizeMin = _rulesFontSize * 0.6f;
-        nextMatchRulesText.text = rules.ToString();
-    }
+    private void RefreshNextMatch() =>
+        GauntletNextMatch.Refresh(enemyHero, nextMatchHeaderText, nextMatchRulesText, _rulesFontSize);
 
     private void RefreshDeck() =>
         GauntletDeckList.Refresh(deckHeaderText, deckEntryTemplate, _deckEntries, GauntletRun.Deck);
@@ -642,7 +582,7 @@ public class DraftController : MonoBehaviour
             _spawned.Add(go);
 
             var view = GauntletHeroPanelView.FromInstance(go);
-            RefreshHero(view, hero);
+            GauntletNextMatch.RefreshHero(view, hero);
 
             System.Action pick = () =>
             {

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -27,13 +27,17 @@ public class BattleRewardLoadout : MonoBehaviour
     private bool _placeholdersCleared;
     private bool _shifted;
 
-    /// <summary>Shows the run as it stands, so a pick just taken is already in the deck.</summary>
-    public void Show()
+    /// <summary>
+    /// Shows the run as it stands, so a pick just taken is already in the deck.
+    /// Pass <paramref name="shiftPanels"/> false when nothing is in the way: the end-of-match review tabs
+    /// (<see cref="DraftPanelTabs"/>) show the loadout on its own, with no card options to make room for.
+    /// </summary>
+    public void Show(bool shiftPanels = true)
     {
         if (!GauntletRun.IsActive) return;
 
         gameObject.SetActive(true);
-        Shift(true);
+        if (shiftPanels) Shift(true);
         if (!_placeholdersCleared)
         {
             GauntletDeckList.ClearPlaceholders(deckEntryTemplate);

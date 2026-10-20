@@ -24,11 +24,15 @@ public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerEx
     // custom-deck view) and are always descendants of their DeckPanel.
     private DeckPanelController owner;
 
+    // Deck lists outside a DeckPanel (the gauntlet's run deck) preview through this instead.
+    private DeckCardTooltip tooltip;
+
     // Start is called before the first frame update
     void Awake()
     {
         Button = GetComponent<Button>();
         owner = GetComponentInParent<DeckPanelController>(true);
+        if (owner == null) tooltip = GetComponentInParent<DeckCardTooltip>(true);
         //Button.onClick.AddListener(() => OnClicked?.Invoke());
     }
 
@@ -52,15 +56,15 @@ public class CardButtonHandler : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (string.IsNullOrEmpty(cardName) || owner == null) return;
+        if (string.IsNullOrEmpty(cardName)) return;
 
-        owner.ShowCard(cardName, GetCardPosition(eventData.position));
+        if (owner != null) owner.ShowCard(cardName, GetCardPosition(eventData.position));
+        else if (tooltip != null) tooltip.Show(Card, (RectTransform)transform);
     }
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (owner == null) return;
-
-        owner.HideCard();
+        if (owner != null) owner.HideCard();
+        else if (tooltip != null) tooltip.Hide();
     }
 
     public void OnPointerMove(PointerEventData eventData)

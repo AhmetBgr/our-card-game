@@ -1,21 +1,23 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// The rewards panel of a won Forged in Battle battle: the list of what the battle paid out, shown over
-/// the board once Proceed is clicked on the end-of-match panel (<see cref="PopupManager.ExitToMenu"/>),
-/// the way Slay the Spire hands out a fight's rewards before the map comes back.
+/// The rewards panel of a won Forged in Battle battle: the list of what the battle paid out, opened beside
+/// the end-of-match panel (<see cref="PopupManager.OpenGameOverPopup"/>), the way Slay the Spire hands out
+/// a fight's rewards before the map comes back. It sits under that panel in the hierarchy, so it scales
+/// in and out with it. Its Proceed replaces the end-of-match one.
 ///
 /// It lists two kinds of reward, one row each:
 ///   * the new cards a win is worth (<see cref="GauntletRun.PendingBattleReward"/>): the row runs the
 ///     picks it owes one at a time through the match's own <see cref="CardSelectionPanel"/>, by way of
 ///     <see cref="CardChoice"/>, so a reward pick looks exactly like an in-match Discover. The panel
 ///     hides itself while the options are up and comes back between picks;
-///   * every milestone the battle's XP just reached (the track under the end-of-match panel filled up to
-///     them): the row claims it. Instant rewards apply on the spot and the row says what they did, an
+///   * every milestone the battle's XP just reached: the row is added the moment the track under the
+///     end-of-match panel fills up to it (<see cref="BattleXpTrack.XpShown"/>), and claims it. Instant
+///     rewards apply on the spot and the row says what they did, an
 ///     Upgraded Cards milestone runs its picks like the card row, and a New Perk milestone swaps the list
 ///     for its options until one is taken.
 ///
@@ -91,8 +93,6 @@ public class BattleRewardsPanel : MonoBehaviour
     [SerializeField] private string perkTakenLabel = "{0} learned";
 
     [Header("Timing")]
-    [Tooltip("Wait before the panel scales in, so the end-of-match panel has scaled out from under it.")]
-    [SerializeField] private float openDelay = 0.35f;
     [SerializeField] private float scaleInDuration = 0.4f;
     [Tooltip("How long each row takes to pop in, and the stagger between them.")]
     [SerializeField] private float rowRevealDuration = 0.25f;
@@ -120,6 +120,18 @@ public class BattleRewardsPanel : MonoBehaviour
 
     /// <summary>Added on demand: what fades the Proceed button while it is locked.</summary>
     private CanvasGroup _proceedGroup;
+
+    /// <summary>The end-of-match panel's XP track, followed so milestone rows land as the bar reaches them.</summary>
+    private BattleXpTrack _xpSource;
+
+    /// <summary>XP the track has shown so far: milestones up to here are listed.</summary>
+    private int _shownXp;
+
+    /// <summary>The end-of-match panel beside this one; hidden along with it while a card pick is up.</summary>
+    private CanvasGroup _companion;
+
+    /// <summary>When the next row may pop in: after the scale-in, and a stagger after the row before.</summary>
+    private float _nextRowRevealTime;
 
     private static BattleRewardsPanel _instance;
 
@@ -153,18 +165,30 @@ public class BattleRewardsPanel : MonoBehaviour
         if (proceedButton != null) proceedButton.onClick.AddListener(OnProceed);
     }
 
-    /// <summary>Opens the panel on the rewards the won battle owes. No-op when it owes none.</summary>
-    public void Show()
+    /// <summary>
+    /// Opens the panel on the rewards the won battle owes, scaling in after <paramref name="delay"/> so it
+    /// lands together with the end-of-match panel. Milestone rows follow <paramref name="xpSource"/> as it
+    /// fills; without one (or with it hidden) every reached milestone is listed straight away.
+    /// <paramref name="companion"/> is hidden while a card pick owns the screen. Returns false, leaving the
+    /// panel closed, when nothing is owed.
+    /// </summary>
+    public bool Show(float delay, BattleXpTrack xpSource, CanvasGroup companion)
     {
-        // The score the end-of-match panel just tallied becomes XP here, so a milestone the win reached is
+        // Must run after xpSource.Show, which reads the run's XP before this battle as its base.
+        // The score the end-of-match panel is tallying becomes XP here, so a milestone the win reaches is
         // already reached below. The Draft scene's track then has nothing left to fill in.
         GauntletRun.CollectScore();
+        if (!HasRewards) return false;
         GauntletRun.XpShown = GauntletRun.Xp;
-
-        if (!HasRewards) return;
 
         _leaving = false;
         _pickBlocked = false;
+
+        UnsubscribeXp();
+        _companion = companion;
+        _xpSource = xpSource != null && xpSource.IsShowing ? xpSource : null;
+        _shownXp = _xpSource != null ? _xpSource.ShownXp : GauntletRun.Xp;
+        _nextRowRevealTime = Time.time + delay + scaleInDuration;
 
         if (titleText != null) titleText.text = titleLabel;
 
@@ -172,8 +196,27 @@ public class BattleRewardsPanel : MonoBehaviour
         BuildRows();
         RefreshRows();
 
-        transform.localScale = Vector3.zero;
-        transform.DOScale(1f, scaleInDuration).SetDelay(openDelay);
+        if (_xpSource != null) _xpSource.XpShown += OnXpShown;
+
+        // No scale-in of its own: the panel lives under the end-of-match panel, which PopupManager
+        // already scales in, and tweening here too would compound the two curves.
+        transform.DOKill();
+        transform.localScale = Vector3.one;
+        return true;
+    }
+
+    private void OnXpShown(int xp)
+    {
+        if (xp <= _shownXp) return;
+        _shownXp = xp;
+        ListReachedMilestones();
+        RefreshRows();
+    }
+
+    private void UnsubscribeXp()
+    {
+        if (_xpSource != null) _xpSource.XpShown -= OnXpShown;
+        _xpSource = null;
     }
 
     // ---------------------------------------------------------------- Rows
@@ -196,13 +239,25 @@ public class BattleRewardsPanel : MonoBehaviour
             var row = SpawnRow(cardIcon, string.Format(cardRowLabel, GauntletRun.PicksThisStep));
             row.button.onClick.AddListener(() => OnCardRowClicked(row));
             _rows.Add(row);
+            RevealNextRow(row);
         }
+
+        ListReachedMilestones();
+    }
+
+    /// <summary>
+    /// Adds a row for every claimable milestone the track has filled up to and that is not listed yet. The
+    /// bar only climbs, so rows arrive in milestone order.
+    /// </summary>
+    private void ListReachedMilestones()
+    {
+        if (rowsContainer == null || rowTemplate == null) return;
 
         var milestones = GauntletRun.Milestones;
         for (int i = 0; i < milestones.Count; i++)
         {
             var milestone = milestones[i];
-            if (!milestone.Reached || milestone.Claimed || milestone.Reward == MilestoneReward.None) continue;
+            if (milestone.Xp > _shownXp || !IsOwed(milestone) || IsListed(i)) continue;
 
             string name = GauntletRun.MilestoneRewardName(milestone.Reward);
             var row = SpawnRow(milestoneIcon, string.Format(milestoneRowLabel, milestone.Xp, name), milestoneIconTint);
@@ -210,9 +265,24 @@ public class BattleRewardsPanel : MonoBehaviour
             int index = i;
             row.button.onClick.AddListener(() => OnMilestoneRowClicked(row, index));
             _rows.Add(row);
-        }
 
-        for (int i = 0; i < _rows.Count; i++) RevealRow(_rows[i], openDelay + scaleInDuration + i * rowRevealStagger);
+            // A perk's options have the list to themselves; the row joins the others when they come back.
+            if (_perkOptions.Count > 0) row.button.gameObject.SetActive(false);
+            RevealNextRow(row);
+        }
+    }
+
+    private static bool IsOwed(GauntletRun.MilestoneState milestone) =>
+        milestone.Reached && !milestone.Claimed && milestone.Reward != MilestoneReward.None;
+
+    private bool IsListed(int milestone) => _rows.Exists(r => r.milestone == milestone);
+
+    /// <summary>Pops the row in at its turn: not before the panel has scaled in, one stagger after the last.</summary>
+    private void RevealNextRow(Row row)
+    {
+        float at = Mathf.Max(Time.time, _nextRowRevealTime);
+        _nextRowRevealTime = at + rowRevealStagger;
+        RevealRow(row, at - Time.time);
     }
 
     /// <summary>Rows only invite a click while what they give can be taken right now.</summary>
@@ -322,6 +392,7 @@ public class BattleRewardsPanel : MonoBehaviour
             : string.Format(cardPickPrompt, pickNumber, GauntletRun.PicksThisStep);
 
         gameObject.SetActive(false);
+        SetCompanionVisible(false);
         CardChoice.Instance.Begin(GauntletRun.CurrentCardOptions(), prompt, OnCardPicked, requirePlayerTurn: false);
 
         // Nothing to pick from (no options rolled, or the match is in a state that refuses a choice): the
@@ -360,10 +431,22 @@ public class BattleRewardsPanel : MonoBehaviour
     private void ReturnToPanel()
     {
         if (loadout != null) loadout.Hide();
+        SetCompanionVisible(true);
         gameObject.SetActive(true);
         transform.DOKill();
         transform.localScale = Vector3.one;
         RefreshRows();
+    }
+
+    /// <summary>
+    /// Hides the end-of-match panel with this one while a pick is up, by fading rather than disabling it so
+    /// its score tally (and the track feeding milestone rows here) keeps running underneath.
+    /// </summary>
+    private void SetCompanionVisible(bool visible)
+    {
+        if (_companion == null) return;
+        _companion.alpha = visible ? 1f : 0f;
+        _companion.blocksRaycasts = visible;
     }
 
     // ---------------------------------------------------------------- Milestones
@@ -461,13 +544,19 @@ public class BattleRewardsPanel : MonoBehaviour
 
     /// <summary>
     /// Rewards are not skippable: every row the panel lists has to be taken before the run moves on. Read
-    /// off the rows rather than the run, so what unlocks Proceed is exactly what the player can see.
+    /// off the rows rather than the run, so what unlocks Proceed is exactly what the player can see -- and
+    /// stays locked while the track is still filling toward a milestone that has no row yet.
     /// </summary>
     private bool CanProceed
     {
         get
         {
             if (_leaving || _perkOptions.Count > 0) return false;
+
+            var milestones = GauntletRun.Milestones;
+            for (int i = 0; i < milestones.Count; i++)
+                if (IsOwed(milestones[i]) && !IsListed(i)) return false;
+
             if (_pickBlocked) return true;
 
             foreach (var row in _rows)
@@ -481,12 +570,14 @@ public class BattleRewardsPanel : MonoBehaviour
         if (!CanProceed) return;
 
         _leaving = true;
+        UnsubscribeXp();
         if (proceedButton != null) proceedButton.interactable = false;
         GauntletRun.LeaveBattle();
     }
 
     void OnDestroy()
     {
+        UnsubscribeXp();
         transform.DOKill();
         foreach (var row in _rows)
             if (row.button != null) row.button.transform.DOKill();

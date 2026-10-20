@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// One hero panel of a Forged in Battle layout: name plate, portrait with stats, passive chips. Shared by
@@ -130,5 +131,111 @@ public static class GauntletDeckList
             if (child != template.gameObject) Object.Destroy(child);
         }
         template.gameObject.SetActive(false);
+    }
+}
+
+/// <summary>
+/// The upcoming battle's briefing: the enemy hero as it will actually be fielded, the encounter's label
+/// and the blessings it fights with. Shared by the Draft scene's Next Match panel
+/// (<see cref="DraftController"/>) and the copy of that panel on the end-of-match review tabs
+/// (<see cref="DraftPanelTabs"/>), so both read the run the same way.
+/// </summary>
+public static class GauntletNextMatch
+{
+    /// <summary>
+    /// Fills a Next Match panel from the run's prepared enemy. <paramref name="rulesFontSize"/> is the
+    /// panel's authored size: up to three blessings can outgrow it, so the text shrinks to fit from there.
+    /// </summary>
+    public static void Refresh(GauntletHeroPanelView enemyHero, TextMeshProUGUI headerText,
+        TextMeshProUGUI rulesText, float rulesFontSize)
+    {
+        var encounter = GauntletRun.CurrentEncounter;
+        var enemy = GauntletRun.EnemyHero;
+
+        RefreshHero(enemyHero, enemy, enemy != null ? GauntletRun.EnemyPassives : null);
+
+        if (headerText != null)
+            headerText.text = encounter != null && !string.IsNullOrEmpty(encounter.label)
+                ? encounter.label
+                : $"Battle {GauntletRun.EncounterIndex + 1}";
+
+        if (rulesText == null) return;
+        if (encounter == null)
+        {
+            rulesText.text = string.Empty;
+            return;
+        }
+
+        rulesText.enableAutoSizing = true;
+        rulesText.fontSizeMax = rulesFontSize;
+        rulesText.fontSizeMin = rulesFontSize * 0.6f;
+        rulesText.text = BlessingRules();
+    }
+
+    /// <summary>
+    /// The enemy's blessings under one header, one line each; stacked ones (Extra Passive) once, with a count.
+    /// </summary>
+    public static string BlessingRules()
+    {
+        var rules = new System.Text.StringBuilder();
+
+        var blessings = GauntletRun.EnemyBlessings;
+        if (blessings.Count > 0) rules.Append("> Enemy blessings:");
+
+        var listed = new List<GauntletBlessing>();
+        foreach (var blessing in blessings)
+        {
+            if (listed.Contains(blessing)) continue;
+            listed.Add(blessing);
+
+            int stacks = 0;
+            foreach (var b in blessings) if (b == blessing) stacks++;
+
+            rules.Append($"\n<color=#FFD36B>{GauntletRun.BlessingName(blessing)}{(stacks > 1 ? $" x{stacks}" : "")}</color>: " +
+                         GauntletRun.BlessingDescription(blessing));
+        }
+
+        return rules.ToString();
+    }
+
+    /// <summary>A hero as an enemy would field it this battle (the encounter's health scaling).</summary>
+    /// <param name="passives">Shown in place of the hero's own passives when given (a blessed enemy's).</param>
+    public static void RefreshHero(GauntletHeroPanelView panel, HeroSO hero,
+        IReadOnlyList<HeroPassiveSO> passives = null)
+    {
+        if (panel == null) return;
+        panel.Show(hero, hero != null ? EnemyStartingHealth(hero) : 0, hero != null ? hero.attack : 0, passives);
+    }
+
+    /// <summary>Same scaling (and Bonus Health) <see cref="GauntletRun.ApplyEnemySetup"/> applies in the match.</summary>
+    private static int EnemyStartingHealth(HeroSO hero) =>
+        GauntletRun.EnemyStartingHealth(hero.defHealth > 0 ? hero.defHealth : hero.health);
+}
+
+/// <summary>
+/// The row of encounter skulls: which battles are already won, and which one is up next. Shared by the
+/// Draft scene's track (<see cref="DraftController"/>, which also makes its skulls hoverable) and the
+/// read-only copy on the end-of-match review tabs (<see cref="DraftPanelTabs"/>).
+/// </summary>
+public static class GauntletBattleTrack
+{
+    /// <summary>True while <paramref name="nodeIndex"/> is the battle the run is about to fight.</summary>
+    public static bool IsUpcoming(int nodeIndex) =>
+        GauntletRun.Outcome == GauntletRun.RunOutcome.InProgress
+        && GauntletRun.Hero != null
+        && nodeIndex == GauntletRun.EncounterIndex;
+
+    /// <summary>
+    /// Shows one skull as the run leaves it: tinted with a defeated mark once its battle is won (a won
+    /// run has beaten them all), highlighted while it is the one up next.
+    /// </summary>
+    public static void RefreshNode(Graphic skull, GameObject highlight, GameObject defeatedMark, int index,
+        Color beatenSkullTint)
+    {
+        bool defeated = GauntletRun.Outcome == GauntletRun.RunOutcome.Won || index < GauntletRun.EncounterIndex;
+
+        if (defeatedMark != null) defeatedMark.SetActive(defeated);
+        if (skull != null) skull.color = defeated ? beatenSkullTint : Color.white;
+        if (highlight != null) highlight.SetActive(IsUpcoming(index));
     }
 }

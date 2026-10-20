@@ -34,6 +34,21 @@ public class BattleXpTrack : MonoBehaviour
     private MatchStatsView _stats;
 
     /// <summary>
+    /// True while the track is up for a won run battle and following a score tally, i.e. while
+    /// <see cref="XpShown"/> will keep climbing to the battle's full XP.
+    /// </summary>
+    public bool IsShowing { get; private set; }
+
+    /// <summary>The highest XP the bar has filled to so far; it never goes back down while penalties land.</summary>
+    public int ShownXp { get; private set; }
+
+    /// <summary>
+    /// Raised whenever <see cref="ShownXp"/> climbs, so <see cref="BattleRewardsPanel"/> can list a
+    /// milestone the moment the bar reaches it.
+    /// </summary>
+    public event System.Action<int> XpShown;
+
+    /// <summary>
     /// Shows the track for a won battle of a run, following <paramref name="stats"/> as it counts up.
     /// Anything else (no run, a defeat) leaves it hidden. Call before the stats view starts revealing,
     /// so the bar is on screen at zero score rather than catching up halfway.
@@ -49,6 +64,8 @@ public class BattleXpTrack : MonoBehaviour
         }
 
         _baseXp = GauntletRun.Xp;
+        ShownXp = _baseXp;
+        IsShowing = stats != null;
         _stats = stats;
 
         gameObject.SetActive(true);
@@ -77,13 +94,19 @@ public class BattleXpTrack : MonoBehaviour
     /// <param name="score">The score on the panel right now; it dips below zero while penalties land.</param>
     private void OnScoreShown(int score)
     {
-        if (track != null) track.SetXp(_baseXp + Mathf.Max(0, score));
+        int xp = _baseXp + Mathf.Max(0, score);
+        if (track != null) track.SetXp(xp);
+
+        if (xp <= ShownXp) return;
+        ShownXp = xp;
+        XpShown?.Invoke(xp);
     }
 
     private void Unsubscribe()
     {
         if (_stats != null) _stats.ShownScoreChanged -= OnScoreShown;
         _stats = null;
+        IsShowing = false;
     }
 
     private void MoveButtonsAside(bool aside)
