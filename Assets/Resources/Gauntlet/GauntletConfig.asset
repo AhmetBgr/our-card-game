@@ -21,7 +21,7 @@ MonoBehaviour:
   milestoneXpStep: 266
   milestoneCount: 3
   randomRewardPool: 0100000004000000050000000600000007000000
-  finalMilestoneXp: 200
+  finalMilestoneXp: 900
   finalRewardPool: 02000000
   milestoneUpgradedPicks: 1
   perkChoiceCount: 3

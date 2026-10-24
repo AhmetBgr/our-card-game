@@ -93,6 +93,15 @@ public class DraftController : MonoBehaviour
     [Tooltip("Back to the main menu; only shown once the run is over.")]
     [SerializeField] private Button menuButton;
     [SerializeField] private TextMeshProUGUI menuButtonLabel;
+
+    [Header("Top bar")]
+    [Tooltip("Back to the main menu. A run in progress stays saved and the Forged in Battle button resumes " +
+             "it; a decided run is finished with, like the result screen's Main Menu.")]
+    [SerializeField] private Button backButton;
+
+    [Tooltip("Gives the run up after a confirmation popup: the run and its save are deleted. Shown only " +
+             "while the run is in progress.")]
+    [SerializeField] private Button abandonButton;
     [Tooltip("On the result step, New Run and Main Menu are centred side by side in this rect.")]
     [SerializeField] private RectTransform resultButtonArea;
     [SerializeField] private float resultButtonSpacing = 130f;
@@ -112,9 +121,29 @@ public class DraftController : MonoBehaviour
         // The draft runs on the plain rules: no Custom Game modifier may leak into the run's matches.
         MatchModifiers.Clear();
 
-        if (!GauntletRun.IsActive) GauntletRun.StartNew();
+        // Normally entered with the run already loaded (a new run, or a resume from the menu). Opened
+        // straight from the editor, it picks a saved run up itself -- and hands over to the Game scene if
+        // that is where the run was left.
+        if (!GauntletRun.IsActive)
+        {
+            if (GauntletRun.TryResume(out string scene))
+            {
+                if (scene != GauntletRun.Config.draftSceneName)
+                {
+                    _leaving = true;
+                    GauntletRun.LoadScene(scene);
+                    return;
+                }
+            }
+            else
+            {
+                GauntletRun.StartNew();
+            }
+        }
 
         if (menuButton != null) menuButton.onClick.AddListener(ExitToMenu);
+        if (backButton != null) backButton.onClick.AddListener(Back);
+        if (abandonButton != null) abandonButton.onClick.AddListener(AskAbandon);
         if (primaryButton != null) primaryButton.onClick.AddListener(OnPrimary);
 
         if (nextMatchRulesText != null) _rulesFontSize = nextMatchRulesText.fontSize;
@@ -151,6 +180,7 @@ public class DraftController : MonoBehaviour
 
         if (menuButtonLabel != null) menuButtonLabel.text = mainMenuLabel;
         if (menuButton != null) menuButton.gameObject.SetActive(!inProgress);
+        if (abandonButton != null) abandonButton.gameObject.SetActive(inProgress);
 
         ShowStep();
     }
@@ -263,7 +293,8 @@ public class DraftController : MonoBehaviour
 
         _leaving = true;
         SetButtonsInteractable(false);
-        if (GauntletRun.EnemyHero == null) GauntletRun.PrepareNextBattle();
+        // From here a quit restarts the fight rather than coming back to the draft.
+        GauntletRun.BeginBattle();
         GauntletRun.LoadScene(GauntletRun.Config.gameSceneName);
     }
 
@@ -276,6 +307,40 @@ public class DraftController : MonoBehaviour
         string menu = GauntletRun.Config != null ? GauntletRun.Config.menuSceneName : "MainMenu";
         GauntletRun.End();
         GauntletRun.LoadScene(menu);
+    }
+
+    /// <summary>
+    /// The top bar's Back: to the main menu. A run still in progress is only let go of -- it is saved
+    /// after every step, so the Forged in Battle button picks it up where it was. A decided run has
+    /// nothing left to resume, so leaving it finishes it, as the result screen's Main Menu does.
+    /// </summary>
+    private void Back()
+    {
+        if (_leaving) return;
+        if (GauntletRun.Outcome != GauntletRun.RunOutcome.InProgress)
+        {
+            ExitToMenu();
+            return;
+        }
+
+        _leaving = true;
+        SetButtonsInteractable(false);
+        string menu = GauntletRun.Config != null ? GauntletRun.Config.menuSceneName : "MainMenu";
+        GauntletRun.Unload();
+        GauntletRun.LoadScene(menu);
+    }
+
+    /// <summary>The top bar's Abandon Run: asks first, then deletes the run and its save and leaves.</summary>
+    private void AskAbandon()
+    {
+        if (_leaving || !GauntletRun.IsActive) return;
+
+        GauntletRunPrompts.ConfirmAbandon(() =>
+        {
+            _leaving = true;
+            SetButtonsInteractable(false);
+            GauntletRun.LoadScene(GauntletConfigSO.Load().menuSceneName);
+        });
     }
 
     private static bool CanFight =>
@@ -487,6 +552,8 @@ public class DraftController : MonoBehaviour
     {
         if (primaryButton != null) primaryButton.interactable = interactable;
         if (menuButton != null) menuButton.interactable = interactable;
+        if (backButton != null) backButton.interactable = interactable;
+        if (abandonButton != null) abandonButton.interactable = interactable;
         foreach (var go in _spawned)
             if (go != null)
                 foreach (var b in go.GetComponentsInChildren<Button>(true)) b.interactable = interactable;

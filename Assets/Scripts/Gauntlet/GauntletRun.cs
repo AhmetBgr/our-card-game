@@ -5,8 +5,13 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// State of the Forged in Battle run in progress: the hero and deck the player drafted, which battle is
 /// next, and the hero's statline carried out of the last won battle. Static so it crosses the scene
-/// loads between the Draft and Game scenes, like <see cref="MatchModifiers"/>. It lives in memory only:
-/// quitting the game abandons the run.
+/// loads between the Draft and Game scenes, like <see cref="MatchModifiers"/>.
+///
+/// The run is saved (<see cref="GauntletSaveStore"/>) after every change to it, so quitting at any point
+/// -- the draft, mid-battle, the end-of-match rewards -- resumes there (<see cref="TryResume"/>). Every
+/// roll comes from the run's own seeded stream (<see cref="RunRandom"/>), every enemy is rolled up front
+/// when the hero is picked, and every rolled option is saved as rolled, so a resume never rerolls
+/// anything. A battle walked out of restarts against the same enemy, with the same opening shuffle.
 ///
 /// Gameplay asks it three things, all no-ops while no run is active: which hero and deck each side
 /// plays with (<see cref="HeroFor"/>, <see cref="DeckFor"/>, read in Agent.ApplySavedSelection), how to
@@ -31,6 +36,20 @@ using UnityEngine.SceneManagement;
 public static class GauntletRun
 {
     public enum RunOutcome { InProgress, Won, Lost }
+
+    /// <summary>The screen the run is on, which is where a resume takes the player back to.</summary>
+    public enum RunLocation { Draft, Battle, Results }
+
+    /// <summary>One encounter's enemy, rolled when the hero is picked.</summary>
+    private class EnemyRoll
+    {
+        public HeroSO hero;
+        public readonly List<CardSO> deck = new List<CardSO>();
+        public readonly List<GauntletBlessing> blessings = new List<GauntletBlessing>();
+        public readonly List<HeroPassiveSO> ownPassives = new List<HeroPassiveSO>();
+        public readonly List<HeroPassiveSO> extraPassives = new List<HeroPassiveSO>();
+        public CardSO startingMinion;
+    }
 
     /// <summary>One milestone of this run's track, with its Random reward already rolled.</summary>
     public class MilestoneState
@@ -111,6 +130,7 @@ public static class GauntletRun
 
     /// <summary>The pick session running right now is the battle reward's, rather than a milestone's.</summary>
     private static bool _pickingBattleCards;
+    public static bool PickingBattleCards => _pickingBattleCards;
 
     /// <summary>Index of the milestone whose picks are owed, or -1.</summary>
     public static int ActiveMilestone { get; private set; } = -1;
@@ -125,10 +145,30 @@ public static class GauntletRun
     public static int Xp { get; private set; }
 
     /// <summary>The XP the Draft scene's track last showed, so it can animate what was gained since.</summary>
-    public static int XpShown { get; set; }
+    public static int XpShown
+    {
+        get => _xpShown;
+        set
+        {
+            if (_xpShown == value) return;
+            _xpShown = value;
+            Persist();
+        }
+    }
+    private static int _xpShown;
 
     /// <summary>The track's lock has slid away once already: later visits show it unlocked straight away.</summary>
-    public static bool MilestonesRevealed { get; set; }
+    public static bool MilestonesRevealed
+    {
+        get => _milestonesRevealed;
+        set
+        {
+            if (_milestonesRevealed == value) return;
+            _milestonesRevealed = value;
+            Persist();
+        }
+    }
+    private static bool _milestonesRevealed;
 
     /// <summary>What the last instantly applied milestone did ("+5 Max Health"), or null.</summary>
     public static string LastRewardMessage { get; private set; }
@@ -160,6 +200,46 @@ public static class GauntletRun
 
     /// <summary>Stronger Minions: enemy summons still owed the buff this battle.</summary>
     private static int _strongerMinionsLeft;
+
+    // ---------------------------------------------------------------- Saved run state
+
+    /// <summary>Every encounter's enemy, rolled when the hero is picked; the fight loads its own from here.</summary>
+    private static readonly List<EnemyRoll> _enemies = new List<EnemyRoll>();
+
+    /// <summary>The opening hero pick, rolled once so a resume offers the same heroes.</summary>
+    private static List<HeroSO> _heroOptions;
+
+    private static RunRandom _rng;
+    private static uint _seed;
+    private static string _runId;
+    private static long _startedUtcTicks;
+
+    /// <summary>The run's random stream. Only ever null before a run starts (a stray roll still works).</summary>
+    private static RunRandom Rng => _rng ?? (_rng = new RunRandom(RunRandom.NewSeed()));
+
+    public static RunLocation Location { get; private set; }
+
+    /// <summary>The end-of-match screen of the battle just decided, while <see cref="Location"/> is Results.</summary>
+    private static ResultsSave _results;
+
+    /// <summary>Every battle fought this run, with its stats.</summary>
+    private static readonly List<BattleRecord> _battles = new List<BattleRecord>();
+    public static IReadOnlyList<BattleRecord> Battles => _battles;
+
+    /// <summary>Times the battle being fought now was walked out of and restarted.</summary>
+    private static int _currentBattleRestarts;
+
+    /// <summary>
+    /// The Game scene is entered to put a saved end-of-match screen back up rather than to play: no match
+    /// is set up (GameManager.Start), and the panel is rebuilt from <see cref="Results"/>.
+    /// </summary>
+    public static bool RestoreResultsPending { get; private set; }
+
+    /// <summary>The saved end-of-match screen, or null while the run is not on one.</summary>
+    public static ResultsSave Results => Location == RunLocation.Results ? _results : null;
+
+    /// <summary>Set while <see cref="FromSave"/> runs, so rebuilding the run doesn't write it back half-built.</summary>
+    private static bool _loading;
 
     /// <summary>
     /// A mana curve for a 15-card upgraded deck. Upgraded cards cost 2 to 7, so
@@ -237,8 +317,8 @@ public static class GauntletRun
         _perkOptions = null;
         Outcome = RunOutcome.InProgress;
         Xp = 0;
-        XpShown = 0;
-        MilestonesRevealed = false;
+        _xpShown = 0;
+        _milestonesRevealed = false;
         LastRewardMessage = null;
         _milestones.Clear();
         _playerOwnPassives.Clear();
@@ -248,6 +328,19 @@ public static class GauntletRun
         _scorePending = false;
         _snapshot = null;
         ClearEnemy();
+
+        _enemies.Clear();
+        _heroOptions = null;
+        _rng = null;
+        _seed = 0;
+        _runId = null;
+        _startedUtcTicks = 0;
+        Location = RunLocation.Draft;
+        _results = null;
+        _battles.Clear();
+        _currentBattleRestarts = 0;
+        RestoreResultsPending = false;
+        _loading = false;
     }
 
     private static void ClearEnemy()
@@ -261,17 +354,115 @@ public static class GauntletRun
         StopStrongerMinions();
     }
 
-    /// <summary>Starts a fresh run: no hero yet, and the opening draft owed.</summary>
+    /// <summary>Starts a fresh run: no hero yet, and the opening draft owed. Replaces any saved run.</summary>
     public static void StartNew()
     {
         Reset();
         IsActive = true;
         Config = GauntletConfigSO.Load();
         PendingPicks = PicksThisStep = Config.initialDeckSize;
+
+        _seed = RunRandom.NewSeed();
+        _rng = new RunRandom(_seed);
+        _runId = System.Guid.NewGuid().ToString("N");
+        _startedUtcTicks = System.DateTime.UtcNow.Ticks;
+        Persist();
     }
 
-    /// <summary>Abandons the run. Called when the player is back on the main menu.</summary>
-    public static void End() => Reset();
+    /// <summary>
+    /// Finishes with the run for good: what leaving a decided run's result screen for the menu does. The
+    /// save goes with it.
+    /// </summary>
+    public static void End()
+    {
+        Reset();
+        GauntletSaveStore.Delete();
+    }
+
+    /// <summary>Gives the run up mid-way (the pause menu's Abandon Run): it is gone, saved copy and all.</summary>
+    public static void Abandon() => End();
+
+    /// <summary>
+    /// Lets go of the run in memory but keeps it saved, so the Forged in Battle button picks it up again.
+    /// What the main menu does on arrival.
+    /// </summary>
+    public static void Unload() => Reset();
+
+    /// <summary>A run is saved and can be resumed.</summary>
+    public static bool HasSavedRun => GauntletSaveStore.Has();
+
+    /// <summary>
+    /// Loads the saved run and says which scene carries on from where it was left: the Draft scene, or the
+    /// Game scene -- to fight again a battle that was walked out of, or to put the end-of-match screen
+    /// back up. A save that can't be read back (a card or hero since renamed, a changed config) is
+    /// discarded, and false returned so a fresh run starts instead.
+    /// </summary>
+    public static bool TryResume(out string sceneName)
+    {
+        sceneName = null;
+        var data = GauntletSaveStore.Load();
+        if (data == null) return false;
+
+        Reset();
+        if (!FromSave(data))
+        {
+            End();
+            return false;
+        }
+
+        switch (Location)
+        {
+            case RunLocation.Battle:
+                // Walked out of mid-fight: the battle starts over, same enemy, same opening shuffle.
+                _currentBattleRestarts++;
+                Persist();
+                sceneName = Config.gameSceneName;
+                break;
+
+            case RunLocation.Results:
+                RestoreResultsPending = true;
+                sceneName = Config.gameSceneName;
+                break;
+
+            default:
+                sceneName = Config.draftSceneName;
+                break;
+        }
+        return true;
+    }
+
+    /// <summary>The fight is starting: a quit from here on restarts it. Called as the Game scene is loaded.</summary>
+    public static void BeginBattle()
+    {
+        if (!IsActive) return;
+        if (EnemyHero == null) PrepareNextBattle();
+        Location = RunLocation.Battle;
+        Persist();
+    }
+
+    /// <summary>
+    /// The seed the battle being fought shuffles a side's deck with, or null outside a run. Fixed per
+    /// battle, so a battle restarted after a quit deals the same opening hands rather than a reroll.
+    /// </summary>
+    public static int? BattleShuffleSeed(SelectionSide side)
+    {
+        if (!IsActive || RestoreResultsPending) return null;
+        return RunRandom.Derive(_seed, EncounterIndex, (int)side);
+    }
+
+    /// <summary>
+    /// Remembers that a row of the end-of-match rewards was taken, and what it then read, so a resume
+    /// rebuilds the panel as it was left.
+    /// </summary>
+    public static void RecordTakenRow(int milestone, string label)
+    {
+        if (!IsActive || _results == null) return;
+
+        var row = _results.takenRows.Find(r => r.milestone == milestone);
+        if (row == null) _results.takenRows.Add(row = new TakenRowSave { milestone = milestone });
+        row.label = label;
+        Persist();
+    }
 
     // ---------------------------------------------------------------- Draft
 
@@ -287,6 +478,11 @@ public static class GauntletRun
 
         // Rolled now rather than at the start of the run: whether Forge Perk can apply depends on the hero.
         RollMilestones();
+
+        // Every enemy of the run is decided here, up front -- not at the start of the run, because
+        // avoiding a mirror match needs the player's hero.
+        RollAllEnemies();
+        Persist();
     }
 
     public static void AddDraftedCard(CardSO card)
@@ -298,12 +494,17 @@ public static class GauntletRun
             LastRewardMessage = Catalog.Acquired(MilestoneReward.DuplicateCard, 1, card.cardName);
         // Drained as they are taken, so walking away part-way through leaves the rest owed.
         if (_pickingBattleCards) BattleCardsOwed = PendingPicks - 1;
-        if (--PendingPicks > 0) return;
+        if (--PendingPicks > 0)
+        {
+            Persist();
+            return;
+        }
 
         PickingUpgraded = false;
         PickingDuplicate = false;
         _pickingBattleCards = false;
         ActiveMilestone = -1;
+        Persist();
     }
 
     /// <summary>
@@ -322,21 +523,33 @@ public static class GauntletRun
         ActiveMilestone = -1;
         _cardOptions = null;
         _pickingBattleCards = true;
+        Persist();
         return true;
     }
 
-    /// <summary>Heroes offered for the opening pick: distinct, random, never tutorial heroes.</summary>
+    /// <summary>
+    /// Heroes offered for the opening pick: distinct, random, never tutorial heroes. Rolled once per run,
+    /// so leaving and coming back offers the same heroes.
+    /// </summary>
     public static List<HeroSO> RollHeroOptions()
     {
+        if (_heroOptions != null) return _heroOptions;
+
         var pool = new List<HeroSO>(HeroDatabase.Instance.AllHeroes);
         pool.RemoveAll(h => h == null);
-        return TakeRandom(pool, Config.heroChoiceCount, distinct: true);
+        _heroOptions = TakeRandom(pool, Config.heroChoiceCount, distinct: true);
+        Persist();
+        return _heroOptions;
     }
 
     /// <summary>The cards offered for the pick owed now. Rolled once per pick.</summary>
     public static List<CardSO> CurrentCardOptions()
     {
-        if (_cardOptions == null) _cardOptions = PickingDuplicate ? RollDuplicateOptions() : RollCardOptions(PickingUpgraded);
+        if (_cardOptions == null)
+        {
+            _cardOptions = PickingDuplicate ? RollDuplicateOptions() : RollCardOptions(PickingUpgraded);
+            Persist();
+        }
         return _cardOptions;
     }
 
@@ -479,6 +692,7 @@ public static class GauntletRun
                 LastRewardMessage = Catalog.Acquired(MilestoneReward.BiggerHand, cards);
                 break;
         }
+        Persist();
         return true;
     }
 
@@ -499,6 +713,7 @@ public static class GauntletRun
             case MilestoneReward.DuplicateCard: milestone.cardOptions = RollDuplicateOptions(); break;
             default: return null;
         }
+        Persist();
         return milestone.cardOptions;
     }
 
@@ -511,7 +726,10 @@ public static class GauntletRun
         if (milestone.Reward != MilestoneReward.NewPerk) return null;
 
         if (milestone.perkOptions == null)
+        {
             milestone.perkOptions = TakeRandom(PlayerPerkPool(), Config.perkChoiceCount, distinct: true);
+            Persist();
+        }
         return milestone.perkOptions;
     }
 
@@ -527,6 +745,7 @@ public static class GauntletRun
         PendingPerkPick = false;
         _perkOptions = null;
         ActiveMilestone = -1;
+        Persist();
     }
 
     /// <summary>Every passive the player's hero plays with: its own (maybe forged), then its drafted perks.</summary>
@@ -630,7 +849,7 @@ public static class GauntletRun
                 if (list[i] != null && list[i].forgedVersion != null) candidates.Add((list, i));
         if (candidates.Count == 0) return null;
 
-        var (target, at) = candidates[Random.Range(0, candidates.Count)];
+        var (target, at) = candidates[Rng.Range(0, candidates.Count)];
         var forged = target[at].forgedVersion;
         target[at] = forged;
         return forged;
@@ -639,21 +858,73 @@ public static class GauntletRun
     // ---------------------------------------------------------------- Battles
 
     /// <summary>
-    /// Rolls the enemy for the next battle: random hero, its blessings, then the deck, passives and
-    /// starting minion those blessings call for. The Draft scene calls it once the player has a hero, so
-    /// the upcoming enemy can be previewed before the fight.
+    /// Puts the next battle's enemy -- rolled with the rest when the hero was picked -- in place for the
+    /// preview and the fight. The Draft scene calls it once the player has a hero, so the upcoming enemy
+    /// can be previewed before the fight.
     /// </summary>
     public static void PrepareNextBattle()
     {
         var encounter = CurrentEncounter;
         if (!IsActive || encounter == null) return;
 
+        // Every encounter is rolled at the hero pick; only a run that somehow lacks this one rolls it now.
+        while (_enemies.Count <= EncounterIndex)
+        {
+            RollEnemy(Config.encounters[_enemies.Count]);
+            _enemies.Add(TakeRolledEnemy());
+        }
+
+        LoadEnemy(_enemies[EncounterIndex]);
+    }
+
+    /// <summary>Rolls every encounter's enemy, in order, from the run's stream.</summary>
+    private static void RollAllEnemies()
+    {
+        _enemies.Clear();
+        foreach (var encounter in Config.encounters)
+        {
+            RollEnemy(encounter);
+            _enemies.Add(TakeRolledEnemy());
+        }
+        ClearEnemy();
+    }
+
+    /// <summary>The enemy just rolled into the live fields, copied out.</summary>
+    private static EnemyRoll TakeRolledEnemy()
+    {
+        var roll = new EnemyRoll { hero = _enemyHero, startingMinion = _enemyStartingMinion };
+        roll.deck.AddRange(_enemyDeck);
+        roll.blessings.AddRange(_enemyBlessings);
+        roll.ownPassives.AddRange(_enemyOwnPassives);
+        roll.extraPassives.AddRange(_enemyExtraPassives);
+        return roll;
+    }
+
+    private static void LoadEnemy(EnemyRoll roll)
+    {
+        ClearEnemy();
+        if (roll == null) return;
+
+        _enemyHero = roll.hero;
+        _enemyStartingMinion = roll.startingMinion;
+        _enemyDeck.AddRange(roll.deck);
+        _enemyBlessings.AddRange(roll.blessings);
+        _enemyOwnPassives.AddRange(roll.ownPassives);
+        _enemyExtraPassives.AddRange(roll.extraPassives);
+    }
+
+    /// <summary>
+    /// Rolls one encounter's enemy into the live enemy fields: random hero, its blessings, then the deck,
+    /// passives and starting minion those blessings call for.
+    /// </summary>
+    private static void RollEnemy(GauntletConfigSO.Encounter encounter)
+    {
         ClearEnemy();
 
         var heroes = new List<HeroSO>(HeroDatabase.Instance.AllHeroes);
         heroes.RemoveAll(h => h == null);
         if (Config.avoidMirrorHero && heroes.Count > 1) heroes.Remove(Hero);
-        _enemyHero = heroes.Count > 0 ? heroes[Random.Range(0, heroes.Count)] : null;
+        _enemyHero = heroes.Count > 0 ? heroes[Rng.Range(0, heroes.Count)] : null;
 
         if (_enemyHero != null)
             foreach (var passive in _enemyHero.passives)
@@ -669,7 +940,7 @@ public static class GauntletRun
         if (HasEnemyBlessing(GauntletBlessing.StartingMinion))
         {
             var minions = BaseCardPool().FindAll(c => c.cost == Config.startingMinionCost && c.health > 0);
-            _enemyStartingMinion = minions.Count > 0 ? minions[Random.Range(0, minions.Count)] : null;
+            _enemyStartingMinion = minions.Count > 0 ? minions[Rng.Range(0, minions.Count)] : null;
         }
 
         _enemyDeck.AddRange(HasEnemyBlessing(GauntletBlessing.UpgradedDeck)
@@ -720,7 +991,7 @@ public static class GauntletRun
             if (_enemyOwnPassives[i].forgedVersion != null) forgeable.Add(i);
         if (forgeable.Count == 0) return;
 
-        int index = forgeable[Random.Range(0, forgeable.Count)];
+        int index = forgeable[Rng.Range(0, forgeable.Count)];
         _enemyOwnPassives[index] = _enemyOwnPassives[index].forgedVersion;
     }
 
@@ -848,8 +1119,18 @@ public static class GauntletRun
     public static HeroSO HeroFor(SelectionSide side)
     {
         if (!IsActive) return null;
-        return side == SelectionSide.Opponent ? _enemyHero : Hero;
+        if (side != SelectionSide.Opponent) return Hero;
+
+        // Putting a saved end-of-match screen back up: the enemy that was fought stands behind it.
+        var fought = ResultsEnemy;
+        return fought != null ? fought.hero : _enemyHero;
     }
+
+    /// <summary>The enemy of the battle whose end-of-match screen is being restored, or null.</summary>
+    private static EnemyRoll ResultsEnemy =>
+        RestoreResultsPending && _results != null && _results.encounterIndex >= 0 && _results.encounterIndex < _enemies.Count
+            ? _enemies[_results.encounterIndex]
+            : null;
 
     /// <summary>
     /// The deck a side plays with this battle: always the drafted base cards for the player, since
@@ -858,7 +1139,9 @@ public static class GauntletRun
     public static IReadOnlyList<CardSO> DeckFor(SelectionSide side)
     {
         if (!IsActive) return System.Array.Empty<CardSO>();
-        return side == SelectionSide.Opponent ? _enemyDeck : _deck;
+        if (side != SelectionSide.Opponent) return _deck;
+        var fought = ResultsEnemy;
+        return fought != null ? fought.deck : _enemyDeck;
     }
 
     /// <summary>
@@ -939,6 +1222,9 @@ public static class GauntletRun
     {
         if (!IsActive || Outcome != RunOutcome.InProgress) return;
 
+        int fought = EncounterIndex;
+        int baseXp = Xp;
+
         Capture(playerHero);
         EncounterIndex++;
 
@@ -953,12 +1239,57 @@ public static class GauntletRun
         if (EncounterIndex >= Config.encounters.Count)
         {
             Outcome = RunOutcome.Won;
-            return;
+        }
+        else
+        {
+            HealSnapshot();
+            GrantBattleReward();
         }
 
-        HealSnapshot();
-        GrantBattleReward();
+        RecordBattle(won: true, fought, baseXp, BattleCardsOwed);
     }
+
+    /// <summary>
+    /// Keeps the decided battle: its stats for the run's record, and its end-of-match screen as the
+    /// place a resume comes back to until the player leaves it. The stats are built here, as the match
+    /// ends -- the same moment, and the same object, the end-of-match panel then shows -- so the score
+    /// that becomes XP is exactly the one on screen.
+    /// </summary>
+    private static void RecordBattle(bool won, int encounterIndex, int baseXp, int battleCardsAtWin)
+    {
+        var tracker = StatsTracker.Instance;
+        var stats = tracker != null ? CopyStats(tracker.BuildStats(won)) : null;
+
+        var enemy = encounterIndex >= 0 && encounterIndex < _enemies.Count ? _enemies[encounterIndex] : null;
+        var record = new BattleRecord
+        {
+            encounterIndex = encounterIndex,
+            enemyHero = enemy != null ? HeroKey(enemy.hero) : HeroKey(_enemyHero),
+            won = won,
+            restarts = _currentBattleRestarts,
+            endedUtcTicks = System.DateTime.UtcNow.Ticks,
+            stats = stats,
+        };
+        foreach (var blessing in enemy != null ? enemy.blessings : _enemyBlessings)
+            record.enemyBlessings.Add(blessing.ToString());
+        _battles.Add(record);
+        _currentBattleRestarts = 0;
+
+        _results = new ResultsSave
+        {
+            won = won,
+            encounterIndex = encounterIndex,
+            baseXp = baseXp,
+            battleCardsAtWin = battleCardsAtWin,
+            stats = stats,
+        };
+        Location = RunLocation.Results;
+        Persist();
+    }
+
+    /// <summary>A detached copy: the tracker's own object keeps being refinalized while the panel is up.</summary>
+    private static MatchStats CopyStats(MatchStats stats) =>
+        stats != null ? JsonUtility.FromJson<MatchStats>(JsonUtility.ToJson(stats)) : null;
 
     /// <summary>
     /// Owes the won battle's card picks. They are taken on the rewards panel over the end-of-match screen;
@@ -979,9 +1310,19 @@ public static class GauntletRun
         if (!_scorePending) return;
         _scorePending = false;
 
-        var tracker = StatsTracker.Instance;
-        var stats = tracker != null ? tracker.BuildStats(won: true) : null;
-        if (stats != null) Xp += Mathf.Max(0, stats.TotalScore);
+        // The score captured as the battle was won (RecordBattle); the live tracker only stands in for a
+        // battle decided without one.
+        var stats = _results != null ? _results.stats : null;
+        if (stats == null)
+        {
+            var tracker = StatsTracker.Instance;
+            stats = tracker != null ? tracker.BuildStats(won: true) : null;
+        }
+
+        int gained = stats != null ? Mathf.Max(0, stats.TotalScore) : 0;
+        Xp += gained;
+        if (_battles.Count > 0) _battles[_battles.Count - 1].xpGained = gained;
+        Persist();
     }
 
     public static void OnBattleLost()
@@ -989,6 +1330,7 @@ public static class GauntletRun
         if (!IsActive || Outcome != RunOutcome.InProgress) return;
         Outcome = RunOutcome.Lost;
         StopStrongerMinions();
+        RecordBattle(won: false, EncounterIndex, Xp, 0);
     }
 
     /// <summary>
@@ -998,6 +1340,16 @@ public static class GauntletRun
     public static void LeaveBattle()
     {
         CollectScore();
+
+        // Off the end-of-match screen: a resume from here on comes back to the Draft scene.
+        if (IsActive)
+        {
+            Location = RunLocation.Draft;
+            _results = null;
+            RestoreResultsPending = false;
+            Persist();
+        }
+
         LoadScene(Config != null ? Config.draftSceneName : "Draft");
     }
 
@@ -1027,6 +1379,306 @@ public static class GauntletRun
         maxHealth = Hero.defHealth > 0 ? Hero.defHealth : Hero.health;
         attack = Hero.attack;
         return true;
+    }
+
+    // ---------------------------------------------------------------- Save
+
+    /// <summary>Writes the run as it stands now. A no-op outside a run, and while a save is being read back.</summary>
+    private static void Persist()
+    {
+        if (!IsActive || _loading) return;
+        GauntletSaveStore.Write(ToSave());
+    }
+
+    /// <summary>
+    /// Upgraded cards are keyed apart from base ones: DeckDatabase lets a card and its upgraded version
+    /// share a cardName, so the name alone could come back as the wrong one.
+    /// </summary>
+    private const string UpgradedCardPrefix = "^";
+
+    private static string CardKey(CardSO card) =>
+        card == null ? null : (card.isUpgraded ? UpgradedCardPrefix : string.Empty) + card.cardName;
+
+    private static string HeroKey(HeroSO hero) => hero != null ? hero.name : null;
+
+    private static string PassiveKey(HeroPassiveSO passive) => passive != null ? passive.name : null;
+
+    private static List<string> CardKeys(IEnumerable<CardSO> cards)
+    {
+        var keys = new List<string>();
+        if (cards != null) foreach (var card in cards) keys.Add(CardKey(card));
+        return keys;
+    }
+
+    private static List<string> PassiveKeys(IEnumerable<HeroPassiveSO> passives)
+    {
+        var keys = new List<string>();
+        if (passives != null) foreach (var passive in passives) keys.Add(PassiveKey(passive));
+        return keys;
+    }
+
+    /// <summary>The run as plain data.</summary>
+    public static GauntletSaveData ToSave()
+    {
+        var data = new GauntletSaveData
+        {
+            runId = _runId,
+            startedUtcTicks = _startedUtcTicks,
+            savedUtcTicks = System.DateTime.UtcNow.Ticks,
+            seed = _seed,
+            rngState = Rng.State,
+            location = Location.ToString(),
+            outcome = Outcome.ToString(),
+
+            hasHeroOptions = _heroOptions != null,
+            hero = HeroKey(Hero),
+            deck = CardKeys(_deck),
+            encounterIndex = EncounterIndex,
+
+            pendingPicks = PendingPicks,
+            picksThisStep = PicksThisStep,
+            pickingUpgraded = PickingUpgraded,
+            pickingDuplicate = PickingDuplicate,
+            pendingPerkPick = PendingPerkPick,
+            battleCardsOwed = BattleCardsOwed,
+            pickingBattleCards = _pickingBattleCards,
+            activeMilestone = ActiveMilestone,
+            hasCardOptions = _cardOptions != null,
+            cardOptions = CardKeys(_cardOptions),
+            hasPerkOptions = _perkOptions != null,
+            perkOptions = PassiveKeys(_perkOptions),
+
+            xp = Xp,
+            xpShown = _xpShown,
+            milestonesRevealed = _milestonesRevealed,
+            lastRewardMessage = LastRewardMessage,
+            scorePending = _scorePending,
+
+            playerOwnPassives = PassiveKeys(_playerOwnPassives),
+            playerExtraPassives = PassiveKeys(_playerExtraPassives),
+            rewardAttack = _rewardAttack,
+            playerExtraStartingCards = _playerExtraStartingCards,
+
+            hasSnapshot = _snapshot != null,
+            hasResults = _results != null,
+            results = _results ?? new ResultsSave(),
+            currentBattleRestarts = _currentBattleRestarts,
+        };
+
+        if (_heroOptions != null)
+            foreach (var hero in _heroOptions) data.heroOptions.Add(HeroKey(hero));
+
+        foreach (var milestone in _milestones)
+        {
+            data.milestones.Add(new MilestoneSave
+            {
+                xp = milestone.Xp,
+                reward = milestone.Reward.ToString(),
+                claimed = milestone.Claimed,
+                hasCardOptions = milestone.cardOptions != null,
+                cardOptions = CardKeys(milestone.cardOptions),
+                hasPerkOptions = milestone.perkOptions != null,
+                perkOptions = PassiveKeys(milestone.perkOptions),
+            });
+        }
+
+        if (_snapshot != null)
+        {
+            data.snapshot.health = _snapshot.health;
+            data.snapshot.maxHealth = _snapshot.maxHealth;
+            data.snapshot.attack = _snapshot.attack;
+            data.snapshot.appliedAttackBonus = _snapshot.appliedAttackBonus;
+            foreach (var pair in _snapshot.counters)
+                data.snapshot.counters.Add(new CounterEntry { key = pair.Key, value = pair.Value });
+        }
+
+        foreach (var enemy in _enemies)
+        {
+            var save = new EnemySave
+            {
+                hero = HeroKey(enemy.hero),
+                deck = CardKeys(enemy.deck),
+                ownPassives = PassiveKeys(enemy.ownPassives),
+                extraPassives = PassiveKeys(enemy.extraPassives),
+                startingMinion = CardKey(enemy.startingMinion),
+            };
+            foreach (var blessing in enemy.blessings) save.blessings.Add(blessing.ToString());
+            data.enemies.Add(save);
+        }
+
+        data.battles.AddRange(_battles);
+        return data;
+    }
+
+    /// <summary>
+    /// Thrown while reading a save back when something in it no longer resolves -- a card, hero or
+    /// passive since renamed or removed, an enum value that is gone. The save is then discarded whole:
+    /// a run with a hole in it is worse than a fresh one.
+    /// </summary>
+    private class SaveMismatchException : System.Exception
+    {
+        public SaveMismatchException(string message) : base(message) { }
+    }
+
+    /// <summary>Rebuilds the run from <paramref name="data"/>. False (and the run reset) if it can't be.</summary>
+    private static bool FromSave(GauntletSaveData data)
+    {
+        Reset();
+        _loading = true;
+        try
+        {
+            ReadSave(data);
+            _loading = false;
+            return true;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"GauntletRun: the saved run can't be resumed and is discarded. {e.Message}");
+            Reset();
+            return false;
+        }
+    }
+
+    private static void ReadSave(GauntletSaveData data)
+    {
+        if (data.version != GauntletSaveData.CurrentVersion)
+            throw new SaveMismatchException($"save version {data.version}, expected {GauntletSaveData.CurrentVersion}");
+
+        if (HeroDatabase.Instance == null) throw new SaveMismatchException("no HeroDatabase to resolve heroes with");
+
+        IsActive = true;
+        Config = GauntletConfigSO.Load();
+        if (Config == null) throw new SaveMismatchException("no GauntletConfig");
+
+        var cards = new Dictionary<string, CardSO>();
+        foreach (var card in CardPool(upgraded: false)) if (!cards.ContainsKey(CardKey(card))) cards.Add(CardKey(card), card);
+        foreach (var card in CardPool(upgraded: true)) if (!cards.ContainsKey(CardKey(card))) cards.Add(CardKey(card), card);
+
+        CardSO Card(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+            if (!cards.TryGetValue(key, out var card)) throw new SaveMismatchException($"unknown card '{key}'");
+            return card;
+        }
+
+        HeroSO HeroOf(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+            var hero = HeroDatabase.Instance.GetHeroByName(key);
+            if (hero == null) throw new SaveMismatchException($"unknown hero '{key}'");
+            return hero;
+        }
+
+        HeroPassiveSO Passive(string key)
+        {
+            var passive = HeroDatabase.Instance.GetPassiveByName(key);
+            if (passive == null) throw new SaveMismatchException($"unknown passive '{key}'");
+            return passive;
+        }
+
+        void Cards(List<string> keys, List<CardSO> into)
+        {
+            foreach (var key in keys) into.Add(Card(key));
+        }
+
+        void Passives(List<string> keys, List<HeroPassiveSO> into)
+        {
+            foreach (var key in keys) into.Add(Passive(key));
+        }
+
+        T Enum<T>(string name) where T : struct
+        {
+            if (!System.Enum.TryParse(name, out T value)) throw new SaveMismatchException($"unknown {typeof(T).Name} '{name}'");
+            return value;
+        }
+
+        _runId = data.runId;
+        _startedUtcTicks = data.startedUtcTicks;
+        _seed = data.seed;
+        _rng = RunRandom.FromState(data.rngState);
+        Location = Enum<RunLocation>(data.location);
+        Outcome = Enum<RunOutcome>(data.outcome);
+
+        if (data.hasHeroOptions)
+        {
+            _heroOptions = new List<HeroSO>();
+            foreach (var key in data.heroOptions) _heroOptions.Add(HeroOf(key));
+        }
+
+        Hero = HeroOf(data.hero);
+        Cards(data.deck, _deck);
+        EncounterIndex = data.encounterIndex;
+        if (EncounterIndex < 0 || EncounterIndex > Config.encounters.Count)
+            throw new SaveMismatchException($"encounter {EncounterIndex} out of range");
+
+        PendingPicks = data.pendingPicks;
+        PicksThisStep = data.picksThisStep;
+        PickingUpgraded = data.pickingUpgraded;
+        PickingDuplicate = data.pickingDuplicate;
+        PendingPerkPick = data.pendingPerkPick;
+        BattleCardsOwed = data.battleCardsOwed;
+        _pickingBattleCards = data.pickingBattleCards;
+        ActiveMilestone = data.activeMilestone;
+        if (data.hasCardOptions) Cards(data.cardOptions, _cardOptions = new List<CardSO>());
+        if (data.hasPerkOptions) Passives(data.perkOptions, _perkOptions = new List<HeroPassiveSO>());
+
+        Xp = data.xp;
+        _xpShown = data.xpShown;
+        _milestonesRevealed = data.milestonesRevealed;
+        LastRewardMessage = string.IsNullOrEmpty(data.lastRewardMessage) ? null : data.lastRewardMessage;
+        _scorePending = data.scorePending;
+
+        foreach (var save in data.milestones)
+        {
+            var milestone = new MilestoneState(save.xp, Enum<MilestoneReward>(save.reward)) { Claimed = save.claimed };
+            if (save.hasCardOptions) Cards(save.cardOptions, milestone.cardOptions = new List<CardSO>());
+            if (save.hasPerkOptions) Passives(save.perkOptions, milestone.perkOptions = new List<HeroPassiveSO>());
+            _milestones.Add(milestone);
+        }
+
+        Passives(data.playerOwnPassives, _playerOwnPassives);
+        Passives(data.playerExtraPassives, _playerExtraPassives);
+        _rewardAttack = data.rewardAttack;
+        _playerExtraStartingCards = data.playerExtraStartingCards;
+
+        if (data.hasSnapshot)
+        {
+            _snapshot = new HeroSnapshot
+            {
+                health = data.snapshot.health,
+                maxHealth = data.snapshot.maxHealth,
+                attack = data.snapshot.attack,
+                appliedAttackBonus = data.snapshot.appliedAttackBonus,
+            };
+            foreach (var counter in data.snapshot.counters)
+                if (!string.IsNullOrEmpty(counter.key)) _snapshot.counters[counter.key] = counter.value;
+        }
+
+        foreach (var save in data.enemies)
+        {
+            var enemy = new EnemyRoll { hero = HeroOf(save.hero), startingMinion = Card(save.startingMinion) };
+            Cards(save.deck, enemy.deck);
+            foreach (var blessing in save.blessings) enemy.blessings.Add(Enum<GauntletBlessing>(blessing));
+            Passives(save.ownPassives, enemy.ownPassives);
+            Passives(save.extraPassives, enemy.extraPassives);
+            _enemies.Add(enemy);
+        }
+
+        // A run whose hero is picked was rolled against this many encounters; a config that has since
+        // changed the count can't carry it on.
+        if (Hero != null && _enemies.Count != Config.encounters.Count)
+            throw new SaveMismatchException($"{_enemies.Count} enemies saved for {Config.encounters.Count} encounters");
+
+        _results = data.hasResults ? data.results : null;
+        if (Location == RunLocation.Results && _results == null) Location = RunLocation.Draft;
+        if (_results != null && _results.takenRows == null) _results.takenRows = new List<TakenRowSave>();
+
+        if (data.battles != null) _battles.AddRange(data.battles);
+        _currentBattleRestarts = data.currentBattleRestarts;
+
+        // The enemy the next battle is against, for the Draft preview and the fight.
+        if (Outcome == RunOutcome.InProgress && Hero != null && CurrentEncounter != null)
+            LoadEnemy(_enemies[EncounterIndex]);
     }
 
     // ---------------------------------------------------------------- Internals
@@ -1095,7 +1747,7 @@ public static class GauntletRun
             var tierCards = pool.FindAll(c => System.Array.IndexOf(tier.costs, c.cost) >= 0);
             while (want > 0 && deck.Count < size && tierCards.Count > 0)
             {
-                int index = Random.Range(0, tierCards.Count);
+                int index = Rng.Range(0, tierCards.Count);
                 CardSO card = tierCards[index];
                 deck.Add(card);
                 want--;
@@ -1110,13 +1762,13 @@ public static class GauntletRun
         {
             if (!allowDuplicates && pool.Count > 0)
             {
-                int index = Random.Range(0, pool.Count);
+                int index = Rng.Range(0, pool.Count);
                 deck.Add(pool[index]);
                 pool.RemoveAt(index);
             }
             else
             {
-                deck.Add(all[Random.Range(0, all.Count)]);
+                deck.Add(all[Rng.Range(0, all.Count)]);
             }
         }
 
@@ -1136,7 +1788,7 @@ public static class GauntletRun
         }
         else
         {
-            for (int i = 0; i < count; i++) result.Add(pool[Random.Range(0, pool.Count)]);
+            for (int i = 0; i < count; i++) result.Add(pool[Rng.Range(0, pool.Count)]);
         }
         return result;
     }
@@ -1145,7 +1797,7 @@ public static class GauntletRun
     {
         for (int i = list.Count - 1; i > 0; i--)
         {
-            int j = Random.Range(0, i + 1);
+            int j = Rng.Range(0, i + 1);
             (list[i], list[j]) = (list[j], list[i]);
         }
     }

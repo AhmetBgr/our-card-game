@@ -89,7 +89,7 @@ public class Agent : MonoBehaviour
         if (deck.Count == 0 && deckSO != null)
             deck.AddRange(deckSO.cards);
 
-        ShuffleDeck();
+        ShuffleDeck(SelectionSide.Opponent);
         RefreshDeckView();
         SpawnPassiveUI();
     }
@@ -214,11 +214,19 @@ public class Agent : MonoBehaviour
             : SaveManager.TutorialPlayerHeroName);
     }
 
-    protected void ShuffleDeck()
+    /// <summary>
+    /// Shuffles the deck. In a Forged in Battle run the shuffle is seeded per battle and side
+    /// (<see cref="GauntletRun.BattleShuffleSeed"/>), so a battle restarted after the player walked out
+    /// of it deals the same opening hands instead of a free reroll.
+    /// </summary>
+    protected void ShuffleDeck(SelectionSide side)
     {
+        int? seed = GauntletRun.BattleShuffleSeed(side);
+        var seeded = seed.HasValue ? new System.Random(seed.Value) : null;
+
         for (int i = deck.Count - 1; i > 0; i--)
         {
-            int randomIndex = Random.Range(0, i + 1);
+            int randomIndex = seeded != null ? seeded.Next(0, i + 1) : Random.Range(0, i + 1);
             var temp = deck[i];
             deck[i] = deck[randomIndex];
             deck[randomIndex] = temp;

@@ -131,6 +131,12 @@ public class BattleRewardsPanel : MonoBehaviour
 
     private bool _leaving;
 
+    /// <summary>
+    /// The panel is put back up from a saved run (<see cref="GauntletRun.Results"/>) rather than opened
+    /// on a battle just won: rows already taken come back taken, and a pick left open reopens.
+    /// </summary>
+    private ResultsSave _restoring;
+
     /// <summary>Added on demand: what fades the Proceed button while it is locked.</summary>
     private CanvasGroup _proceedGroup;
 
@@ -191,7 +197,8 @@ public class BattleRewardsPanel : MonoBehaviour
         // The score the end-of-match panel is tallying becomes XP here, so a milestone the win reaches is
         // already reached below. The Draft scene's track then has nothing left to fill in.
         GauntletRun.CollectScore();
-        if (!HasRewards) return false;
+        _restoring = GauntletRun.RestoreResultsPending ? GauntletRun.Results : null;
+        if (_restoring != null ? !HasRestorableRows(_restoring) : !HasRewards) return false;
         GauntletRun.XpShown = GauntletRun.Xp;
 
         _leaving = false;
@@ -210,6 +217,9 @@ public class BattleRewardsPanel : MonoBehaviour
         RefreshRows();
 
         if (_xpSource != null) _xpSource.XpShown += OnXpShown;
+
+        // A pick the player walked out of reopens where it was, with the same options, once the panel is up.
+        if (_restoring != null) DOVirtual.DelayedCall(delay + scaleInDuration, ResumeOpenPick, false).SetTarget(this);
 
         // No scale-in of its own: the panel lives under the end-of-match panel, which PopupManager
         // already scales in, and tweening here too would compound the two curves.
@@ -246,9 +256,12 @@ public class BattleRewardsPanel : MonoBehaviour
 
         rowTemplate.gameObject.SetActive(false);
 
-        if (GauntletRun.PendingBattleReward)
+        // Restored, the card row is listed if the win owed cards at all -- taken or not -- and reads as
+        // what it offered then, not what is still owed.
+        bool cardRow = _restoring != null ? _restoring.battleCardsAtWin > 0 : GauntletRun.PendingBattleReward;
+        if (cardRow)
         {
-            int picks = GauntletRun.BattleCardsOwed;
+            int picks = _restoring != null ? _restoring.battleCardsAtWin : GauntletRun.BattleCardsOwed;
             var cards = GauntletRun.Catalog.BattleCards;
 
             var row = SpawnRow(cards.icon != null ? cards.icon : cardIcon,
@@ -257,9 +270,70 @@ public class BattleRewardsPanel : MonoBehaviour
             row.button.onClick.AddListener(() => OnCardRowClicked(row));
             _rows.Add(row);
             RevealNextRow(row);
+
+            if (_restoring != null && !GauntletRun.PendingBattleReward && !GauntletRun.PickingBattleCards)
+                MarkTaken(row, TakenLabel(-1, Or(GauntletRun.Catalog.BattleCardsAcquired(picks),
+                    string.Format(cardRowTakenLabel, picks))), record: false);
         }
 
         ListReachedMilestones();
+    }
+
+    /// <summary>A restored panel lists anything at all: the win's cards, or a milestone this win reached.</summary>
+    private static bool HasRestorableRows(ResultsSave results)
+    {
+        if (!results.won || GauntletRun.Outcome != GauntletRun.RunOutcome.InProgress) return false;
+        if (results.battleCardsAtWin > 0) return true;
+
+        foreach (var milestone in GauntletRun.Milestones)
+            if (ReachedByThisWin(milestone, results)) return true;
+        return false;
+    }
+
+    /// <summary>A milestone the restored battle's XP reached, claimed since or not.</summary>
+    private static bool ReachedByThisWin(GauntletRun.MilestoneState milestone, ResultsSave results) =>
+        milestone.Reward != MilestoneReward.None && milestone.Xp > results.baseXp && milestone.Reached;
+
+    /// <summary>The label a row was saved with once taken, else <paramref name="fallback"/>.</summary>
+    private string TakenLabel(int milestone, string fallback)
+    {
+        var saved = _restoring != null ? _restoring.takenRows.Find(r => r.milestone == milestone) : null;
+        return saved != null && !string.IsNullOrEmpty(saved.label) ? saved.label : fallback;
+    }
+
+    /// <summary>The claimed milestone whose pick is still owed: its row is not taken yet, and its pick reopens.</summary>
+    private static bool PickStillOwed(int milestone) =>
+        GauntletRun.ActiveMilestone == milestone && (GauntletRun.PendingPicks > 0 || GauntletRun.PendingPerkPick);
+
+    /// <summary>
+    /// Restored with a pick under way -- the player left with the card or perk options on screen: put the
+    /// same options back up for the row they belong to.
+    /// </summary>
+    private void ResumeOpenPick()
+    {
+        if (_restoring == null || _leaving || _pickingPerk || _pickingRow != null) return;
+
+        if (GauntletRun.PendingPerkPick)
+        {
+            var perkRow = _rows.Find(r => r.milestone == GauntletRun.ActiveMilestone);
+            if (perkRow != null) ShowPerkOptions(perkRow);
+            return;
+        }
+
+        if (GauntletRun.PendingPicks <= 0) return;
+
+        var row = GauntletRun.PickingBattleCards
+            ? _rows.Find(r => r.milestone < 0)
+            : _rows.Find(r => r.milestone == GauntletRun.ActiveMilestone);
+        if (row == null) return;
+
+        _pickingRow = row;
+        _pickingTakenLabel = GauntletRun.PickingBattleCards
+            ? CardsTakenLabel()
+            : GauntletRun.PickingDuplicate
+                ? null
+                : string.Format(milestoneTakenLabel, GauntletRun.PickingUpgraded ? UpgradedCardsTakenLabel() : CardsTakenLabel());
+        OpenNextCardPick();
     }
 
     /// <summary>
@@ -274,7 +348,15 @@ public class BattleRewardsPanel : MonoBehaviour
         for (int i = 0; i < milestones.Count; i++)
         {
             var milestone = milestones[i];
-            if (milestone.Xp > _shownXp || !IsOwed(milestone) || IsListed(i)) continue;
+            if (milestone.Xp > _shownXp || IsListed(i)) continue;
+
+            // Restored, a milestone this win reached is listed even when claimed since: it comes back taken.
+            bool taken = false;
+            if (!IsOwed(milestone))
+            {
+                if (_restoring == null || !ReachedByThisWin(milestone, _restoring)) continue;
+                taken = !PickStillOwed(i);
+            }
 
             string name = GauntletRun.MilestoneRewardName(milestone.Reward);
 
@@ -290,6 +372,8 @@ public class BattleRewardsPanel : MonoBehaviour
             row.button.onClick.AddListener(() => OnMilestoneRowClicked(row, index));
             _rows.Add(row);
             RevealNextRow(row);
+
+            if (taken) MarkTaken(row, TakenLabel(i, string.Format(milestoneTakenLabel, name)), record: false);
         }
     }
 
@@ -373,13 +457,15 @@ public class BattleRewardsPanel : MonoBehaviour
     }
 
     /// <summary>The row keeps its place in the list, reading as what it gave, and stops taking clicks.</summary>
-    private void MarkTaken(Row row, string label)
+    /// <param name="record">Saves the row as taken with this label (off when restoring one already saved).</param>
+    private void MarkTaken(Row row, string label, bool record = true)
     {
         if (row == null) return;
 
         row.taken = true;
         SetClickable(row, false);
         if (row.label != null && !string.IsNullOrEmpty(label)) row.label.text = label;
+        if (record) GauntletRun.RecordTakenRow(row.milestone, row.label != null ? row.label.text : label);
     }
 
     private void ClearRows()
@@ -653,6 +739,7 @@ public class BattleRewardsPanel : MonoBehaviour
     void OnDestroy()
     {
         UnsubscribeXp();
+        DOTween.Kill(this);
         transform.DOKill();
         foreach (var row in _rows)
             if (row.button != null) row.button.transform.DOKill();

@@ -43,6 +43,12 @@ public class EscMenuController : MonoBehaviour
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private Button quitButton;
 
+    [Tooltip("Gives up the Forged in Battle run in progress (its save too) and goes to the title screen. " +
+             "Only shown during a run. Left empty, one is cloned from the Main Menu button and slotted in " +
+             "under it -- the buttons sit in a layout group, so it lines up on its own.")]
+    [SerializeField] private Button abandonRunButton;
+    [SerializeField] private string abandonRunLabel = "Abandon Run";
+
     [Tooltip("Sits under the other buttons and shows the rules alongside them. Not a scene change and " +
              "not a modal — it only switches the two reading panels on and off. Carries a " +
              "ToggleButton so it stays visibly held down for as long as they are up.")]
@@ -109,6 +115,7 @@ public class EscMenuController : MonoBehaviour
     /// <summary>Whether the rules and how-to-play panels are currently showing.</summary>
     private bool _infoOpen;
 
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void ResetState()
     {
@@ -127,6 +134,8 @@ public class EscMenuController : MonoBehaviour
 
         // No restarting a Forged in Battle battle: it would be a free retry of a lost fight.
         if (restartButton != null && GauntletRun.IsActive) restartButton.gameObject.SetActive(false);
+
+        SetUpAbandonRun();
 
         if (howToPlayButton != null)
         {
@@ -192,6 +201,9 @@ public class EscMenuController : MonoBehaviour
         }
 
         if (!Input.GetKeyDown(KeyCode.Escape)) return;
+
+        // A confirmation popup over the menu owns Escape: it cancels the question, not the pause.
+        if (ConfirmationPopup.ConsumesEscape) return;
 
         // Escape backs out one layer at a time: it closes whatever is up in the left column first and the
         // menu second, so reading the rules — or setting the volume — is never a one-way trip into
@@ -289,7 +301,40 @@ public class EscMenuController : MonoBehaviour
     /// <summary>Rerun the match with the decks and heroes already chosen, exactly as Play Again does.</summary>
     public void Restart() => LeaveTo(gameSceneName);
 
+    /// <summary>
+    /// To the title screen. A Forged in Battle run is NOT given up by this: it stays saved, and the
+    /// Forged in Battle button carries it on (a battle left mid-fight starts over). Abandon Run is the
+    /// way to throw one away.
+    /// </summary>
     public void ExitToMenu() => LeaveTo(menuSceneName);
+
+    // ---------------------------------------------------------------- Abandon Run
+
+    private void SetUpAbandonRun()
+    {
+        bool runInProgress = GauntletRun.IsActive && GauntletRun.Outcome == GauntletRun.RunOutcome.InProgress;
+
+        if (abandonRunButton == null && runInProgress && mainMenuButton != null)
+        {
+            abandonRunButton = Instantiate(mainMenuButton, mainMenuButton.transform.parent);
+            abandonRunButton.name = "AbandonRunButton";
+            abandonRunButton.transform.SetSiblingIndex(mainMenuButton.transform.GetSiblingIndex() + 1);
+            // A fresh event: the clone must not carry the Main Menu button's own wiring.
+            abandonRunButton.onClick = new Button.ButtonClickedEvent();
+        }
+
+        if (abandonRunButton == null) return;
+
+        abandonRunButton.gameObject.SetActive(runInProgress);
+        if (!runInProgress) return;
+
+        var label = abandonRunButton.GetComponentInChildren<TMPro.TMP_Text>(true);
+        if (label != null) label.text = abandonRunLabel;
+        abandonRunButton.onClick.AddListener(OnAbandonRunClicked);
+    }
+
+    private void OnAbandonRunClicked() =>
+        GauntletRunPrompts.ConfirmAbandon(() => LeaveTo(menuSceneName));
 
     public void Quit()
     {

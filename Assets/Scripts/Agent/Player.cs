@@ -30,7 +30,7 @@ public class Player : Agent
     protected override void Awake()
     {
         ApplySavedSelection(SelectionSide.Player);
-        ShuffleDeck();
+        ShuffleDeck(SelectionSide.Player);
         RefreshDeckView();
         SpawnPassiveUI();
     }

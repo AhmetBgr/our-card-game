@@ -203,7 +203,18 @@ public class GameManager : Singleton<GameManager>
 
     void Start()
     {
-        StartCoroutine(GameLoop());
+        // A Forged in Battle run left on its end-of-match screen comes back to that screen, not to a new
+        // match: nothing is set up or dealt, and the panel is rebuilt from the saved battle.
+        if (GauntletRun.RestoreResultsPending)
+        {
+            currentState = GameState.EndGame;
+            PopupManager.Instance.OpenRestoredResults();
+        }
+        else
+        {
+            StartCoroutine(GameLoop());
+        }
+
         MinionController.OnDied += OnMinionDied;
         MinionController.OnCollided += OnMinionCollided;
         MinionController.OnTookDamage += OnMinionTookDamage;

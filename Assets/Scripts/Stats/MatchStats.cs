@@ -4,6 +4,10 @@ using UnityEngine;
 // Plain data holder for one match's tracked metrics. Populated by StatsTracker, then
 // ComputeScore() turns the raw metrics into a total score, a letter grade, and an ordered
 // breakdown the panels display. No MonoBehaviour / no scene dependency.
+//
+// Serializable (JsonUtility) so a Forged in Battle run can store each battle's stats exactly as the
+// end-of-match panel showed them, and replay that panel after a resume (GauntletSaveData).
+[System.Serializable]
 public class MatchStats
 {
     // --- Raw metrics (filled in by StatsTracker) ---
@@ -46,6 +50,7 @@ public class MatchStats
             ? Mathf.Clamp01((float)neededDamage / (neededDamage + overkillDamage))
             : 1f;
 
+    [System.Serializable]
     public struct ScoreRow
     {
         public string label;
@@ -59,15 +64,19 @@ public class MatchStats
         }
     }
 
-    public int TotalScore { get; private set; }
-    public string Grade { get; private set; }
-    public List<ScoreRow> Breakdown { get; private set; }
+    [SerializeField] private int totalScore;
+    [SerializeField] private string grade;
+    [SerializeField] private List<ScoreRow> breakdown;
+
+    public int TotalScore { get => totalScore; private set => totalScore = value; }
+    public string Grade { get => grade; private set => grade = value; }
+    public List<ScoreRow> Breakdown { get => breakdown; private set => breakdown = value; }
 
     // Grade thresholds and labels copied out of the config at score time. Kept by value (not as a
     // ScoreConfig reference) so the running-grade lookup stays valid even if the config instance was a
     // temporary one that has since been destroyed - see MatchStatsView's editor preview.
-    private int gradeS, gradeA, gradeB, gradeC, gradeD, gradeE;
-    private string gradeSLabel = "S", gradeALabel = "A", gradeBLabel = "B", gradeCLabel = "C",
+    [SerializeField] private int gradeS, gradeA, gradeB, gradeC, gradeD, gradeE;
+    [SerializeField] private string gradeSLabel = "S", gradeALabel = "A", gradeBLabel = "B", gradeCLabel = "C",
                    gradeDLabel = "D", gradeELabel = "E", gradeFLabel = "F";
 
     // Grade for an arbitrary (partial) score, used while the breakdown counts up row by row.

@@ -146,9 +146,21 @@ public class MatchStatsView : MonoBehaviour
         MatchStats stats = tracker.BuildStats(won);
         if (stats == null) return;
 
+        Show(stats, animateReveal, openDelay);
+    }
+
+    /// <summary>
+    /// Shows <paramref name="stats"/> as given, rather than this match's live tracker: what a resumed
+    /// Forged in Battle run puts back on its end-of-match screen. Never scores anything or touches the
+    /// high score -- the stats were final when they were saved.
+    /// </summary>
+    public void Show(MatchStats stats, bool animate, float openDelay = 0f)
+    {
+        if (stats == null) return;
+
         StopReveal();
 
-        if (animateReveal && Application.isPlaying) StartReveal(stats, openDelay);
+        if (animate && Application.isPlaying) StartReveal(stats, openDelay);
         else ApplyToTexts(stats);
     }
 

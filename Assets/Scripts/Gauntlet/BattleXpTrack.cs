@@ -85,6 +85,35 @@ public class BattleXpTrack : MonoBehaviour
     }
 
     /// <summary>
+    /// Shows the track already filled from <paramref name="baseXp"/> to <paramref name="xp"/>, following no
+    /// tally: a resumed run's end-of-match screen, whose score was counted up in an earlier session.
+    /// <see cref="IsShowing"/> stays false, so the rewards panel lists every milestone reached at once.
+    /// </summary>
+    public void ShowStatic(bool won, int baseXp, int xp)
+    {
+        Unsubscribe();
+
+        if (!won || !GauntletRun.IsActive || !GauntletRun.MilestonesUnlocked)
+        {
+            Hide();
+            return;
+        }
+
+        _baseXp = baseXp;
+        ShownXp = xp;
+
+        gameObject.SetActive(true);
+        MoveButtonsAside(true);
+
+        if (track != null)
+        {
+            // Straight at the final XP: nothing was gained in this session, so nothing fills or punches.
+            track.ShowDriven(GauntletRun.Milestones, xp, revealLock: false);
+            GauntletRun.MilestonesRevealed = true;
+        }
+    }
+
+    /// <summary>
     /// Re-reads the milestones' claimed state on the track, without moving the bar: the rewards panel
     /// calls it as a reward is taken, so the node's claimed mark lands with it.
     /// </summary>

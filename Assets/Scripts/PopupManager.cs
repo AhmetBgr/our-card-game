@@ -68,7 +68,30 @@ public class PopupManager : Singleton<PopupManager>
     // which title transform is enabled.
     // Leave delay null to use the inspector's gameOverDelay; pass an explicit value to override it
     // (the editor debug triggers pass 0 so the preview is instant).
-    public void OpenGameOverPopup(bool won, float? delay = null)
+    public void OpenGameOverPopup(bool won, float? delay = null) => OpenGameOverPopup(won, delay, null);
+
+    /// <summary>
+    /// Puts a Forged in Battle run's saved end-of-match screen back up, as it was left: the battle's
+    /// stats already tallied, the XP track already filled, and the rewards with what was taken. No
+    /// delay and no outcome stinger -- the match ended in an earlier session.
+    /// </summary>
+    public void OpenRestoredResults()
+    {
+        var results = GauntletRun.Results;
+        if (results == null || results.stats == null)
+        {
+            Debug.LogWarning("PopupManager: no saved end-of-match screen to restore; back to the draft.");
+            GauntletRun.LeaveBattle();
+            return;
+        }
+
+        // Left before the score was credited (the panel credits it as it opens): credit it before the
+        // track is drawn, so the track shows the XP the rewards are listed against.
+        GauntletRun.CollectScore();
+        OpenGameOverPopup(results.won, 0f, results);
+    }
+
+    private void OpenGameOverPopup(bool won, float? delay, ResultsSave restored)
     {
         if (gameOverPopup == null) return;
 
@@ -82,10 +105,13 @@ public class PopupManager : Singleton<PopupManager>
 
         // Hold the outcome hook back by the same delay the panel waits, so the stinger hits on the first
         // frame of the scale-in rather than over the empty board. Scaled time, matching the tween below.
-        if (resolvedDelay > 0f) DOVirtual.DelayedCall(resolvedDelay, () => GameOver?.Invoke(won), false);
-        else GameOver?.Invoke(won);
+        if (restored == null)
+        {
+            if (resolvedDelay > 0f) DOVirtual.DelayedCall(resolvedDelay, () => GameOver?.Invoke(won), false);
+            else GameOver?.Invoke(won);
+        }
 
-        float openDuration = OpenPopup(gameOverPopup, won, resolvedDelay);
+        float openDuration = OpenPopup(gameOverPopup, won, resolvedDelay, restored);
 
         // A won run battle opens its rewards beside the panel, scaling in with it, and milestone rows land
         // as the panel's XP track fills. Must follow OpenPopup: the track reads its base XP there, before
@@ -118,7 +144,10 @@ public class PopupManager : Singleton<PopupManager>
     public static event System.Action<bool> GameOver;
 
     /// <summary>Opens <paramref name="popup"/>, and returns how long it takes to finish arriving.</summary>
-    public float OpenPopup(Transform popup, bool won = false, float delay = 0f)
+    public float OpenPopup(Transform popup, bool won = false, float delay = 0f) => OpenPopup(popup, won, delay, null);
+
+    /// <param name="restored">A saved end-of-match screen to show as it was, instead of this match's live stats.</param>
+    private float OpenPopup(Transform popup, bool won, float delay, ResultsSave restored)
     {
         CloseCurPopup();
         curPopup = popup;
@@ -141,10 +170,19 @@ public class PopupManager : Singleton<PopupManager>
         // Wired before the reveal starts so it is on screen from the first number, and left to itself on
         // panels without one.
         var xpTrack = popup.GetComponentInChildren<BattleXpTrack>(true);
-        if (xpTrack != null) xpTrack.Show(won, statsView);
+        if (restored != null)
+        {
+            // Already tallied in the session the battle was fought: the panel lands finished.
+            if (xpTrack != null) xpTrack.ShowStatic(won, restored.baseXp, GauntletRun.Xp);
+            if (statsView != null) statsView.Show(restored.stats, animate: false);
+        }
+        else
+        {
+            if (xpTrack != null) xpTrack.Show(won, statsView);
 
-        // The stats view reveals its rows one by one; hold them until the panel has finished arriving.
-        if (statsView != null) statsView.Show(won, delay + openDuration);
+            // The stats view reveals its rows one by one; hold them until the panel has finished arriving.
+            if (statsView != null) statsView.Show(won, delay + openDuration);
+        }
 
         // Posed for the entrance now, played after the delay, so the board is clear of the panel until then.
         if (intro != null) intro.Play(delay);

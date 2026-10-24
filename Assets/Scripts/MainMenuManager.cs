@@ -105,8 +105,10 @@ public class MainMenuManager : MonoBehaviour
         // and Custom Game re-enters its mode itself.
         MatchModifiers.Clear();
 
-        // Coming back to the menu abandons any Forged in Battle run, won, lost or walked out of.
-        GauntletRun.End();
+        // Coming back to the menu lets go of the Forged in Battle run in memory, but it stays saved:
+        // the Forged in Battle button resumes it. Only the run's own result screen and the pause menu's
+        // Abandon Run throw a run away.
+        GauntletRun.Unload();
 
         // Always open on the menu itself, however the panels were left in the editor.
         ShowPlay(false);
@@ -221,9 +223,18 @@ public class MainMenuManager : MonoBehaviour
         GoToScene(gameSceneName);
     }
 
-    /// <summary>Forged in Battle: a fresh run, starting with the hero pick in the Draft scene.</summary>
+    /// <summary>
+    /// Forged in Battle: carries on the saved run where it was left (the draft, a battle to fight again,
+    /// or the end-of-match rewards), or starts a fresh one with the hero pick in the Draft scene.
+    /// </summary>
     void OnForgedInBattle()
     {
+        if (GauntletRun.HasSavedRun && GauntletRun.TryResume(out string scene))
+        {
+            GoToScene(scene);
+            return;
+        }
+
         GauntletRun.StartNew();
         GoToScene(GauntletRun.Config.draftSceneName);
     }
