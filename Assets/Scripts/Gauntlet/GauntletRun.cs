@@ -65,6 +65,15 @@ public static class GauntletRun
     public static bool IsActive { get; private set; }
     public static GauntletConfigSO Config { get; private set; }
 
+    /// <summary>
+    /// The tuning to read numbers off. <see cref="Config"/> outside a run is null -- the track and its
+    /// reward previews are read before (and after) one -- so the asset stands in for it there.
+    /// </summary>
+    private static GauntletConfigSO Tuning => Config != null ? Config : GauntletConfigSO.Load();
+
+    /// <summary>How the rewards read and look; every player-facing reward line comes from here.</summary>
+    public static MilestoneRewardCatalogSO Catalog => MilestoneRewardCatalogSO.Load();
+
     public static HeroSO Hero { get; private set; }
     private static readonly List<CardSO> _deck = new List<CardSO>();
     public static IReadOnlyList<CardSO> Deck => _deck;
@@ -88,11 +97,20 @@ public static class GauntletRun
     public static bool PendingPerkPick { get; private set; }
 
     /// <summary>
-    /// The cards won by the battle just fought are still to be picked. Set by <see cref="OnBattleWon"/>
-    /// together with the picks they owe (<see cref="PendingPicks"/>), and handed out by the rewards panel
-    /// over the end-of-match screen (BattleRewardsPanel) before it leaves for the Draft scene.
+    /// Cards the battle just won still owes. They are NOT a live pick session: the reward waits its turn
+    /// beside whatever milestones the win reached, and only becomes one once the player asks for it
+    /// (<see cref="BeginBattleCardPicks"/>). That is what lets the rewards panel offer every reward at
+    /// once and let the player take them in any order -- were the win to seize
+    /// <see cref="PendingPicks"/> the moment it was won, no milestone that owes a pick of its own could
+    /// be claimed until the cards had been drafted.
     /// </summary>
-    public static bool PendingBattleReward { get; private set; }
+    public static int BattleCardsOwed { get; private set; }
+
+    /// <summary>The battle just won still owes its cards; see <see cref="BattleCardsOwed"/>.</summary>
+    public static bool PendingBattleReward => BattleCardsOwed > 0;
+
+    /// <summary>The pick session running right now is the battle reward's, rather than a milestone's.</summary>
+    private static bool _pickingBattleCards;
 
     /// <summary>Index of the milestone whose picks are owed, or -1.</summary>
     public static int ActiveMilestone { get; private set; } = -1;
@@ -212,7 +230,8 @@ public static class GauntletRun
         PickingUpgraded = false;
         PickingDuplicate = false;
         PendingPerkPick = false;
-        PendingBattleReward = false;
+        BattleCardsOwed = 0;
+        _pickingBattleCards = false;
         ActiveMilestone = -1;
         _cardOptions = null;
         _perkOptions = null;
@@ -275,13 +294,35 @@ public static class GauntletRun
         if (!IsActive || card == null || PendingPicks <= 0) return;
         _deck.Add(card);
         _cardOptions = null;
-        if (PickingDuplicate) LastRewardMessage = $"{card.cardName} duplicated";
+        if (PickingDuplicate)
+            LastRewardMessage = Catalog.Acquired(MilestoneReward.DuplicateCard, 1, card.cardName);
+        // Drained as they are taken, so walking away part-way through leaves the rest owed.
+        if (_pickingBattleCards) BattleCardsOwed = PendingPicks - 1;
         if (--PendingPicks > 0) return;
 
         PickingUpgraded = false;
         PickingDuplicate = false;
-        PendingBattleReward = false;
+        _pickingBattleCards = false;
         ActiveMilestone = -1;
+    }
+
+    /// <summary>
+    /// Turns the cards the won battle owes into the pick session, so they can be drafted now. Refuses
+    /// while another pick is already under way -- only one choice can be on screen at a time -- which is
+    /// the only thing that ever holds a reward back.
+    /// </summary>
+    /// <returns>True when the session is now the battle reward's and its options can be shown.</returns>
+    public static bool BeginBattleCardPicks()
+    {
+        if (!IsActive || !PendingBattleReward || PendingPicks > 0 || PendingPerkPick) return false;
+
+        PendingPicks = PicksThisStep = BattleCardsOwed;
+        PickingUpgraded = false;
+        PickingDuplicate = false;
+        ActiveMilestone = -1;
+        _cardOptions = null;
+        _pickingBattleCards = true;
+        return true;
     }
 
     /// <summary>Heroes offered for the opening pick: distinct, random, never tutorial heroes.</summary>
@@ -333,11 +374,32 @@ public static class GauntletRun
 
     private static bool IsClaimable(MilestoneState m) => m.Reached && !m.Claimed && m.Reward != MilestoneReward.None;
 
-    /// <summary>The milestone can be claimed right now: reached, unclaimed, and no other pick under way.</summary>
-    public static bool CanClaim(int index) =>
-        IsActive && Outcome == RunOutcome.InProgress && MilestonesUnlocked
-        && index >= 0 && index < _milestones.Count && IsClaimable(_milestones[index])
-        && PendingPicks == 0 && !PendingPerkPick;
+    /// <summary>
+    /// The reward hands the player a choice -- cards, or a perk -- instead of applying itself. Only one
+    /// such pick can be under way at a time: they all run through the same <see cref="PendingPicks"/>
+    /// session, and starting a second would throw away the options of the first.
+    /// </summary>
+    public static bool RewardOwesPick(MilestoneReward reward) =>
+        reward == MilestoneReward.UpgradedCards
+        || reward == MilestoneReward.DuplicateCard
+        || reward == MilestoneReward.NewPerk;
+
+    /// <summary>
+    /// The milestone can be claimed right now: reached, unclaimed, and -- only if its reward owes a pick
+    /// of its own -- with no other pick already under way. A reward that applies itself (health, attack,
+    /// hand size, a forged perk) has nothing to collide with, so it can be taken the moment it is listed,
+    /// including while the won battle's own card picks are still owed.
+    /// </summary>
+    public static bool CanClaim(int index)
+    {
+        if (!IsActive || Outcome != RunOutcome.InProgress || !MilestonesUnlocked) return false;
+        if (index < 0 || index >= _milestones.Count) return false;
+
+        var milestone = _milestones[index];
+        if (!IsClaimable(milestone)) return false;
+
+        return !RewardOwesPick(milestone.Reward) || (PendingPicks == 0 && !PendingPerkPick);
+    }
 
     /// <summary>
     /// Claims a reached milestone. Card and perk rewards owe picks (<see cref="PendingPicks"/>,
@@ -351,6 +413,7 @@ public static class GauntletRun
         var milestone = _milestones[index];
         milestone.Claimed = true;
         LastRewardMessage = null;
+        _pickingBattleCards = false;
 
         switch (milestone.Reward)
         {
@@ -365,7 +428,7 @@ public static class GauntletRun
                 var options = MilestoneCardOptions(index);
                 if (options == null || options.Count == 0)
                 {
-                    LastRewardMessage = "No cards to duplicate";
+                    LastRewardMessage = Catalog.Unavailable(MilestoneReward.DuplicateCard);
                     break;
                 }
                 PickingDuplicate = true;
@@ -378,7 +441,7 @@ public static class GauntletRun
                 var perks = MilestonePerkOptions(index);
                 if (perks.Count == 0)
                 {
-                    LastRewardMessage = "No new perks left to learn";
+                    LastRewardMessage = Catalog.Unavailable(MilestoneReward.NewPerk);
                     break;
                 }
                 _perkOptions = perks;
@@ -388,7 +451,9 @@ public static class GauntletRun
 
             case MilestoneReward.ForgePerk:
                 var forged = ForgeRandomPlayerPassive();
-                LastRewardMessage = forged != null ? $"{forged.passiveName} is forged" : "No perk left to forge";
+                LastRewardMessage = forged != null
+                    ? Catalog.Acquired(MilestoneReward.ForgePerk, 0, forged.passiveName)
+                    : Catalog.Unavailable(MilestoneReward.ForgePerk);
                 break;
 
             case MilestoneReward.BonusHealth:
@@ -398,20 +463,20 @@ public static class GauntletRun
                     _snapshot.maxHealth += health;
                     _snapshot.health += health;
                 }
-                LastRewardMessage = $"+{health} Hero Health";
+                LastRewardMessage = Catalog.Acquired(MilestoneReward.BonusHealth, health);
                 break;
 
             case MilestoneReward.BonusAttack:
                 int attack = Config.milestoneBonusAttack;
                 if (_snapshot != null) _snapshot.attack += attack;
                 _rewardAttack += attack;
-                LastRewardMessage = $"+{attack} Hero Attack";
+                LastRewardMessage = Catalog.Acquired(MilestoneReward.BonusAttack, attack);
                 break;
 
             case MilestoneReward.BiggerHand:
                 int cards = Config.milestoneExtraStartingCards;
                 _playerExtraStartingCards += cards;
-                LastRewardMessage = $"+{cards} Starting Hand Size";
+                LastRewardMessage = Catalog.Acquired(MilestoneReward.BiggerHand, cards);
                 break;
         }
         return true;
@@ -475,48 +540,13 @@ public static class GauntletRun
         }
     }
 
-    /// <summary>Player-facing name of a milestone reward.</summary>
-    public static string MilestoneRewardName(MilestoneReward reward)
-    {
-        var c = Config;
-        switch (reward)
-        {
-            case MilestoneReward.UpgradedCards:
-                return c.milestoneUpgradedPicks == 1 ? "Upgraded Card" : $"{c.milestoneUpgradedPicks} Upgraded Cards";
-            case MilestoneReward.NewPerk: return "New Perk";
-            case MilestoneReward.ForgePerk: return "Forge Perk";
-            case MilestoneReward.BonusHealth: return $"+{c.milestoneBonusHealth} Health";
-            case MilestoneReward.BonusAttack: return $"+{c.milestoneBonusAttack} Attack";
-            case MilestoneReward.BiggerHand: return "Bigger Hand";
-            case MilestoneReward.DuplicateCard: return "Duplicate";
-            case MilestoneReward.None: return "Coming Soon";
-            default: return reward.ToString();
-        }
-    }
+    /// <summary>Player-facing name of a milestone reward, as the catalog words it.</summary>
+    public static string MilestoneRewardName(MilestoneReward reward) =>
+        Catalog.Name(reward, Tuning.RewardAmount(reward));
 
     /// <summary>What a milestone reward does, for its preview.</summary>
-    public static string MilestoneRewardDescription(MilestoneReward reward)
-    {
-        var c = Config;
-        switch (reward)
-        {
-            case MilestoneReward.UpgradedCards:
-                return c.milestoneUpgradedPicks == 1
-                    ? "Draft an upgraded card for your deck"
-                    : $"Draft {c.milestoneUpgradedPicks} upgraded cards for your deck";
-            case MilestoneReward.NewPerk: return "Draft a new perk for your hero";
-            case MilestoneReward.ForgePerk: return "Forge one of your hero's perks at random";
-            case MilestoneReward.BonusHealth: return $"Your hero gains +{c.milestoneBonusHealth} health";
-            case MilestoneReward.BonusAttack: return $"Your hero gains +{c.milestoneBonusAttack} attack";
-            case MilestoneReward.BiggerHand:
-                return c.milestoneExtraStartingCards == 1
-                    ? "Start every battle with 1 more card in hand"
-                    : $"Start every battle with {c.milestoneExtraStartingCards} more cards in hand";
-            case MilestoneReward.DuplicateCard: return $"Pick 1 of {c.duplicateChoiceCount} cards from your deck and add a copy of it";
-            case MilestoneReward.None: return "Nothing here yet";
-            default: return string.Empty;
-        }
-    }
+    public static string MilestoneRewardDescription(MilestoneReward reward) =>
+        Catalog.Description(reward, Tuning.RewardAmount(reward));
 
     /// <summary>
     /// Builds this run's track: <see cref="GauntletConfigSO.milestoneCount"/> milestones, one every
@@ -936,12 +966,7 @@ public static class GauntletRun
     /// </summary>
     private static void GrantBattleReward()
     {
-        PendingBattleReward = true;
-        PendingPicks = PicksThisStep = Mathf.Max(1, Config.battleCardPicks);
-        PickingUpgraded = false;
-        PickingDuplicate = false;
-        ActiveMilestone = -1;
-        _cardOptions = null;
+        BattleCardsOwed = Mathf.Max(1, Config.battleCardPicks);
     }
 
     /// <summary>

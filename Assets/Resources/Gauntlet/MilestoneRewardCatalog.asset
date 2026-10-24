@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e07e2b63f69a2f4bbcafa3dcadbc1fd, type: 3}
+  m_Name: MilestoneRewardCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::MilestoneRewardCatalogSO
+  rewards:
+  - reward: 0
+    displayName: Coming Soon
+    description: Nothing here yet
+    acquired: Coming Soon
+    unavailable: 
+    displayNameOne: Coming Soon
+    descriptionOne: Nothing here yet
+    acquiredOne: Coming Soon
+    icon: {fileID: 21300000, guid: 1ab64bf5229e5474592ff763e9a1266f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+  - reward: 1
+    displayName: '{0} Upgraded Cards'
+    description: Draft {0} upgraded cards for your deck
+    acquired: '{0} Upgraded Cards'
+    unavailable: 
+    displayNameOne: Upgraded Card
+    descriptionOne: Choose an upgraded card for your deck
+    acquiredOne: Upgraded Card
+    icon: {fileID: 21300000, guid: 1ab64bf5229e5474592ff763e9a1266f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+  - reward: 2
+    displayName: New Perk
+    description: Draft a new perk for your hero
+    acquired: New Perk
+    unavailable: No new perks left to learn
+    displayNameOne: New Perk
+    descriptionOne: Draft a new perk for your hero
+    acquiredOne: New Perk
+    icon: {fileID: 21300000, guid: 1ab64bf5229e5474592ff763e9a1266f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+  - reward: 3
+    displayName: Forge Perk
+    description: Forge one of your hero's perks at random
+    acquired: Forge Perk
+    unavailable: No perk left to forge
+    displayNameOne: Forge Perk
+    descriptionOne: Forge one of your hero's perks at random
+    acquiredOne: Forge Perk
+    icon: {fileID: 21300000, guid: 1ab64bf5229e5474592ff763e9a1266f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+  - reward: 4
+    displayName: +{0} Health
+    description: Your hero gains +{0} health
+    acquired: +{0} Health
+    unavailable: 
+    displayNameOne: +{0} Health
+    descriptionOne: Your hero gains +{0} health
+    acquiredOne: +{0} Health
+    icon: {fileID: 21300000, guid: 1ab64bf5229e5474592ff763e9a1266f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+  - reward: 5
+    displayName: +{0} Attack
+    description: Your hero gains +{0} attack
+    acquired: +{0} Attack
+    unavailable: 
+    displayNameOne: +{0} Attack
+    descriptionOne: Your hero gains +{0} attack
+    acquiredOne: +{0} Attack
+    icon: {fileID: 21300000, guid: 1ab64bf5229e5474592ff763e9a1266f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+  - reward: 6
+    displayName: Bigger Hand
+    description: Start every battle with {0} more cards in hand
+    acquired: Bigger Hand
+    unavailable: 
+    displayNameOne: Bigger Hand
+    descriptionOne: Start every battle with 1 more card in hand
+    acquiredOne: Bigger Hand
+    icon: {fileID: 21300000, guid: 1ab64bf5229e5474592ff763e9a1266f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+  - reward: 7
+    displayName: Duplicate
+    description: Pick 1 of {0} cards from your deck and add a copy of it
+    acquired: Duplicate
+    unavailable: No cards to duplicate
+    displayNameOne: Duplicate
+    descriptionOne: Pick 1 of {0} cards from your deck and add a copy of it
+    acquiredOne: Duplicate
+    icon: {fileID: 21300000, guid: 1ab64bf5229e5474592ff763e9a1266f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+  battleCards:
+    offered: Add {0} cards to your deck
+    acquired: '{0} cards added to your deck'
+    pickPrompt: Draft a New Card For Your Deck {0}/{1}
+    offeredOne: Add a card to your deck
+    acquiredOne: Card added to your deck
+    icon: {fileID: 21300000, guid: 454af15abfdad9c4f9815be3d2026489, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}

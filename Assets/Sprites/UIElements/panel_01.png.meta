@@ -970,7 +970,7 @@ TextureImporter:
         width: 24
         height: 25
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 4, y: 7, z: 4, w: 4}
       customData: 
       outline: []
@@ -979,6 +979,94 @@ TextureImporter:
       bones: []
       spriteID: 017677657ac5e834aa5c0e98c56e874d
       internalID: 1554530161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_39
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 582
+        width: 26
+        height: 27
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ea0dd50cf47fd040b69ecf44efc87f8
+      internalID: -2109526474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_40
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 866
+        width: 144
+        height: 4
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25ea66ac34293bc46af17319776bfb06
+      internalID: 528996896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_41
+      rect:
+        serializedVersion: 2
+        x: 429
+        y: 865
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70b4b11184331f24e8604a8f595d9386
+      internalID: 832215785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_42
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 524
+        width: 4
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 086e75658b5fc814591ec3ab55843108
+      internalID: -1730062020
       vertices: []
       indices: 
       edges: []
@@ -1030,7 +1118,11 @@ TextureImporter:
       panel_01_36: 629264567
       panel_01_37: -491215518
       panel_01_38: 1554530161
+      panel_01_39: -2109526474
       panel_01_4: 1152573127
+      panel_01_40: 528996896
+      panel_01_41: 832215785
+      panel_01_42: -1730062020
       panel_01_5: -67600548
       panel_01_6: -2024813826
       panel_01_7: 703188476

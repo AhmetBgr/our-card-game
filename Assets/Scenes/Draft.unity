@@ -2387,11 +2387,8 @@ MonoBehaviour:
   proceedGap: 4
   beatenSkullTint: {r: 0.396, g: 0.396, b: 0.396, a: 1}
   milestoneTrack: {fileID: 934747957}
-  perkOptionPrefab: {fileID: 2038763203782812688, guid: 45d806d13d29eb04fa689ada54ef5c37,
+  perkOptionPrefab: {fileID: 2948800134054970871, guid: aa6c55dd70c98da498c12bf919cdba95,
     type: 3}
-  perkOptionSize: {x: 170, y: 210}
-  perkIconScale: 1.8
-  perkTextSize: 14
   primaryButton: {fileID: 1286849411}
   primaryButtonLabel: {fileID: 1286849410}
   menuButton: {fileID: 1940138907}

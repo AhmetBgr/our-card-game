@@ -26,10 +26,16 @@ public class MilestoneTrack : MonoBehaviour
     [SerializeField] private float lockSlideDelay = 0.4f;
 
     [Header("XP bar")]
-    [Tooltip("The bar's full extent: XP 0 at its left edge, the last milestone at its right edge.")]
-    [SerializeField] private RectTransform barArea;
-    [Tooltip("Filled image (Horizontal) showing the run's XP.")]
+    [Tooltip("Filled image (Horizontal) showing the run's XP. Its rect is the track's full extent: XP 0 " +
+             "at its left edge, the last milestone at its right edge, and that is where the nodes sit.")]
     [SerializeField] private Image barFill;
+    [Tooltip("Cap drawn at the filled end of the bar, moved to follow the fill. Authored as a child of " +
+             "the fill above, with centred anchors. Optional.")]
+    [SerializeField] private RectTransform barFillEnd;
+    [Tooltip("Nudge for the cap along the bar, in the fill's own units.")]
+    [SerializeField] private float barFillEndOffset;
+    [Tooltip("Hide the cap while the bar is still empty, so it doesn't sit on an empty bar.")]
+    [SerializeField] private bool hideBarFillEndWhenEmpty = true;
     [SerializeField] private TextMeshProUGUI xpText;
     [SerializeField] private string xpFormat = "{0} XP";
     [Tooltip("Seconds the bar takes to fill up to newly gained XP.")]
@@ -38,6 +44,9 @@ public class MilestoneTrack : MonoBehaviour
     [Header("Nodes")]
     [Tooltip("Cloned once per milestone; kept hidden.")]
     [SerializeField] private MilestoneNode nodeTemplate;
+    [Tooltip("Hovering a node scales it up and raises NodeHovered, which the draft panel previews the " +
+             "reward from. Off for the end-of-match copy, where there is nothing to preview.")]
+    [SerializeField] private bool hoverableNodes = true;
 
     public event System.Action<int, bool> NodeHovered;
     public event System.Action<int> NodeClicked;
@@ -48,6 +57,9 @@ public class MilestoneTrack : MonoBehaviour
     private bool _lockHomeKnown;
     private Sequence _sequence;
     private int _maxXp = 1;
+
+    /// <summary>The XP the bar is drawn at, so the states can be re-applied without moving it.</summary>
+    private int _xpShown;
 
     /// <summary>The nodes were built while the track had no size yet; lay them out once it has.</summary>
     private bool _nodesNeedLayout;
@@ -135,13 +147,13 @@ public class MilestoneTrack : MonoBehaviour
     /// <summary>The XP the bar shows, for a track driven from outside. Nodes punch as they are reached.</summary>
     public void SetXp(int xp) => ApplyXp(xp, punch: true);
 
-    /// <summary>Re-reads the milestones' claimed state without touching the XP shown.</summary>
-    public void RefreshStates()
-    {
-        if (_milestones == null) return;
-        for (int i = 0; i < _nodes.Count && i < _milestones.Count; i++)
-            ApplyNodeState(i, _milestones[i].Reached, punch: false);
-    }
+    /// <summary>
+    /// Re-reads the milestones' claimed state without touching the XP shown, so a reward taken while the
+    /// panel is up marks its node. Reached stays measured by the bar rather than by the run's XP: over the
+    /// end-of-match panel the run is already credited with the whole battle while the bar is still filling
+    /// towards it, and reading the run there would jump every node the win reaches on ahead of the bar.
+    /// </summary>
+    public void RefreshStates() => ApplyXp(_xpShown, punch: false);
 
     private void SetLock(bool locked)
     {
@@ -153,7 +165,10 @@ public class MilestoneTrack : MonoBehaviour
 
     private void ApplyXp(int xp, bool punch)
     {
-        if (barFill != null) barFill.fillAmount = Mathf.Clamp01(xp / (float)_maxXp);
+        _xpShown = xp;
+        float fill = Mathf.Clamp01(xp / (float)_maxXp);
+        if (barFill != null) barFill.fillAmount = fill;
+        ApplyBarFillEnd(fill);
         if (xpText != null) xpText.text = string.Format(xpFormat, xp);
 
         if (_milestones == null) return;
@@ -161,18 +176,41 @@ public class MilestoneTrack : MonoBehaviour
             ApplyNodeState(i, xp >= _milestones[i].Xp, punch);
     }
 
-    /// <param name="reached">Reached as far as the bar has filled so far, which may trail the run's XP.</param>
-    private void ApplyNodeState(int index, bool reached, bool punch)
+    /// <summary>
+    /// Parks the bar's end cap on the filled edge. A Filled image clips only itself and not its children,
+    /// so the cap has to be carried along by hand. The x-range comes out of the fill's own rect, which is
+    /// local and so is right even while the end-of-match panel is still scaled to zero -- unlike
+    /// <see cref="LayoutNodes"/>, which needs the track drawn at size.
+    /// </summary>
+    private void ApplyBarFillEnd(float fill)
     {
-        var milestone = _milestones[index];
-        bool empty = milestone.Reward == MilestoneReward.None;
-        bool claimable = reached && !milestone.Claimed && !empty;
-        _nodes[index].SetState(reached, milestone.Claimed, claimable, punch);
+        if (barFillEnd == null || barFill == null) return;
+
+        if (hideBarFillEndWhenEmpty)
+        {
+            bool show = fill > 0f;
+            if (barFillEnd.gameObject.activeSelf != show) barFillEnd.gameObject.SetActive(show);
+        }
+
+        var fillRect = barFill.rectTransform;
+        var rect = fillRect.rect;
+        float x = Mathf.Lerp(rect.xMin, rect.xMax, fill) + barFillEndOffset;
+
+        // Authored somewhere other than under the fill: carry the point over into the cap's own parent.
+        var parent = barFillEnd.parent as RectTransform;
+        if (parent != null && parent != fillRect)
+            x = parent.InverseTransformPoint(fillRect.TransformPoint(new Vector3(x, 0f, 0f))).x;
+
+        barFillEnd.anchoredPosition = new Vector2(x, barFillEnd.anchoredPosition.y);
     }
+
+    /// <param name="reached">Reached as far as the bar has filled so far, which may trail the run's XP.</param>
+    private void ApplyNodeState(int index, bool reached, bool punch) =>
+        _nodes[index].SetState(reached, _milestones[index].Claimed, punch);
 
     private void BuildNodes()
     {
-        if (nodeTemplate == null || barArea == null || _milestones == null) return;
+        if (nodeTemplate == null || barFill == null || _milestones == null) return;
         nodeTemplate.gameObject.SetActive(false);
 
         _maxXp = 1;
@@ -195,21 +233,23 @@ public class MilestoneTrack : MonoBehaviour
 
             var milestone = _milestones[i];
             node.SetLabels(GauntletRun.MilestoneRewardName(milestone.Reward), milestone.Xp.ToString());
+            node.SetRewardIcon(GauntletRun.Catalog.Icon(milestone.Reward),
+                GauntletRun.Catalog.IconTint(milestone.Reward, Color.white));
         }
 
         LayoutNodes();
     }
 
     /// <summary>
-    /// Spreads the nodes along the bar by XP. The bar's extent is read in world space, so it is only
-    /// meaningful once the track is actually drawn at size: under the end-of-match panel it is built
-    /// while the panel is still scaled to zero, which collapses every corner onto one point and would
-    /// stack the whole track in one spot. In that case the layout waits for the scale-in (see
-    /// <see cref="LateUpdate"/>).
+    /// Spreads the nodes along the fill by XP, so a node sits exactly where the bar reaches it. The
+    /// fill's extent is read in world space, so it is only meaningful once the track is actually drawn at
+    /// size: under the end-of-match panel it is built while the panel is still scaled to zero, which
+    /// collapses every corner onto one point and would stack the whole track in one spot. In that case
+    /// the layout waits for the scale-in (see <see cref="LateUpdate"/>).
     /// </summary>
     private void LayoutNodes()
     {
-        if (nodeTemplate == null || barArea == null || _milestones == null) return;
+        if (nodeTemplate == null || barFill == null || _milestones == null) return;
 
         if (transform.lossyScale.x <= 0.0001f)
         {
@@ -218,10 +258,10 @@ public class MilestoneTrack : MonoBehaviour
         }
         _nodesNeedLayout = false;
 
-        // The bar's local x-range in the nodes' parent, so a node sits right above its XP on the bar.
+        // The fill's local x-range in the nodes' parent, so a node sits right above its XP on the bar.
         var parent = (RectTransform)nodeTemplate.transform.parent;
         var corners = new Vector3[4];
-        barArea.GetWorldCorners(corners);
+        barFill.rectTransform.GetWorldCorners(corners);
         float left = parent.InverseTransformPoint(corners[0]).x;
         float right = parent.InverseTransformPoint(corners[3]).x;
 
@@ -248,16 +288,19 @@ public class MilestoneTrack : MonoBehaviour
         var trigger = target.GetComponent<EventTrigger>();
         if (trigger == null) trigger = target.AddComponent<EventTrigger>();
 
-        AddTrigger(trigger, EventTriggerType.PointerEnter, () =>
+        if (hoverableNodes)
         {
-            node.SetHovered(true);
-            NodeHovered?.Invoke(index, true);
-        });
-        AddTrigger(trigger, EventTriggerType.PointerExit, () =>
-        {
-            node.SetHovered(false);
-            NodeHovered?.Invoke(index, false);
-        });
+            AddTrigger(trigger, EventTriggerType.PointerEnter, () =>
+            {
+                node.SetHovered(true);
+                NodeHovered?.Invoke(index, true);
+            });
+            AddTrigger(trigger, EventTriggerType.PointerExit, () =>
+            {
+                node.SetHovered(false);
+                NodeHovered?.Invoke(index, false);
+            });
+        }
         AddTrigger(trigger, EventTriggerType.PointerClick, () => NodeClicked?.Invoke(index));
     }
 

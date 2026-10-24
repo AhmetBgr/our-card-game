@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -38,6 +38,33 @@ public class CardSelectionPanel : MonoBehaviour
     [Tooltip("How much a hovered option swells, on top of the base scale. The layout group doesn't control child size, so growing a card shifts nothing around it.")]
     [SerializeField] private float hoverScale = 1.2f;
 
+    [Header("Taking a card")]
+    [Tooltip("OFF: a taken card resolves the choice outright, with nothing played first. On, the taken " +
+             "card is punched and flown into the deck while the others bow out, and closeDelay below is " +
+             "what holds the panel up for it.")]
+    [SerializeField] private bool playTakeAnimation = false;
+
+    [Tooltip("How long the panel stays up after a card is taken. Only worth anything with " +
+             "playTakeAnimation on -- with it off this is a dead pause, so it is 0. Keep it at or above " +
+             "punch + fly, or the panel goes away mid-flight.")]
+    [SerializeField] private float closeDelay = 0f;
+
+    [Tooltip("Where a taken card flies to when nothing else says otherwise. The rewards screen points " +
+             "this at the loadout's deck list instead (see SetDeckTarget).")]
+    [SerializeField] private RectTransform deckTarget;
+
+    [Tooltip("How hard the taken card is punched the moment it is clicked.")]
+    [SerializeField] private float pickPunchScale = 0.18f;
+    [SerializeField] private float pickPunchDuration = 0.08f;
+
+    [Tooltip("How long the taken card takes to fly into the deck, and how small it gets on the way.")]
+    [SerializeField] private float flyDuration = 0.15f;
+    [SerializeField] private float flyEndScale = 0.3f;
+
+    [Tooltip("How the cards beside the taken one bow out.")]
+    [SerializeField] private float discardDuration = 0.08f;
+    [SerializeField] private float discardScale = 0.85f;
+
     [Header("See Board")]
     [Tooltip("Optional. Toggles the options out of the way so the board underneath can be read. Left " +
              "unassigned, one is built at runtime — same self-installing approach as BoardInteractionGate, " +
@@ -50,6 +77,22 @@ public class CardSelectionPanel : MonoBehaviour
     private Vector3 BaseScale => Vector3.one * baseCardScale;
 
     private readonly List<GameObject> _spawned = new List<GameObject>();
+
+    /// <summary>One click takes one card: a second, on the option beside it, is not a second pick.</summary>
+    private bool _taken;
+
+    /// <summary>
+    /// Where this request's card should fly, handed over by whoever opened it. Cleared by every
+    /// <see cref="Open"/>, so a target that belonged to a reward pick can never be reused by an
+    /// in-match choice that has no deck to go into.
+    /// </summary>
+    private RectTransform _deckTargetOverride;
+
+    /// <summary>The wait between the click and resolving the choice. Killed if the panel goes away first.</summary>
+    private Tween _closeCall;
+
+    /// <summary>The take / discard animations, killed together when the options are cleared.</summary>
+    private readonly List<Sequence> _pickAnims = new List<Sequence>();
 
     // True while the options are tucked away and the player is reading the board.
     private bool _peeking;
@@ -104,7 +147,7 @@ public class CardSelectionPanel : MonoBehaviour
     /// so reloading the match scene (Replay) picks up the new scene's panel instead of a destroyed one —
     /// Unity's overloaded == reports a destroyed object as null, which is what drives the re-find.
     /// </summary>
-    private static CardSelectionPanel Resolve()
+    public static CardSelectionPanel Resolve()
     {
         if (_instance == null)
         {
@@ -123,6 +166,8 @@ public class CardSelectionPanel : MonoBehaviour
     public void Open(IReadOnlyList<CardSO> options, string prompt, bool faceDown = false)
     {
         Clear();
+        _taken = false;
+        _deckTargetOverride = null;
 
         if (optionsContainer == null || optionPrefab == null)
         {
@@ -197,12 +242,98 @@ public class CardSelectionPanel : MonoBehaviour
                 // inert button also drops the hover/press tinting that would make these look clickable.
                 button.interactable = !faceDown;
                 if (!faceDown)
-                    button.onClick.AddListener(() => CardChoice.Instance.TryResolveClick(option));
+                {
+                    GameObject card = go; // captured per iteration, like the option itself
+                    button.onClick.AddListener(() => Pick(option, card));
+                }
             }
 
             // Stagger the reveal so the options read as being dealt out rather than appearing at once.
             go.transform.localScale = Vector3.zero;
             go.transform.DOScale(baseCardScale, optionRevealDuration).SetDelay(i * optionRevealStagger);
+        }
+    }
+
+    /// <summary>
+    /// Points this request's flight at a spot in the scene -- the deck list the card is about to join.
+    /// Set after the request opens, which clears it: a panel serving an in-match choice has no deck to
+    /// fly to and must not inherit the last reward pick's. Null falls back to the authored
+    /// <see cref="deckTarget"/>.
+    /// </summary>
+    public void SetDeckTarget(RectTransform target) => _deckTargetOverride = target;
+
+    /// <summary>
+    /// Takes a card: the choice is held open for <see cref="closeDelay"/> while the card is seen going
+    /// into the deck, then resolved. Resolving is what closes the panel (CardChoice ends the request,
+    /// which fires Closed), so the delay here IS the delay before the panel goes away.
+    /// </summary>
+    private void Pick(CardSO card, GameObject picked)
+    {
+        if (_taken) return;
+        _taken = true;
+
+        if (playTakeAnimation) PlayTaken(picked);
+
+        if (closeDelay <= 0f)
+        {
+            CardChoice.Instance.TryResolveClick(card);
+            return;
+        }
+
+        // Unscaled, so a paused game can never leave the choice hanging open.
+        _closeCall = DOVirtual.DelayedCall(closeDelay, () =>
+        {
+            _closeCall = null;
+            CardChoice.Instance.TryResolveClick(card);
+        }, ignoreTimeScale: true);
+    }
+
+    /// <summary>
+    /// The card going into the deck: the one taken is punched and then flies into the deck list,
+    /// shrinking and fading, while the cards beside it bow out. Hover and clicks are switched off on all
+    /// of them first, so nothing swells or picks again while this plays.
+    /// </summary>
+    private void PlayTaken(GameObject picked)
+    {
+        RectTransform target = _deckTargetOverride != null ? _deckTargetOverride : deckTarget;
+
+        // Switched off before anything moves. A layout group re-flows its row whenever a child changes
+        // -- SetAsLastSibling below is enough to dirty it -- and the rebuild runs after the tweens each
+        // frame, so it would drag the flying card straight back into line.
+        if (optionsContainer != null && optionsContainer.TryGetComponent(out LayoutGroup layout))
+            layout.enabled = false;
+
+        foreach (var go in _spawned)
+        {
+            if (go == null) continue;
+
+            if (go.TryGetComponent(out Button button)) button.interactable = false;
+            if (go.TryGetComponent(out CardHoverOutline hover)) hover.enabled = false;
+            go.transform.DOKill();
+
+            var group = go.GetComponent<CanvasGroup>();
+            if (group == null) group = go.AddComponent<CanvasGroup>();
+
+            var seq = DOTween.Sequence();
+            _pickAnims.Add(seq);
+
+            if (go != picked)
+            {
+                seq.Append(go.transform.DOScale(baseCardScale * discardScale, discardDuration).SetEase(Ease.InQuad));
+                seq.Join(group.DOFade(0f, discardDuration));
+                continue;
+            }
+
+            // Over the cards beside it on the way out.
+            go.transform.SetAsLastSibling();
+
+            seq.Append(go.transform.DOPunchScale(BaseScale * pickPunchScale, pickPunchDuration, 6, 0.6f));
+            if (target != null)
+            {
+                seq.Append(go.transform.DOMove(target.position, flyDuration).SetEase(Ease.InBack));
+                seq.Join(go.transform.DOScale(baseCardScale * flyEndScale, flyDuration));
+                seq.Join(group.DOFade(0f, flyDuration).SetEase(Ease.InQuad));
+            }
         }
     }
 
@@ -351,6 +482,17 @@ public class CardSelectionPanel : MonoBehaviour
 
     private void Clear()
     {
+        if (_closeCall != null && _closeCall.IsActive()) _closeCall.Kill();
+        _closeCall = null;
+
+        // Back on for the next request: PlayTaken switches it off to let a card fly out of the row.
+        if (optionsContainer != null && optionsContainer.TryGetComponent(out LayoutGroup layout))
+            layout.enabled = true;
+
+        foreach (var seq in _pickAnims)
+            if (seq != null && seq.IsActive()) seq.Kill();
+        _pickAnims.Clear();
+
         foreach (var go in _spawned)
         {
             if (go == null) continue;
@@ -358,5 +500,10 @@ public class CardSelectionPanel : MonoBehaviour
             Destroy(go);
         }
         _spawned.Clear();
+        _taken = false;
     }
+
+    // The close delay is a free-standing tween, not bound to this object, so a panel that goes away
+    // mid-delay (scene reload) would otherwise leave it running with nothing to resolve into.
+    private void OnDestroy() => Clear();
 }

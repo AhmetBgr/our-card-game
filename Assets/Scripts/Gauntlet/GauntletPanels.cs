@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -59,7 +59,8 @@ public class GauntletHeroPanelView
         {
             var chip = passiveChips[i];
             if (chip == null) continue;
-            chip.ShowPassive(passives != null && i < passives.Count ? passives[i] : null);
+            // A slot, not a display chip: filled slots show unlocked, empty ones locked.
+            chip.ShowSlot(passives != null && i < passives.Count ? passives[i] : null);
         }
     }
 

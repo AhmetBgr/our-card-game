@@ -84,6 +84,15 @@ public class BattleXpTrack : MonoBehaviour
         else OnScoreShown(0);
     }
 
+    /// <summary>
+    /// Re-reads the milestones' claimed state on the track, without moving the bar: the rewards panel
+    /// calls it as a reward is taken, so the node's claimed mark lands with it.
+    /// </summary>
+    public void RefreshMilestoneStates()
+    {
+        if (track != null) track.RefreshStates();
+    }
+
     public void Hide()
     {
         Unsubscribe();

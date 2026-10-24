@@ -48,6 +48,38 @@ public class BattleRewardLoadout : MonoBehaviour
         GauntletDeckList.Refresh(deckHeaderText, deckEntryTemplate, _deckEntries, GauntletRun.Deck);
     }
 
+    /// <summary>
+    /// Where a card taken on the rewards screen should fly: the deck list it is about to join. Handed to
+    /// <see cref="CardSelectionPanel.SetDeckTarget"/> when a pick opens, because the panel is a prefab
+    /// and this is a scene object.
+    /// </summary>
+    public RectTransform DeckAnchor =>
+        deckHeaderText != null ? (RectTransform)deckHeaderText.transform : (RectTransform)transform;
+
+    /// <summary>
+    /// The chip a perk taken on the rewards screen is about to fill: the first free slot on the hero's
+    /// passive row. This is what the perk flies to AND what unlocks when it gets there, so the player
+    /// sees the perk appear on the hero. Falls back to the last chip when the row is already full, and
+    /// to null when there are no chips at all.
+    /// </summary>
+    public PassiveChipButton PassiveSlot
+    {
+        get
+        {
+            var chips = hero?.passiveChips;
+            if (chips == null) return null;
+
+            PassiveChipButton last = null;
+            foreach (var chip in chips)
+            {
+                if (chip == null) continue;
+                if (chip.Passive == null) return chip;
+                last = chip;
+            }
+            return last;
+        }
+    }
+
     public void Hide()
     {
         Shift(false);

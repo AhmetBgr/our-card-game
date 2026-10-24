@@ -18,8 +18,8 @@ using UnityEngine.UI;
 ///   * every milestone the battle's XP just reached: the row is added the moment the track under the
 ///     end-of-match panel fills up to it (<see cref="BattleXpTrack.XpShown"/>), and claims it. Instant
 ///     rewards apply on the spot and the row says what they did, an
-///     Upgraded Cards milestone runs its picks like the card row, and a New Perk milestone swaps the list
-///     for its options until one is taken.
+///     Upgraded Cards milestone runs its picks like the card row, and a New Perk milestone opens its
+///     options in the <see cref="PerkSelectionPanel"/>, just as a card row opens the card panel.
 ///
 /// The battle's score is credited here rather than on the way out (<see cref="GauntletRun.CollectScore"/>),
 /// so the milestones the win reaches are already reached by the time the rows are built.
@@ -38,6 +38,9 @@ public class BattleRewardsPanel : MonoBehaviour
         public TextMeshProUGUI label;
         public Image icon;
 
+        /// <summary>Up only while the row can be clicked; the template's "Highlight" child, if it has one.</summary>
+        public GameObject highlight;
+
         /// <summary>Index into <see cref="GauntletRun.Milestones"/>, or -1 for the card reward.</summary>
         public int milestone = -1;
 
@@ -48,8 +51,8 @@ public class BattleRewardsPanel : MonoBehaviour
     [Header("Panel")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private string titleLabel = "Rewards!";
-    [Tooltip("Title while the list shows a milestone's perk options instead of the rewards.")]
-    [SerializeField] private string perkTitleLabel = "Choose a Perk";
+    [Tooltip("Prompt over the perk options while a New Perk milestone is being taken.")]
+    [SerializeField] private string perkPickPrompt = "Draft a New Perk For Your Hero";
 
     [Tooltip("Parent the reward rows are spawned under; drives their layout.")]
     [SerializeField] private Transform rowsContainer;
@@ -66,6 +69,8 @@ public class BattleRewardsPanel : MonoBehaviour
     [Range(0f, 1f)] [SerializeField] private float lockedProceedAlpha = 0.45f;
 
     [Header("Card reward")]
+    [Tooltip("Every line and icon in this section is the fallback for the one in the reward catalog " +
+             "(MilestoneRewardCatalogSO): whatever the catalog leaves empty is read from here.")]
     [SerializeField] private Sprite cardIcon;
     [SerializeField] private string cardRowLabel = "Add {0} cards to your deck";
     [SerializeField] private string cardRowTakenLabel = "{0} cards added to your deck";
@@ -77,16 +82,24 @@ public class BattleRewardsPanel : MonoBehaviour
     [SerializeField] private string cardPickPrompt = "Draft a New Card For Your Deck {0}/{1}";
     [Tooltip("Prompt of a Duplicate milestone's pick.")]
     [SerializeField] private string duplicatePickPrompt = "Choose a Card to Duplicate";
-    [Tooltip("The run's hero and deck, shown beside the options while a card is picked.")]
+    [Tooltip("The run's hero and deck, shown beside the options while a card or a perk is picked.")]
     [SerializeField] private BattleRewardLoadout loadout;
 
+    [Tooltip("Where a New Perk milestone's options are picked, beside the loadout. Left empty, one is " +
+             "looked up in the scene; with none there at all the pick is left to the Draft scene.")]
+    [SerializeField] private PerkSelectionPanel perkPanel;
+
     [Header("Milestone rewards")]
-    [Tooltip("Icon on a milestone row. A perk option shows the passive's own icon instead.")]
+    [Tooltip("Icon on a milestone row whose reward has none of its own in the catalog " +
+             "(MilestoneRewardCatalogSO). A perk option shows the passive's own icon instead.")]
     [SerializeField] private Sprite milestoneIcon;
-    [Tooltip("Tint for that icon: the track's own 'reached' gold, so a milestone row reads as one.")]
+    [Tooltip("Tint for that shared icon: the track's own 'reached' gold, so a milestone row reads as one. " +
+             "A reward with its own icon brings its own tint with it.")]
     [SerializeField] private Color milestoneIconTint = new Color(1f, 0.83f, 0.24f, 1f);
-    [Tooltip("{0} is the milestone's XP, {1} the reward's name.")]
-    [SerializeField] private string milestoneRowLabel = "{0} XP milestone: {1}";
+    [Tooltip("A milestone row reads as its reward and nothing else, the way a card reward row does: the " +
+             "track beside the panel already says which milestone paid for it. {1} is the reward's name " +
+             "and {0} the milestone's XP, so '{0} XP milestone: {1}' puts the milestone back in front.")]
+    [SerializeField] private string milestoneRowLabel = "{1}";
     [Tooltip("Shown on a milestone row once claimed; {0} is what the reward did.")]
     [SerializeField] private string milestoneTakenLabel = "{0}";
     [Tooltip("Shown on the perk milestone's row once a perk is taken; {0} is the perk's name.")]
@@ -101,14 +114,14 @@ public class BattleRewardsPanel : MonoBehaviour
     /// <summary>The reward rows, in the order they are listed.</summary>
     private readonly List<Row> _rows = new List<Row>();
 
-    /// <summary>The perk options currently standing in for the list, if any.</summary>
-    private readonly List<Row> _perkOptions = new List<Row>();
-
-    /// <summary>The milestone row whose perk is being picked.</summary>
+    /// <summary>The milestone row whose perk is being picked, while the perk panel is up.</summary>
     private Row _perkRow;
 
     /// <summary>The row whose card picks are running: the card reward, or an Upgraded Cards milestone.</summary>
     private Row _pickingRow;
+
+    /// <summary>A perk is being picked in the perk panel; nothing here can be taken or proceeded past.</summary>
+    private bool _pickingPerk;
 
     /// <summary>What that row will read once its picks are taken.</summary>
     private string _pickingTakenLabel;
@@ -223,7 +236,6 @@ public class BattleRewardsPanel : MonoBehaviour
 
     private void BuildRows()
     {
-        ClearPerkOptions();
         ClearRows();
 
         if (rowsContainer == null || rowTemplate == null)
@@ -236,7 +248,12 @@ public class BattleRewardsPanel : MonoBehaviour
 
         if (GauntletRun.PendingBattleReward)
         {
-            var row = SpawnRow(cardIcon, string.Format(cardRowLabel, GauntletRun.PicksThisStep));
+            int picks = GauntletRun.BattleCardsOwed;
+            var cards = GauntletRun.Catalog.BattleCards;
+
+            var row = SpawnRow(cards.icon != null ? cards.icon : cardIcon,
+                Or(GauntletRun.Catalog.BattleCardsOffered(picks), string.Format(cardRowLabel, picks)),
+                cards.icon != null ? cards.iconTint : (Color?)null);
             row.button.onClick.AddListener(() => OnCardRowClicked(row));
             _rows.Add(row);
             RevealNextRow(row);
@@ -260,14 +277,18 @@ public class BattleRewardsPanel : MonoBehaviour
             if (milestone.Xp > _shownXp || !IsOwed(milestone) || IsListed(i)) continue;
 
             string name = GauntletRun.MilestoneRewardName(milestone.Reward);
-            var row = SpawnRow(milestoneIcon, string.Format(milestoneRowLabel, milestone.Xp, name), milestoneIconTint);
+
+            // The reward's own icon when the catalog gives it one, the shared milestone icon otherwise.
+            var catalog = GauntletRun.Catalog;
+            var icon = catalog.Icon(milestone.Reward);
+            var tint = catalog.IconTint(milestone.Reward, milestoneIconTint);
+
+            var row = SpawnRow(icon != null ? icon : milestoneIcon,
+                string.Format(milestoneRowLabel, milestone.Xp, name), tint);
             row.milestone = i;
             int index = i;
             row.button.onClick.AddListener(() => OnMilestoneRowClicked(row, index));
             _rows.Add(row);
-
-            // A perk's options have the list to themselves; the row joins the others when they come back.
-            if (_perkOptions.Count > 0) row.button.gameObject.SetActive(false);
             RevealNextRow(row);
         }
     }
@@ -291,9 +312,10 @@ public class BattleRewardsPanel : MonoBehaviour
         foreach (var row in _rows)
         {
             if (row.taken) continue;
-            row.button.interactable = row.milestone < 0
-                ? GauntletRun.PendingBattleReward && GauntletRun.PendingPicks > 0
-                : GauntletRun.CanClaim(row.milestone);
+            SetClickable(row, row.milestone < 0
+                ? GauntletRun.PendingBattleReward && GauntletRun.PendingPicks == 0
+                  && !GauntletRun.PendingPerkPick
+                : GauntletRun.CanClaim(row.milestone));
         }
         RefreshProceed();
     }
@@ -306,11 +328,13 @@ public class BattleRewardsPanel : MonoBehaviour
         button.onClick.RemoveAllListeners();
 
         var iconTransform = button.transform.Find("Icon");
+        var highlight = button.transform.Find("Highlight");
         var row = new Row
         {
             button = button,
             label = button.GetComponentInChildren<TextMeshProUGUI>(true),
             icon = iconTransform != null ? iconTransform.GetComponent<Image>() : null,
+            highlight = highlight != null ? highlight.gameObject : null,
         };
 
         if (row.label != null)
@@ -324,7 +348,22 @@ public class BattleRewardsPanel : MonoBehaviour
             row.icon.color = iconTint ?? Color.white;
             row.icon.enabled = icon != null;
         }
+
+        // However the template was left, the highlight starts out saying whether the row can be clicked.
+        SetClickable(row, button.interactable);
         return row;
+    }
+
+    /// <summary>
+    /// A row invites a click, or it does not: the highlight behind it is up exactly while the button is
+    /// live, so a reward waiting to be taken is the only one that looks like it.
+    /// </summary>
+    private static void SetClickable(Row row, bool clickable)
+    {
+        if (row == null || row.button == null) return;
+
+        row.button.interactable = clickable;
+        if (row.highlight != null) row.highlight.SetActive(clickable);
     }
 
     private void RevealRow(Row row, float delay)
@@ -339,7 +378,7 @@ public class BattleRewardsPanel : MonoBehaviour
         if (row == null) return;
 
         row.taken = true;
-        row.button.interactable = false;
+        SetClickable(row, false);
         if (row.label != null && !string.IsNullOrEmpty(label)) row.label.text = label;
     }
 
@@ -347,12 +386,6 @@ public class BattleRewardsPanel : MonoBehaviour
     {
         foreach (var row in _rows) DestroyRow(row);
         _rows.Clear();
-    }
-
-    private void ClearPerkOptions()
-    {
-        foreach (var row in _perkOptions) DestroyRow(row);
-        _perkOptions.Clear();
     }
 
     private static void DestroyRow(Row row)
@@ -366,10 +399,10 @@ public class BattleRewardsPanel : MonoBehaviour
 
     private void OnCardRowClicked(Row row)
     {
-        if (_leaving || !GauntletRun.PendingBattleReward || GauntletRun.PendingPicks <= 0) return;
+        if (_leaving || !GauntletRun.BeginBattleCardPicks()) return;
 
         _pickingRow = row;
-        _pickingTakenLabel = string.Format(cardRowTakenLabel, GauntletRun.PicksThisStep);
+        _pickingTakenLabel = CardsTakenLabel();
         OpenNextCardPick();
     }
 
@@ -389,7 +422,8 @@ public class BattleRewardsPanel : MonoBehaviour
         int pickNumber = GauntletRun.PicksThisStep - GauntletRun.PendingPicks + 1;
         string prompt = GauntletRun.PickingDuplicate
             ? duplicatePickPrompt
-            : string.Format(cardPickPrompt, pickNumber, GauntletRun.PicksThisStep);
+            : Or(GauntletRun.Catalog.BattleCardsPrompt(pickNumber, GauntletRun.PicksThisStep),
+                string.Format(cardPickPrompt, pickNumber, GauntletRun.PicksThisStep));
 
         gameObject.SetActive(false);
         SetCompanionVisible(false);
@@ -399,7 +433,14 @@ public class BattleRewardsPanel : MonoBehaviour
         // picks stay owed and the Draft scene asks for them, so Proceed must not stay locked here.
         if (CardChoice.Instance.HasActiveRequest)
         {
-            if (loadout != null) loadout.Show();
+            if (loadout != null)
+            {
+                loadout.Show();
+
+                // Still handed over, so turning the card animation back on needs no rewiring here.
+                var cardPanel = CardSelectionPanel.Resolve();
+                if (cardPanel != null) cardPanel.SetDeckTarget(loadout.DeckAnchor);
+            }
         }
         else
         {
@@ -449,6 +490,25 @@ public class BattleRewardsPanel : MonoBehaviour
         _companion.blocksRaycasts = visible;
     }
 
+    /// <summary>What the won-battle card row reads once its picks are taken.</summary>
+    private string CardsTakenLabel()
+    {
+        int picks = GauntletRun.PicksThisStep;
+        return Or(GauntletRun.Catalog.BattleCardsAcquired(picks), string.Format(cardRowTakenLabel, picks));
+    }
+
+    /// <summary>What an Upgraded Cards milestone's row reads once its picks are taken.</summary>
+    private string UpgradedCardsTakenLabel()
+    {
+        int picks = GauntletRun.PicksThisStep;
+        return Or(GauntletRun.Catalog.Acquired(MilestoneReward.UpgradedCards, picks),
+            string.Format(picks == 1 ? upgradedCardTakenLabel : upgradedCardsTakenLabel, picks));
+    }
+
+    /// <summary>The catalog's wording when it has any, this panel's own inspector wording otherwise.</summary>
+    private static string Or(string catalogLine, string fallback) =>
+        !string.IsNullOrEmpty(catalogLine) ? catalogLine : fallback;
+
     // ---------------------------------------------------------------- Milestones
 
     private void OnMilestoneRowClicked(Row row, int index)
@@ -457,15 +517,17 @@ public class BattleRewardsPanel : MonoBehaviour
 
         var reward = GauntletRun.Milestones[index].Reward;
         GauntletRun.ClaimMilestone(index);
+        // The milestone is claimed the moment it is clicked, picks owed or not, so its node can mark now.
+        if (_xpSource != null) _xpSource.RefreshMilestoneStates();
 
         // Upgraded Cards owes picks, New Perk owes a perk; the rest have already applied themselves.
         if (GauntletRun.PendingPicks > 0)
         {
             _pickingRow = row;
-            _pickingTakenLabel = GauntletRun.PickingDuplicate ? null : string.Format(milestoneTakenLabel,
-                string.Format(!GauntletRun.PickingUpgraded ? cardRowTakenLabel
-                        : GauntletRun.PicksThisStep == 1 ? upgradedCardTakenLabel : upgradedCardsTakenLabel,
-                    GauntletRun.PicksThisStep));
+            _pickingTakenLabel = GauntletRun.PickingDuplicate
+                ? null
+                : string.Format(milestoneTakenLabel,
+                    GauntletRun.PickingUpgraded ? UpgradedCardsTakenLabel() : CardsTakenLabel());
             OpenNextCardPick();
             return;
         }
@@ -483,47 +545,60 @@ public class BattleRewardsPanel : MonoBehaviour
     }
 
     /// <summary>
-    /// The perk milestone's options take the list over: the reward rows step aside until one is taken,
-    /// which keeps the pick on this panel rather than handing it to the Draft scene.
+    /// Opens the perk milestone's options the way a card row opens its pick: this panel steps off the
+    /// screen, the end-of-match panel beside it fades, and the options come up in the perk panel with the
+    /// run's loadout next to them.
     /// </summary>
     private void ShowPerkOptions(Row row)
     {
         _perkRow = row;
-        foreach (var other in _rows) other.button.gameObject.SetActive(false);
-        if (titleText != null) titleText.text = perkTitleLabel;
+        _pickingPerk = true;
 
-        var options = GauntletRun.CurrentPerkOptions;
-        for (int i = 0; i < options.Count; i++)
+        if (perkPanel == null) perkPanel = PerkSelectionPanel.Resolve();
+
+        gameObject.SetActive(false);
+        SetCompanionVisible(false);
+
+        bool opened = perkPanel != null
+            && perkPanel.Open(GauntletRun.CurrentPerkOptions, perkPickPrompt, TakePerk);
+
+        // No panel, or nothing to pick from: the perk stays owed and the Draft scene asks for it, so
+        // Proceed must not stay locked here -- the same hand-over an unopenable card pick gets.
+        if (opened)
         {
-            var perk = options[i];
-            if (perk == null) continue;
+            if (loadout != null)
+            {
+                loadout.Show();
 
-            string label = string.IsNullOrEmpty(perk.description)
-                ? perk.passiveName
-                : $"{perk.passiveName}\n<size=72%>{perk.description}</size>";
-            var option = SpawnRow(perk.icon != null ? perk.icon : milestoneIcon, label, null, wrap: true);
-            option.button.onClick.AddListener(() => TakePerk(perk));
-            _perkOptions.Add(option);
-            RevealRow(option, i * rowRevealStagger);
+                // Shown first, so the passive row is filled in and its first free slot can be found:
+                // the locked slot that unlocks to reveal the perk once it is taken.
+                perkPanel.SetUnlockTarget(loadout.PassiveSlot);
+            }
+            return;
         }
 
-        RefreshProceed();
+        Debug.LogWarning("BattleRewardsPanel: no perk choice could be opened; the pick is left to the Draft scene.");
+        _pickingPerk = false;
+        _perkRow = null;
+        _pickBlocked = true;
+        ReturnToPanel();
     }
 
+    /// <summary>Back from the perk panel, which closes the way a finished card pick does.</summary>
     private void TakePerk(HeroPassiveSO perk)
     {
         if (_leaving || perk == null) return;
 
         GauntletRun.AddPerk(perk);
+        if (perkPanel != null) perkPanel.Close();
+        _pickingPerk = false;
 
-        ClearPerkOptions();
-        foreach (var other in _rows) other.button.gameObject.SetActive(true);
-        if (titleText != null) titleText.text = titleLabel;
-
-        MarkTaken(_perkRow, string.Format(perkTakenLabel, perk.passiveName));
+        MarkTaken(_perkRow, Or(GauntletRun.Catalog.Acquired(MilestoneReward.NewPerk, 0, perk.passiveName),
+            string.Format(perkTakenLabel, perk.passiveName)));
         _perkRow = null;
-        RefreshRows();
+        ReturnToPanel();
     }
+
 
     // ---------------------------------------------------------------- Leaving
 
@@ -551,7 +626,7 @@ public class BattleRewardsPanel : MonoBehaviour
     {
         get
         {
-            if (_leaving || _perkOptions.Count > 0) return false;
+            if (_leaving || _pickingPerk) return false;
 
             var milestones = GauntletRun.Milestones;
             for (int i = 0; i < milestones.Count; i++)
@@ -580,8 +655,6 @@ public class BattleRewardsPanel : MonoBehaviour
         UnsubscribeXp();
         transform.DOKill();
         foreach (var row in _rows)
-            if (row.button != null) row.button.transform.DOKill();
-        foreach (var row in _perkOptions)
             if (row.button != null) row.button.transform.DOKill();
     }
 }

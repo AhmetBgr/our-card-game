@@ -618,6 +618,8 @@ MonoBehaviour:
   lockedOverlay: {fileID: 84636532191155571}
   tooltip: {fileID: 821319675202962208}
   forgedInline: {fileID: 7906900010254721522}
+  lockedFrame: {fileID: 9097528780538852016}
+  defaultFrame: {fileID: 3438555279585872344}
   unselectedTint: {r: 1, g: 1, b: 1, a: 0.45}
 --- !u!114 &1592675693167448755
 MonoBehaviour:

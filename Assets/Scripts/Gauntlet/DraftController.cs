@@ -82,12 +82,9 @@ public class DraftController : MonoBehaviour
 
     [Header("Milestones")]
     [SerializeField] private MilestoneTrack milestoneTrack;
-    [Tooltip("Passive chip prefab (PassiveChip) used for each perk option.")]
-    [SerializeField] private PassiveChipButton perkOptionPrefab;
-    [Tooltip("Size each perk option takes in the options row.")]
-    [SerializeField] private Vector2 perkOptionSize = new Vector2(170f, 210f);
-    [SerializeField] private float perkIconScale = 1.8f;
-    [SerializeField] private float perkTextSize = 14f;
+    [Tooltip("The perk option template (PerkOption), which owns the look of an option: its size, its " +
+             "chip, its info panel and its hover.")]
+    [SerializeField] private PerkOptionView perkOptionPrefab;
 
     [Header("Buttons")]
     [Tooltip("Proceed on the briefing step (sits under the selected skull); New Run on the result step.")]
@@ -166,7 +163,9 @@ public class DraftController : MonoBehaviour
         if (GauntletRun.Outcome != GauntletRun.RunOutcome.InProgress) ShowResult();
         else if (GauntletRun.Hero == null) ShowHeroPick();
         else if (GauntletRun.PendingPerkPick) ShowPerkPick();
-        else if (GauntletRun.PendingPicks > 0) ShowCardPick();
+        // Cards a won battle still owes become a draft step here, the rewards panel having been left
+        // without taking them; BeginBattleCardPicks is what turns them into one.
+        else if (GauntletRun.PendingPicks > 0 || GauntletRun.BeginBattleCardPicks()) ShowCardPick();
         else if (GauntletRun.HasUnclaimedMilestone) ShowMilestonePrompt();
         else ShowBriefing();
     }
@@ -284,6 +283,7 @@ public class DraftController : MonoBehaviour
         && GauntletRun.Hero != null
         && GauntletRun.PendingPicks == 0
         && !GauntletRun.PendingPerkPick
+        && !GauntletRun.PendingBattleReward
         && !GauntletRun.HasUnclaimedMilestone;
 
     // ---------------------------------------------------------------- Milestones
@@ -317,7 +317,8 @@ public class DraftController : MonoBehaviour
         !_leaving && !_nextMatchPinned
         && GauntletRun.Outcome == GauntletRun.RunOutcome.InProgress
         && GauntletRun.MilestonesUnlocked
-        && GauntletRun.PendingPicks == 0 && !GauntletRun.PendingPerkPick;
+        && GauntletRun.PendingPicks == 0 && !GauntletRun.PendingPerkPick
+        && !GauntletRun.PendingBattleReward;
 
     private void OnMilestoneHover(int index, bool entered)
     {
@@ -634,8 +635,10 @@ public class DraftController : MonoBehaviour
     }
 
     /// <summary>
-    /// One option per passive: its chip, scaled up, over its name and description. Null
-    /// <paramref name="onPicked"/> shows them for display only (a milestone preview).
+    /// One <see cref="PerkOptionView"/> per passive -- the shared PerkOption prefab, which the
+    /// end-of-match perk milestone (<see cref="PerkSelectionPanel"/>) spawns too, so a perk looks the
+    /// same wherever it is offered. Null <paramref name="onPicked"/> shows them for display only
+    /// (a milestone preview), which the prefab reads as inert.
     /// </summary>
     private void SpawnPerkOptions(IReadOnlyList<HeroPassiveSO> perks, System.Action<HeroPassiveSO> onPicked)
     {
@@ -650,74 +653,22 @@ public class DraftController : MonoBehaviour
             HeroPassiveSO perk = perks[i];
             if (perk == null) continue;
 
-            var go = new GameObject(perk.passiveName, typeof(RectTransform));
-            var rt = (RectTransform)go.transform;
-            rt.SetParent(optionsContainer, false);
-            rt.sizeDelta = perkOptionSize;
-            var layout = go.AddComponent<LayoutElement>();
-            layout.preferredWidth = perkOptionSize.x;
-            layout.preferredHeight = perkOptionSize.y;
-            _spawned.Add(go);
+            PerkOptionView option = Instantiate(perkOptionPrefab, optionsContainer);
+            option.name = perk.passiveName;
+            option.Show(perk);
+            _spawned.Add(option.gameObject);
 
-            var chip = Instantiate(perkOptionPrefab, rt);
-            chip.ShowPassive(perk);
-            var chipRt = (RectTransform)chip.transform;
-            chipRt.anchorMin = chipRt.anchorMax = new Vector2(0.5f, 1f);
-            chipRt.anchoredPosition = new Vector2(0f, -chipRt.rect.height * perkIconScale * 0.5f);
-            chipRt.localScale = Vector3.one * perkIconScale;
-
-            // The option spells the passive out itself, so the chip's own tooltip would only repeat it.
-            string description = perk.passiveName;
-            if (chip.TryGetComponent(out UITooltipTrigger chipTooltip))
-            {
-                if (!string.IsNullOrEmpty(chipTooltip.Message)) description = chipTooltip.Message;
-                chipTooltip.enabled = false;
-            }
-
-            var textGo = new GameObject("Description", typeof(RectTransform));
-            var textRt = (RectTransform)textGo.transform;
-            textRt.SetParent(rt, false);
-            textRt.anchorMin = Vector2.zero;
-            textRt.anchorMax = new Vector2(1f, 0f);
-            textRt.pivot = new Vector2(0.5f, 0f);
-            textRt.sizeDelta = new Vector2(0f, perkOptionSize.y - chipRt.rect.height * perkIconScale - 8f);
-            var text = textGo.AddComponent<TextMeshProUGUI>();
-            if (draftHeaderText != null)
-            {
-                text.font = draftHeaderText.font;
-                text.fontSharedMaterial = draftHeaderText.fontSharedMaterial;
-            }
-            text.fontSize = perkTextSize;
-            text.alignment = TextAlignmentOptions.Top;
-            text.enableWordWrapping = true;
-            text.text = description;
-
+            // No handler on a perk that is only being shown (the run's own perks on the briefing step),
+            // which is also what leaves it inert.
             if (onPicked != null)
-            {
-                System.Action pick = () =>
+                option.OnClicked = _ =>
                 {
                     if (_leaving) return;
                     onPicked(perk);
                 };
-                chip.OnClicked = _ => pick();
 
-                var trigger = go.AddComponent<EventTrigger>();
-                AddTrigger(trigger, EventTriggerType.PointerEnter, () => SetPerkOptionHovered(go, true));
-                AddTrigger(trigger, EventTriggerType.PointerExit, () => SetPerkOptionHovered(go, false));
-                AddTrigger(trigger, EventTriggerType.PointerClick, pick);
-            }
-
-            go.transform.localScale = Vector3.zero;
-            go.transform.DOScale(1f, optionRevealDuration).SetDelay(i * optionRevealStagger);
+            option.PlayReveal(i * optionRevealStagger);
         }
-    }
-
-    private void SetPerkOptionHovered(GameObject option, bool hovered)
-    {
-        if (_leaving && hovered) return;
-
-        option.transform.DOKill();
-        option.transform.DOScale(hovered ? heroHoverScale : 1f, heroHoverDuration);
     }
 
     private void SetHeroOptionHovered(GameObject option, Transform highlighted, bool hovered, string tooltip, RectTransform tooltipAnchor)

@@ -217,6 +217,25 @@ public class GauntletConfigSO : ScriptableObject
     [Tooltip("Starting Mana: max mana the enemy has on its first turn.")]
     [Min(1)] public int blessedStartingMana = 3;
 
+    /// <summary>
+    /// What a milestone reward is worth: the number its wording is written around ({0} in
+    /// <see cref="MilestoneRewardCatalogSO"/>) -- the health it adds, the cards it offers, and so on.
+    /// Rewards that are not a quantity of anything are worth 0.
+    /// </summary>
+    public int RewardAmount(MilestoneReward reward)
+    {
+        switch (reward)
+        {
+            case MilestoneReward.UpgradedCards: return milestoneUpgradedPicks;
+            case MilestoneReward.NewPerk: return perkChoiceCount;
+            case MilestoneReward.BonusHealth: return milestoneBonusHealth;
+            case MilestoneReward.BonusAttack: return milestoneBonusAttack;
+            case MilestoneReward.BiggerHand: return milestoneExtraStartingCards;
+            case MilestoneReward.DuplicateCard: return duplicateChoiceCount;
+            default: return 0;
+        }
+    }
+
     [Header("Scenes")]
     public string draftSceneName = "Draft";
     public string gameSceneName = "Game";
