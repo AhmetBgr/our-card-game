@@ -1058,7 +1058,7 @@ TextureImporter:
         width: 4
         height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1067,6 +1067,50 @@ TextureImporter:
       bones: []
       spriteID: 086e75658b5fc814591ec3ab55843108
       internalID: -1730062020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_43
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 394
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe3f025091c791e4d9443b32247fdc1d
+      internalID: -1818561311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: panel_01_44
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 394
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 15c0dc8414218ff49bdccb1f2fea62cb
+      internalID: 899568355
       vertices: []
       indices: 
       edges: []
@@ -1123,6 +1167,8 @@ TextureImporter:
       panel_01_40: 528996896
       panel_01_41: 832215785
       panel_01_42: -1730062020
+      panel_01_43: -1818561311
+      panel_01_44: 899568355
       panel_01_5: -67600548
       panel_01_6: -2024813826
       panel_01_7: 703188476
